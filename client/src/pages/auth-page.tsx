@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useAuth } from "@/hooks/use-auth"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -10,7 +10,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { insertUserSchema } from "@shared/schema"
 import { z } from "zod"
-import { Redirect } from "wouter"
+import { Redirect, useLocation } from "wouter"
 import { Loader2 } from "lucide-react"
 
 const loginSchema = z.object({
@@ -31,6 +31,7 @@ type RegisterFormData = z.infer<typeof registerSchema>
 export default function AuthPage() {
   const { user, isLoading, loginMutation, registerMutation } = useAuth()
   const [activeTab, setActiveTab] = useState("login")
+  const [, setLocation] = useLocation()
   
   const loginForm = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -52,9 +53,32 @@ export default function AuthPage() {
     },
   })
 
-  // Redirect if already logged in
+  // Handle post-authentication redirect
+  useEffect(() => {
+    if (!isLoading && user) {
+      // Check for pending domain from domain search
+      const pendingDomain = localStorage.getItem('pendingDomain');
+      if (pendingDomain) {
+        localStorage.removeItem('pendingDomain');
+        // Redirect back to home with domain info
+        setLocation('/?domain=' + pendingDomain);
+        return;
+      }
+
+      // Redirect based on user role - both admin and regular users go to home (/)
+      // The Router in App.tsx will handle showing the appropriate dashboard
+      setLocation('/');
+    }
+  }, [user, isLoading, setLocation]);
+
+  // Show loading while redirecting
   if (!isLoading && user) {
-    return <Redirect to="/" />
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="h-8 w-8 animate-spin" />
+        <span className="ml-2">Redirecting...</span>
+      </div>
+    );
   }
 
   const onLogin = (data: LoginFormData) => {
