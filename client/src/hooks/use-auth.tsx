@@ -28,7 +28,7 @@ type RegisterData = z.infer<typeof insertUserSchema>;
 
 export const AuthContext = createContext<AuthContextType | null>(null);
 
-export function AuthProvider({ children }: { children: ReactNode }) {
+export function AuthProvider({ children }: { children: ReactNode }): JSX.Element {
   const { toast } = useToast();
   
   const {

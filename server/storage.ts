@@ -26,7 +26,7 @@ export interface IStorage {
 
   // Hosting account operations
   createHostingAccount(account: InsertHostingAccount): Promise<HostingAccount>;
-  getHostingAccountsByUserId(userId: string): Promise<HostingAccount[]>;
+  getHostingAccountsByUserId(userId: number): Promise<HostingAccount[]>;
   getHostingAccountByDomain(domain: string): Promise<HostingAccount | undefined>;
   updateHostingAccountUsage(id: number, diskUsage: number, bandwidthUsed: number): Promise<void>;
 
@@ -35,8 +35,8 @@ export interface IStorage {
   getPlugins(category?: string, search?: string): Promise<Plugin[]>;
   getPluginById(id: number): Promise<Plugin | undefined>;
   incrementPluginDownloads(pluginId: number): Promise<void>;
-  recordPluginDownload(pluginId: number, userId: string): Promise<void>;
-  getPluginDownloadsByUser(userId: string): Promise<PluginDownload[]>;
+  recordPluginDownload(pluginId: number, userId: number): Promise<void>;
+  getPluginDownloadsByUser(userId: number): Promise<PluginDownload[]>;
 
   // Donation operations
   createDonation(donation: InsertDonation): Promise<Donation>;
@@ -82,7 +82,7 @@ export class DatabaseStorage implements IStorage {
     return hostingAccount;
   }
 
-  async getHostingAccountsByUserId(userId: string): Promise<HostingAccount[]> {
+  async getHostingAccountsByUserId(userId: number): Promise<HostingAccount[]> {
     return await db
       .select()
       .from(hostingAccounts)
@@ -147,14 +147,14 @@ export class DatabaseStorage implements IStorage {
       .where(eq(plugins.id, pluginId));
   }
 
-  async recordPluginDownload(pluginId: number, userId: string): Promise<void> {
+  async recordPluginDownload(pluginId: number, userId: number): Promise<void> {
     await db.insert(pluginDownloads).values({
       pluginId,
       userId,
     });
   }
 
-  async getPluginDownloadsByUser(userId: string): Promise<PluginDownload[]> {
+  async getPluginDownloadsByUser(userId: number): Promise<PluginDownload[]> {
     return await db
       .select()
       .from(pluginDownloads)
