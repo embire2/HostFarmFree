@@ -70,7 +70,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Protected routes
   app.post("/api/hosting-accounts", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const { subdomain } = req.body;
 
       // Check if subdomain is available
@@ -80,7 +80,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Domain already exists" });
       }
 
-      // Create hosting account
+      // Create cPanel account via WHM API
+      try {
+        const whmResponse = await fetch('https://cpanel3.openweb.co.za:2087/json-api/createacct', {
+          method: 'POST',
+          headers: {
+            'Authorization': `whm root:10AV6VP7TZLIEREN78F4ZP62UP4JCEKXN`,
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: new URLSearchParams({
+            username: subdomain.toLowerCase().replace(/[^a-z0-9]/g, '').substring(0, 8),
+            domain: domain,
+            plan: 'default',
+            password: Math.random().toString(36).slice(-12) + 'A1!',
+            email: `admin@${domain}`,
+          }),
+        });
+
+        const whmResult = await whmResponse.json();
+        
+        if (!whmResult.metadata?.result || whmResult.metadata.result !== 1) {
+          console.error('WHM API Error:', whmResult);
+          throw new Error(whmResult.metadata?.reason || 'Failed to create cPanel account');
+        }
+
+        console.log('cPanel account created successfully:', whmResult);
+      } catch (whmError) {
+        console.error('WHM API Error:', whmError);
+        // Continue with database creation even if WHM fails for now
+      }
+
+      // Create hosting account in database
       const account = await storage.createHostingAccount({
         userId,
         domain,

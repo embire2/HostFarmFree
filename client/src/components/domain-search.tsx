@@ -2,11 +2,12 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
-import { Search, CheckCircle, XCircle } from "lucide-react";
+import { Search, CheckCircle, XCircle, UserPlus, LogIn } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
+import { useLocation } from "wouter";
 
 interface DomainSearchProps {
   onSuccess?: () => void;
@@ -18,6 +19,7 @@ export default function DomainSearch({ onSuccess }: DomainSearchProps) {
   const { toast } = useToast();
   const { isAuthenticated } = useAuth();
   const queryClient = useQueryClient();
+  const [, setLocation] = useLocation();
 
   const { data: searchResult, isLoading: isSearching } = useQuery({
     queryKey: ["/api/hosting-accounts/search", lastSearched],
@@ -56,19 +58,28 @@ export default function DomainSearch({ onSuccess }: DomainSearchProps) {
     setLastSearched(searchTerm.trim());
   };
 
-  const handleCreate = () => {
+  const handleCreateHosting = () => {
     if (!isAuthenticated) {
       toast({
         title: "Authentication Required",
         description: "Please sign in to create a hosting account.",
         variant: "destructive",
       });
-      setTimeout(() => {
-        window.location.href = "/api/login";
-      }, 1000);
       return;
     }
     createAccountMutation.mutate(searchTerm.trim());
+  };
+
+  const handleSignUp = () => {
+    // Store the desired domain in localStorage for after registration
+    localStorage.setItem('pendingDomain', lastSearched);
+    setLocation('/auth');
+  };
+
+  const handleSignIn = () => {
+    // Store the desired domain in localStorage for after login
+    localStorage.setItem('pendingDomain', lastSearched);
+    setLocation('/auth');
   };
 
   const isAvailable = lastSearched && !searchResult && !isSearching;
@@ -116,21 +127,49 @@ export default function DomainSearch({ onSuccess }: DomainSearchProps) {
 
             {isAvailable && (
               <div className="bg-green-500/20 border border-green-500/30 rounded-lg p-4">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center text-green-100">
                     <CheckCircle className="w-5 h-5 mr-2" />
                     <span className="font-medium">
                       {lastSearched}.hostme.today is available!
                     </span>
                   </div>
-                  <Button
-                    onClick={handleCreate}
-                    disabled={createAccountMutation.isPending}
-                    className="bg-green-600 hover:bg-green-700 text-white"
-                  >
-                    {createAccountMutation.isPending ? "Creating..." : "Create Account"}
-                  </Button>
                 </div>
+                
+                {isAuthenticated ? (
+                  <div className="flex justify-end">
+                    <Button
+                      onClick={handleCreateHosting}
+                      disabled={createAccountMutation.isPending}
+                      className="bg-green-600 hover:bg-green-700 text-white"
+                    >
+                      {createAccountMutation.isPending ? "Creating..." : "Create Hosting Account"}
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <p className="text-green-100 text-sm">
+                      To claim this domain, please create an account or sign in:
+                    </p>
+                    <div className="flex flex-col sm:flex-row gap-2">
+                      <Button
+                        onClick={handleSignUp}
+                        className="bg-green-600 hover:bg-green-700 text-white flex-1"
+                      >
+                        <UserPlus className="w-4 h-4 mr-2" />
+                        Create Account
+                      </Button>
+                      <Button
+                        onClick={handleSignIn}
+                        variant="outline"
+                        className="border-green-400 text-green-100 hover:bg-green-600/20 flex-1"
+                      >
+                        <LogIn className="w-4 h-4 mr-2" />
+                        Sign In
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
@@ -142,9 +181,11 @@ export default function DomainSearch({ onSuccess }: DomainSearchProps) {
                     {lastSearched}.hostme.today is already taken
                   </span>
                 </div>
-                <div className="mt-2 text-sm text-red-200">
-                  Created: {new Date(searchResult.createdAt).toLocaleDateString()}
-                </div>
+                {searchResult?.createdAt && (
+                  <div className="mt-2 text-sm text-red-200">
+                    Created: {new Date(searchResult.createdAt).toLocaleDateString()}
+                  </div>
+                )}
               </div>
             )}
           </div>
