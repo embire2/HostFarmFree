@@ -24,10 +24,12 @@ export const sessions = pgTable(
   (table) => [index("IDX_session_expire").on(table.expire)],
 );
 
-// User storage table (required for Replit Auth)
+// User storage table
 export const users = pgTable("users", {
-  id: varchar("id").primaryKey().notNull(),
+  id: serial("id").primaryKey(),
+  username: varchar("username").notNull().unique(),
   email: varchar("email").unique(),
+  password: varchar("password").notNull(),
   firstName: varchar("first_name"),
   lastName: varchar("last_name"),
   profileImageUrl: varchar("profile_image_url"),
@@ -39,7 +41,7 @@ export const users = pgTable("users", {
 // Hosting accounts table
 export const hostingAccounts = pgTable("hosting_accounts", {
   id: serial("id").primaryKey(),
-  userId: varchar("user_id").notNull().references(() => users.id),
+  userId: integer("user_id").notNull().references(() => users.id),
   domain: varchar("domain").notNull().unique(),
   subdomain: varchar("subdomain").notNull(), // e.g., "mysite" for mysite.hostme.today
   status: varchar("status").notNull().default("active"), // 'active' | 'suspended' | 'pending'
@@ -65,7 +67,7 @@ export const plugins = pgTable("plugins", {
   downloadCount: integer("download_count").default(0),
   imageUrl: varchar("image_url"),
   isActive: boolean("is_active").default(true),
-  uploadedBy: varchar("uploaded_by").notNull().references(() => users.id),
+  uploadedBy: integer("uploaded_by").notNull().references(() => users.id),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -74,14 +76,14 @@ export const plugins = pgTable("plugins", {
 export const pluginDownloads = pgTable("plugin_downloads", {
   id: serial("id").primaryKey(),
   pluginId: integer("plugin_id").notNull().references(() => plugins.id),
-  userId: varchar("user_id").notNull().references(() => users.id),
+  userId: integer("user_id").notNull().references(() => users.id),
   downloadedAt: timestamp("downloaded_at").defaultNow(),
 });
 
 // Donations table
 export const donations = pgTable("donations", {
   id: serial("id").primaryKey(),
-  userId: varchar("user_id").references(() => users.id), // can be null for anonymous donations
+  userId: integer("user_id").references(() => users.id), // can be null for anonymous donations
   amount: integer("amount").notNull(), // in cents
   currency: varchar("currency").notNull().default("USD"),
   status: varchar("status").notNull().default("pending"), // 'pending' | 'completed' | 'failed'
