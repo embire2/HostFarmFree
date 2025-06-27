@@ -121,6 +121,7 @@ export const donationsRelations = relations(donations, ({ one }) => ({
 
 // Schemas for validation
 export const insertUserSchema = createInsertSchema(users).omit({
+  id: true,
   createdAt: true,
   updatedAt: true,
 });
@@ -144,7 +145,7 @@ export const insertDonationSchema = createInsertSchema(donations).omit({
 });
 
 // Types
-export type UpsertUser = z.infer<typeof insertUserSchema>;
+export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 export type InsertHostingAccount = z.infer<typeof insertHostingAccountSchema>;
 export type HostingAccount = typeof hostingAccounts.$inferSelect;

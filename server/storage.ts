@@ -5,7 +5,7 @@ import {
   pluginDownloads,
   donations,
   type User,
-  type UpsertUser,
+  type InsertUser,
   type HostingAccount,
   type InsertHostingAccount,
   type Plugin,
