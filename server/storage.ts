@@ -149,8 +149,8 @@ export class DatabaseStorage implements IStorage {
 
   async recordPluginDownload(pluginId: number, userId: number): Promise<void> {
     await db.insert(pluginDownloads).values({
-      pluginId,
-      userId,
+      pluginId: pluginId,
+      userId: userId,
     });
   }
 
