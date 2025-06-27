@@ -33,7 +33,7 @@ function Router() {
         </>
       ) : (
         <>
-          {user?.role === "admin" ? (
+          {(user as any)?.role === "admin" ? (
             <>
               <Route path="/" component={AdminDashboard} />
               <Route path="/client" component={ClientDashboard} />

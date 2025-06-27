@@ -114,25 +114,20 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getPlugins(category?: string, search?: string): Promise<Plugin[]> {
-    let query = db
-      .select()
-      .from(plugins)
-      .where(eq(plugins.isActive, true));
+    let query = db.select().from(plugins);
+    let conditions = [eq(plugins.isActive, true)];
 
     if (category && category !== "all") {
-      query = query.where(and(eq(plugins.isActive, true), eq(plugins.category, category)));
+      conditions.push(eq(plugins.category, category));
     }
 
     if (search) {
-      query = query.where(
-        and(
-          eq(plugins.isActive, true),
-          ilike(plugins.name, `%${search}%`)
-        )
-      );
+      conditions.push(ilike(plugins.name, `%${search}%`));
     }
 
-    return await query.orderBy(desc(plugins.downloadCount));
+    return await query
+      .where(and(...conditions))
+      .orderBy(desc(plugins.downloadCount));
   }
 
   async getPluginById(id: number): Promise<Plugin | undefined> {
