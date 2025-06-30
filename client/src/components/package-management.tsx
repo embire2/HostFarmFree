@@ -521,7 +521,7 @@ export default function PackageManagement() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {packages.map((pkg: any) => (
+        {Array.isArray(packages) && packages.map((pkg: any) => (
           <Card key={pkg.id} className="relative">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
@@ -610,7 +610,7 @@ export default function PackageManagement() {
         ))}
       </div>
 
-      {packages.length === 0 && (
+      {Array.isArray(packages) && packages.length === 0 && (
         <Card className="text-center py-12">
           <CardContent>
             <Package className="mx-auto h-12 w-12 text-muted-foreground mb-4" />

@@ -41,17 +41,17 @@ export default function ClientDashboard() {
     }
   }, [isAuthenticated, isLoading, toast]);
 
-  const { data: hostingAccounts, isLoading: accountsLoading } = useQuery({
+  const { data: hostingAccounts = [], isLoading: accountsLoading } = useQuery({
     queryKey: ["/api/hosting-accounts"],
     enabled: isAuthenticated,
   });
 
-  const { data: pluginDownloads, isLoading: downloadsLoading } = useQuery({
+  const { data: pluginDownloads = [], isLoading: downloadsLoading } = useQuery({
     queryKey: ["/api/plugin-downloads"],
     enabled: isAuthenticated,
   });
 
-  const { data: stats } = useQuery({
+  const { data: stats = {} } = useQuery({
     queryKey: ["/api/stats"],
   });
 
@@ -120,7 +120,7 @@ export default function ClientDashboard() {
                 <Globe className="h-8 w-8 text-primary" />
                 <div className="ml-4">
                   <p className="text-sm font-medium text-muted-foreground">Active Sites</p>
-                  <p className="text-2xl font-bold">{hostingAccounts?.length || 0}</p>
+                  <p className="text-2xl font-bold">{Array.isArray(hostingAccounts) ? hostingAccounts.length : 0}</p>
                 </div>
               </div>
             </CardContent>

@@ -39,34 +39,28 @@ export default function Navbar() {
             </Link>
             {isAuthenticated && (
               <>
-                <Link href="/">
-                  <a className={`transition-colors ${
-                    location === "/" 
-                      ? "text-primary font-medium" 
-                      : "text-gray-600 hover:text-primary"
-                  }`}>
-                    Dashboard
-                  </a>
+                <Link href="/" className={`transition-colors ${
+                  location === "/" 
+                    ? "text-primary font-medium" 
+                    : "text-gray-600 hover:text-primary"
+                }`}>
+                  Dashboard
                 </Link>
                 {user?.role === "admin" && (
                   <>
-                    <Link href="/client">
-                      <a className={`transition-colors ${
-                        location === "/client" 
-                          ? "text-primary font-medium" 
-                          : "text-gray-600 hover:text-primary"
-                      }`}>
-                        Client View
-                      </a>
+                    <Link href="/client" className={`transition-colors ${
+                      location === "/client" 
+                        ? "text-primary font-medium" 
+                        : "text-gray-600 hover:text-primary"
+                    }`}>
+                      Client View
                     </Link>
-                    <Link href="/admin/api-settings">
-                      <a className={`transition-colors ${
-                        location === "/admin/api-settings" 
-                          ? "text-primary font-medium" 
-                          : "text-gray-600 hover:text-primary"
-                      }`}>
-                        API Settings
-                      </a>
+                    <Link href="/admin/api-settings" className={`transition-colors ${
+                      location === "/admin/api-settings" 
+                        ? "text-primary font-medium" 
+                        : "text-gray-600 hover:text-primary"
+                    }`}>
+                      API Settings
                     </Link>
                   </>
                 )}
