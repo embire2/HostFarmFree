@@ -241,6 +241,10 @@ export default function AdminDashboard() {
         {/* Admin Tabs */}
         <Tabs defaultValue="packages" className="space-y-6">
           <TabsList className="grid w-full grid-cols-6">
+            <TabsTrigger value="packages" className="flex items-center">
+              <Puzzle className="mr-2 h-4 w-4" />
+              Packages
+            </TabsTrigger>
             <TabsTrigger value="plugins" className="flex items-center">
               <Upload className="mr-2 h-4 w-4" />
               Plugin Management
@@ -262,6 +266,10 @@ export default function AdminDashboard() {
               System
             </TabsTrigger>
           </TabsList>
+
+          <TabsContent value="packages" className="space-y-6">
+            <PackageManagement />
+          </TabsContent>
 
           <TabsContent value="plugins" className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
