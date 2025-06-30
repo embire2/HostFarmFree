@@ -228,11 +228,14 @@ export default function PackageManagement() {
               Add Package
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" aria-describedby="package-dialog-description">
             <DialogHeader>
               <DialogTitle>
                 {editingPackage ? "Edit Package" : "Create New Package"}
               </DialogTitle>
+              <div id="package-dialog-description" className="sr-only">
+                Configure hosting package settings including WHM integration and resource quotas
+              </div>
             </DialogHeader>
             
             <Form {...form}>
@@ -341,7 +344,7 @@ export default function PackageManagement() {
                           </FormControl>
                           <SelectContent>
                             {whmLoading ? (
-                              <SelectItem value="" disabled>
+                              <SelectItem value="loading" disabled>
                                 Loading packages...
                               </SelectItem>
                             ) : whmPackages.length > 0 ? (

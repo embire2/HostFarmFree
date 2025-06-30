@@ -22,7 +22,13 @@ export default function DomainSearch({ onSuccess }: DomainSearchProps) {
   const [, setLocation] = useLocation();
 
   const { data: searchResult, isLoading: isSearching } = useQuery({
-    queryKey: ["/api/hosting-accounts/search", lastSearched],
+    queryKey: ["/api/check-subdomain", lastSearched],
+    queryFn: async () => {
+      if (!lastSearched) return null;
+      const subdomain = lastSearched.replace('.hostme.today', '');
+      const response = await fetch(`/api/check-subdomain/${subdomain}`);
+      return response.json();
+    },
     enabled: !!lastSearched,
     retry: false,
   });
