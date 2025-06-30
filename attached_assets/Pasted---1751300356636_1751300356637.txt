@@ -1,0 +1,153 @@
+
+      /////////////////////
+   ///////////////////////////
+  ////////@@@@@@@//////////////
+  ////////@@@@@@@//////////////
+  ////////@@@@@@@//////////////        Curious and driven?
+  ///////////////@@@@@@@///////        Work with us!
+  ///////////////@@@@@@@///////
+  ///////////////@@@@@@@///////        https://join.replit.com/hack.with.us
+  ////////@@@@@@@//////////////
+  ////////@@@@@@@//////////////
+  ////////@@@@@@#//////////////
+   ///////////////////////////
+      /////////////////////
+      
+_app-3064658b658be0bb.js:38 [LaunchDarkly] LaunchDarkly client initialized
+23Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.Understand this error
+framework-943d18a826233b26.js:1 Unrecognized feature: 'ambient-light-sensor'.
+_ @ framework-943d18a826233b26.js:1Understand this warning
+framework-943d18a826233b26.js:1 Unrecognized feature: 'battery'.
+_ @ framework-943d18a826233b26.js:1Understand this warning
+framework-943d18a826233b26.js:1 Unrecognized feature: 'execution-while-not-rendered'.
+_ @ framework-943d18a826233b26.js:1Understand this warning
+framework-943d18a826233b26.js:1 Unrecognized feature: 'execution-while-out-of-viewport'.
+_ @ framework-943d18a826233b26.js:1Understand this warning
+framework-943d18a826233b26.js:1 Unrecognized feature: 'layout-animations'.
+_ @ framework-943d18a826233b26.js:1Understand this warning
+framework-943d18a826233b26.js:1 Unrecognized feature: 'legacy-image-formats'.
+_ @ framework-943d18a826233b26.js:1Understand this warning
+framework-943d18a826233b26.js:1 Unrecognized feature: 'navigation-override'.
+_ @ framework-943d18a826233b26.js:1Understand this warning
+framework-943d18a826233b26.js:1 Unrecognized feature: 'oversized-images'.
+_ @ framework-943d18a826233b26.js:1Understand this warning
+framework-943d18a826233b26.js:1 Unrecognized feature: 'publickey-credentials'.
+_ @ framework-943d18a826233b26.js:1Understand this warning
+framework-943d18a826233b26.js:1 Unrecognized feature: 'speaker-selection'.
+_ @ framework-943d18a826233b26.js:1Understand this warning
+framework-943d18a826233b26.js:1 Unrecognized feature: 'unoptimized-images'.
+_ @ framework-943d18a826233b26.js:1Understand this warning
+framework-943d18a826233b26.js:1 Unrecognized feature: 'unsized-media'.
+_ @ framework-943d18a826233b26.js:1Understand this warning
+framework-943d18a826233b26.js:1 Unrecognized feature: 'pointer-lock'.
+_ @ framework-943d18a826233b26.js:1Understand this warning
+framework-943d18a826233b26.js:1 Allow attribute will take precedence over 'allowfullscreen'.
+_ @ framework-943d18a826233b26.js:1Understand this warning
+framework-943d18a826233b26.js:1 Allow attribute will take precedence over 'allowpaymentrequest'.
+_ @ framework-943d18a826233b26.js:1Understand this warning
+9HostFarmFree:1 Uncaught (in promise) Error: A listener indicated an asynchronous response by returning true, but the message channel closed before a response was receivedUnderstand this error
+_app-3064658b658be0bb.js:38 task queue exceeded allotted deadline by 35ms
+(anonymous) @ _app-3064658b658be0bb.js:38Understand this warning
+Grammarly-check.js:1 [Violation] Permissions policy violation: unload is not allowed in this document.
+(anonymous) @ Grammarly-check.js:1Understand this error
+workspace_iframe.html:32 Unrecognized feature: 'ambient-light-sensor'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'battery'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'execution-while-not-rendered'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'execution-while-out-of-viewport'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'layout-animations'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'legacy-image-formats'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'navigation-override'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'oversized-images'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'publickey-credentials'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'speaker-selection'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'unoptimized-images'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'unsized-media'.Understand this warning
+workspace_iframe.html:32 Allow attribute will take precedence over 'allowfullscreen'.Understand this warning
+workspace_iframe.html:32 Allow attribute will take precedence over 'allowpaymentrequest'.Understand this warning
+Console.js:61 Warning: validateDOMNesting(...): <a> cannot appear as a descendant of <a>.
+    at a
+    at a
+    at https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=25355e8b:337:18
+    at div
+    at div
+    at div
+    at nav
+    at Navbar (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/src/components/navbar.tsx:32:53)
+    at div
+    at AdminDashboard (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/src/pages/admin-dashboard.tsx:51:48)
+    at Route (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=25355e8b:323:16)
+    at Switch (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=25355e8b:379:17)
+    at Router (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/src/App.tsx?v=0i2Prz2ySo7b609EBRfKd:33:48)
+    at Provider (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=25355e8b:38:15)
+    at TooltipProvider (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=25355e8b:62:5)
+    at AuthProvider (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/src/hooks/use-auth.tsx:26:32)
+    at QueryClientProvider (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=25355e8b:2805:3)
+    at App
+Mt.forEach.n.<computed> @ Console.js:61Understand this error
+da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/api/admin/whm-packages:1 
+            
+            
+           Failed to load resource: the server responded with a status of 500 (Internal Server Error)Understand this error
+Console.js:61 Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+Mt.forEach.n.<computed> @ Console.js:61Understand this warning
+2@radix-ui_react-select.js?v=25355e8b:875 Uncaught Error: A <Select.Item /> must have a value prop that is not an empty string. This is because the Select value can be set to an empty string to clear the selection and show the placeholder.
+    at @radix-ui_react-select.js?v=25355e8b:875:13
+    at renderWithHooks (chunk-RPCDYKBN.js?v=25355e8b:11548:26)
+    at updateForwardRef (chunk-RPCDYKBN.js?v=25355e8b:14325:28)
+    at beginWork (chunk-RPCDYKBN.js?v=25355e8b:15946:22)
+    at HTMLUnknownElement.callCallback2 (chunk-RPCDYKBN.js?v=25355e8b:3674:22)
+    at Object.invokeGuardedCallbackDev (chunk-RPCDYKBN.js?v=25355e8b:3699:24)
+    at invokeGuardedCallback (chunk-RPCDYKBN.js?v=25355e8b:3733:39)
+    at beginWork$1 (chunk-RPCDYKBN.js?v=25355e8b:19765:15)
+    at performUnitOfWork (chunk-RPCDYKBN.js?v=25355e8b:19198:20)
+    at workLoopSync (chunk-RPCDYKBN.js?v=25355e8b:19137:13)Understand this error
+Console.js:61 The above error occurred in the <SelectItem> component:
+
+    at https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-select.js?v=25355e8b:848:7
+    at _c11 (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/src/components/ui/select.tsx:208:13)
+    at div
+    at https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-AXMZZQ2X.js?v=25355e8b:42:13
+    at https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-2K77HOHX.js?v=25355e8b:79:13
+    at https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-2K77HOHX.js?v=25355e8b:56:13
+    at https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-TPYHSINA.js?v=25355e8b:39:15
+    at https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-select.js?v=25355e8b:759:13
+    at div
+    at https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-2K77HOHX.js?v=25355e8b:79:13
+    at https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-2K77HOHX.js?v=25355e8b:56:13
+    at https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-TPYHSINA.js?v=25355e8b:39:15
+    at Provider (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=25355e8b:38:15)
+    at https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-select.js?v=25355e8b:302:58
+    at https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-2K77HOHX.js?v=25355e8b:79:13
+    at https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-2K77HOHX.js?v=25355e8b:56:13
+    at https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-AXMZZQ2X.js?v=25355e8b:42:13
+    at https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-C7SZJ2M3.js?v=25355e8b:260:22
+    at SelectPortal
+    at _c7 (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/src/components/ui/select.tsx:123:12)
+    at Provider (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=25355e8b:38:15)
+    at Provider (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=25355e8b:38:15)
+    at CollectionProvider (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-TPYHSINA.js?v=25355e8b:29:13)
+    at Provider (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=25355e8b:38:15)
+    at Provider (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=25355e8b:38:15)
+    at Popper (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-TSMXHQXX.js?v=25355e8b:1921:11)
+    at Select (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-select.js?v=25355e8b:90:5)
+    at div
+    at https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/src/components/ui/form.tsx:72:6
+    at Controller (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-4BFJKWC4.js?v=25355e8b:298:35)
+    at FormField (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/src/components/ui/form.tsx:33:6)
+    at div
+    at form
+    at FormProvider (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-4BFJKWC4.js?v=25355e8b:102:11)
+    at div
+    at https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node
+Mt.forEach.n.<computed> @ Console.js:61Understand this error
+chunk-RPCDYKBN.js?v=25355e8b:9129 Uncaught Error: A <Select.Item /> must have a value prop that is not an empty string. This is because the Select value can be set to an empty string to clear the selection and show the placeholder.
+    at @radix-ui_react-select.js?v=25355e8b:875:13
+    at renderWithHooks (chunk-RPCDYKBN.js?v=25355e8b:11548:26)
+    at updateForwardRef (chunk-RPCDYKBN.js?v=25355e8b:14325:28)
+    at beginWork (chunk-RPCDYKBN.js?v=25355e8b:15946:22)
+    at beginWork$1 (chunk-RPCDYKBN.js?v=25355e8b:19753:22)
+    at performUnitOfWork (chunk-RPCDYKBN.js?v=25355e8b:19198:20)
+    at workLoopSync (chunk-RPCDYKBN.js?v=25355e8b:19137:13)
+    at renderRootSync (chunk-RPCDYKBN.js?v=25355e8b:19116:15)
+    at recoverFromConcurrentError (chunk-RPCDYKBN.js?v=25355e8b:18736:28)
+    at performSyncWorkOnRoot (chunk-RPCDYKBN.js?v=25355e8b:18879:28)Understand this error

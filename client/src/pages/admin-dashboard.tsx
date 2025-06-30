@@ -82,15 +82,15 @@ export default function AdminDashboard() {
     }
   }, [isAuthenticated, isLoading, user, toast]);
 
-  const { data: stats } = useQuery({
+  const { data: stats = {} } = useQuery({
     queryKey: ["/api/stats"],
   });
 
-  const { data: plugins } = useQuery({
+  const { data: plugins = [] } = useQuery({
     queryKey: ["/api/plugins"],
   });
 
-  const { data: donations } = useQuery({
+  const { data: donations = [] } = useQuery({
     queryKey: ["/api/admin/donations"],
     enabled: isAuthenticated && user?.role === "admin",
   });

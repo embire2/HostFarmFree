@@ -85,7 +85,7 @@ export default function PackageManagement() {
     queryKey: ["/api/admin/whm-packages"],
   });
 
-  const whmPackages = whmPackagesData?.packages || [];
+  const whmPackages = Array.isArray(whmPackagesData) ? whmPackagesData : [];
 
   // Create package mutation
   const createPackageMutation = useMutation({
@@ -351,7 +351,7 @@ export default function PackageManagement() {
                                 </SelectItem>
                               ))
                             ) : (
-                              <SelectItem value="" disabled>
+                              <SelectItem value="none" disabled>
                                 No WHM packages found
                               </SelectItem>
                             )}
