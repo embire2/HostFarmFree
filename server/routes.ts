@@ -613,7 +613,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } catch (error) {
         console.error(`[WHM API] Method 1 Exception:`, error);
         lastError = error;
-        authMethods.push({ method: 1, error: error.message });
+        authMethods.push({ method: 1, error: error instanceof Error ? error.message : String(error) });
       }
 
       // Method 2: Bearer token format
@@ -659,7 +659,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } catch (error) {
         console.error(`[WHM API] Method 2 Exception:`, error);
         lastError = error;
-        authMethods.push({ method: 2, error: error.message });
+        authMethods.push({ method: 2, error: error instanceof Error ? error.message : String(error) });
       }
 
       // Method 3: Direct token in URL
@@ -704,14 +704,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } catch (error) {
         console.error(`[WHM API] Method 3 Exception:`, error);
         lastError = error;
-        authMethods.push({ method: 3, error: error.message });
+        authMethods.push({ method: 3, error: error instanceof Error ? error.message : String(error) });
       }
 
       // Log comprehensive failure summary
       console.error(`[WHM API] ALL METHODS FAILED - Summary:`, {
         totalMethods: authMethods.length,
         methods: authMethods,
-        lastError: lastError?.message,
+        lastError: lastError instanceof Error ? lastError.message : lastError ? String(lastError) : 'none',
         apiUrl,
         baseUrl
       });
