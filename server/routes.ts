@@ -127,7 +127,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/hosting-accounts", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const accounts = await storage.getHostingAccountsByUserId(userId);
       res.json(accounts);
     } catch (error) {
@@ -160,7 +160,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/plugins/:id/download", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const pluginId = parseInt(req.params.id);
 
       const plugin = await storage.getPluginById(pluginId);
@@ -189,7 +189,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/plugin-downloads", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const downloads = await storage.getPluginDownloadsByUser(userId);
       res.json(downloads);
     } catch (error) {
