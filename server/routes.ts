@@ -243,6 +243,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // cPanel auto-login endpoint
+  app.get("/api/cpanel-login/:domain", isAuthenticated, async (req: any, res) => {
+    try {
+      const { domain } = req.params;
+      const userId = req.user.id;
+      
+      // Verify the user owns this hosting account
+      const hostingAccount = await storage.getHostingAccountByDomain(domain);
+      if (!hostingAccount || hostingAccount.userId !== userId) {
+        return res.status(403).json({ error: "Access denied to this hosting account" });
+      }
+
+      // Get API settings
+      const apiSettings = await storage.getApiSettings();
+      if (!apiSettings) {
+        return res.status(500).json({ error: "cPanel integration not configured" });
+      }
+
+      // Create auto-login URL
+      const cpanelUrl = `${apiSettings.cpanelBaseUrl}/login/?user=${hostingAccount.subdomain}&domain=${domain}`;
+      
+      res.json({ 
+        loginUrl: cpanelUrl,
+        domain: domain,
+        username: hostingAccount.subdomain 
+      });
+    } catch (error) {
+      console.error("Error generating cPanel login:", error);
+      res.status(500).json({ error: "Failed to generate cPanel login" });
+    }
+  });
+
   app.post("/api/admin/plugins", isAuthenticated, requireAdmin, upload.single("pluginFile"), async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;

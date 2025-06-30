@@ -38,7 +38,7 @@ export default function ApiSettings() {
   const { toast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
 
-  const { data: settings, isLoading } = useQuery({
+  const { data: settings, isLoading } = useQuery<ApiSettings | null>({
     queryKey: ["/api/api-settings"],
     retry: false,
   });

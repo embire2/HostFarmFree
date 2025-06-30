@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import Navbar from "@/components/navbar";
 import { apiRequest } from "@/lib/queryClient";
+import ApiSettings from "@/components/api-settings";
 
 export default function AdminDashboard() {
   const { user, isAuthenticated, isLoading } = useAuth();
@@ -213,7 +214,7 @@ export default function AdminDashboard() {
 
         {/* Admin Tabs */}
         <Tabs defaultValue="plugins" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="plugins" className="flex items-center">
               <Upload className="mr-2 h-4 w-4" />
               Plugin Management
@@ -225,6 +226,10 @@ export default function AdminDashboard() {
             <TabsTrigger value="donations" className="flex items-center">
               <Heart className="mr-2 h-4 w-4" />
               Donations
+            </TabsTrigger>
+            <TabsTrigger value="api-settings" className="flex items-center">
+              <Settings className="mr-2 h-4 w-4" />
+              API Settings
             </TabsTrigger>
             <TabsTrigger value="system" className="flex items-center">
               <Server className="mr-2 h-4 w-4" />
@@ -460,6 +465,10 @@ export default function AdminDashboard() {
                 )}
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="api-settings" className="space-y-6">
+            <ApiSettings />
           </TabsContent>
 
           <TabsContent value="system" className="space-y-6">
