@@ -8,6 +8,7 @@ import {
   serial,
   integer,
   boolean,
+  decimal,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
@@ -42,8 +43,12 @@ export const users = pgTable("users", {
 export const hostingAccounts = pgTable("hosting_accounts", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull().references(() => users.id),
+  packageId: integer("package_id").references(() => hostingPackages.id),
   domain: varchar("domain").notNull().unique(),
   subdomain: varchar("subdomain").notNull(), // e.g., "mysite" for mysite.hostme.today
+  cpanelUsername: varchar("cpanel_username", { length: 255 }),
+  cpanelPassword: varchar("cpanel_password", { length: 255 }), // encrypted
+  whmAccountId: varchar("whm_account_id", { length: 255 }), // WHM account identifier
   status: varchar("status").notNull().default("active"), // 'active' | 'suspended' | 'pending'
   diskUsage: integer("disk_usage").default(0), // in MB
   diskLimit: integer("disk_limit").default(5120), // 5GB in MB
@@ -106,6 +111,39 @@ export const apiSettings = pgTable("api_settings", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Hosting packages that can be assigned to users
+export const hostingPackages = pgTable("hosting_packages", {
+  id: serial("id").primaryKey(),
+  name: varchar("name", { length: 255 }).notNull(),
+  displayName: varchar("display_name", { length: 255 }).notNull(),
+  description: text("description"),
+  price: integer("price").notNull().default(0), // in cents
+  currency: varchar("currency", { length: 3 }).notNull().default("USD"),
+  diskSpaceQuota: integer("disk_space_quota").notNull(), // in MB
+  bandwidthQuota: integer("bandwidth_quota").notNull(), // in MB
+  emailAccounts: integer("email_accounts").notNull().default(0),
+  databases: integer("databases").notNull().default(0),
+  subdomains: integer("subdomains").notNull().default(0),
+  whmPackageName: varchar("whm_package_name", { length: 255 }).notNull(), // WHM package identifier
+  isActive: boolean("is_active").default(true),
+  isFree: boolean("is_free").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Track package usage statistics
+export const packageUsage = pgTable("package_usage", {
+  id: serial("id").primaryKey(),
+  hostingAccountId: integer("hosting_account_id").references(() => hostingAccounts.id, { onDelete: "cascade" }).notNull(),
+  diskUsed: integer("disk_used").notNull().default(0), // in MB
+  bandwidthUsed: integer("bandwidth_used").notNull().default(0), // in MB
+  emailAccountsUsed: integer("email_accounts_used").notNull().default(0),
+  databasesUsed: integer("databases_used").notNull().default(0),
+  subdomainsUsed: integer("subdomains_used").notNull().default(0),
+  lastUpdated: timestamp("last_updated").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   hostingAccounts: many(hostingAccounts),
@@ -116,6 +154,16 @@ export const usersRelations = relations(users, ({ many }) => ({
 
 export const hostingAccountsRelations = relations(hostingAccounts, ({ one }) => ({
   user: one(users, { fields: [hostingAccounts.userId], references: [users.id] }),
+  package: one(hostingPackages, { fields: [hostingAccounts.packageId], references: [hostingPackages.id] }),
+  usage: one(packageUsage, { fields: [hostingAccounts.id], references: [packageUsage.hostingAccountId] }),
+}));
+
+export const hostingPackagesRelations = relations(hostingPackages, ({ many }) => ({
+  hostingAccounts: many(hostingAccounts),
+}));
+
+export const packageUsageRelations = relations(packageUsage, ({ one }) => ({
+  hostingAccount: one(hostingAccounts, { fields: [packageUsage.hostingAccountId], references: [hostingAccounts.id] }),
 }));
 
 export const pluginsRelations = relations(plugins, ({ one, many }) => ({
