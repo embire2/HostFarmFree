@@ -569,16 +569,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let lastError;
       const authMethods = [];
       
-      // Method 1: WHM token format
+      // Method 1: Direct API token (per cPanel documentation)
       try {
-        const cleanToken = apiSettings.whmApiToken.replace(/^whm\s+/i, '');
-        const authHeader = `WHM ${cleanToken}`;
-        console.log(`[WHM API] Method 1 - WHM token format, token length: ${cleanToken.length}, auth header length: ${authHeader.length}`);
+        const cleanToken = apiSettings.whmApiToken.replace(/^(whm|bearer)\s+/i, '');
+        console.log(`[WHM API] Method 1 - Direct API token, token length: ${cleanToken.length}`);
         
         response = await fetch(apiUrl, {
           method: 'GET',
           headers: {
-            'Authorization': authHeader,
+            'Authorization': `WHM ${cleanToken}`,
             'Content-Type': 'application/json',
           },
         });
