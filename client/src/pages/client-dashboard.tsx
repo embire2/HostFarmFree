@@ -132,7 +132,7 @@ export default function ClientDashboard() {
                 <Download className="h-8 w-8 text-accent" />
                 <div className="ml-4">
                   <p className="text-sm font-medium text-muted-foreground">Downloaded Plugins</p>
-                  <p className="text-2xl font-bold">{pluginDownloads?.length || 0}</p>
+                  <p className="text-2xl font-bold">{Array.isArray(pluginDownloads) ? pluginDownloads.length : 0}</p>
                 </div>
               </div>
             </CardContent>
@@ -144,7 +144,7 @@ export default function ClientDashboard() {
                 <TrendingUp className="h-8 w-8 text-orange-500" />
                 <div className="ml-4">
                   <p className="text-sm font-medium text-muted-foreground">Available Plugins</p>
-                  <p className="text-2xl font-bold">{stats?.totalPlugins || 0}</p>
+                  <p className="text-2xl font-bold">{(stats as any)?.totalPlugins || 0}</p>
                 </div>
               </div>
             </CardContent>
@@ -156,7 +156,7 @@ export default function ClientDashboard() {
                 <BarChart3 className="h-8 w-8 text-purple-500" />
                 <div className="ml-4">
                   <p className="text-sm font-medium text-muted-foreground">Community Size</p>
-                  <p className="text-2xl font-bold">{stats?.totalUsers || 0}</p>
+                  <p className="text-2xl font-bold">{(stats as any)?.totalUsers || 0}</p>
                 </div>
               </div>
             </CardContent>
@@ -194,7 +194,7 @@ export default function ClientDashboard() {
                       </div>
                     ))}
                   </div>
-                ) : hostingAccounts && hostingAccounts.length > 0 ? (
+                ) : Array.isArray(hostingAccounts) && hostingAccounts.length > 0 ? (
                   <div className="space-y-4">
                     {hostingAccounts.map((account: HostingAccount) => (
                       <div key={account.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
@@ -202,7 +202,7 @@ export default function ClientDashboard() {
                           <div>
                             <h3 className="font-semibold text-lg">{account.domain}</h3>
                             <p className="text-sm text-muted-foreground">
-                              Created {new Date(account.createdAt).toLocaleDateString()}
+                              Created {account.createdAt ? new Date(account.createdAt).toLocaleDateString() : 'N/A'}
                             </p>
                           </div>
                           <div className="flex items-center space-x-2">
@@ -323,14 +323,14 @@ export default function ClientDashboard() {
                       </div>
                     ))}
                   </div>
-                ) : pluginDownloads && pluginDownloads.length > 0 ? (
+                ) : Array.isArray(pluginDownloads) && pluginDownloads.length > 0 ? (
                   <div className="space-y-3">
                     {pluginDownloads.slice(0, 5).map((download: PluginDownload) => (
                       <div key={download.id} className="border-b border-gray-100 pb-2 last:border-b-0">
                         <p className="font-medium text-sm">Plugin #{download.pluginId}</p>
                         <p className="text-xs text-muted-foreground flex items-center">
                           <Calendar className="mr-1 h-3 w-3" />
-                          {new Date(download.downloadedAt).toLocaleDateString()}
+                          {download.downloadedAt ? new Date(download.downloadedAt).toLocaleDateString() : 'N/A'}
                         </p>
                       </div>
                     ))}
