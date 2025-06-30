@@ -281,38 +281,125 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get API settings
       const apiSettings = await storage.getApiSettings();
       if (!apiSettings || !apiSettings.whmApiUrl || !apiSettings.whmApiToken) {
+        console.log("WHM API test failed: Missing API settings");
         return res.status(400).json({ message: "WHM API settings not configured" });
       }
 
-      // Test WHM API connection by calling version endpoint
-      const whmUrl = `${apiSettings.whmApiUrl}/json-api/version?api.version=1`;
-      const response = await fetch(whmUrl, {
-        method: "GET",
-        headers: {
-          "Authorization": `whm ${apiSettings.whmApiToken}`,
-          "Content-Type": "application/json",
-        },
+      console.log("Testing WHM API connection with:", {
+        url: apiSettings.whmApiUrl,
+        tokenLength: apiSettings.whmApiToken.length,
+        tokenPrefix: apiSettings.whmApiToken.substring(0, 8) + "..."
       });
 
-      if (!response.ok) {
-        throw new Error(`WHM API returned ${response.status}: ${response.statusText}`);
+      // Try multiple WHM API endpoints and authentication methods
+      const testEndpoints: Array<{
+        name: string;
+        url: string;
+        headers: Record<string, string>;
+      }> = [
+        {
+          name: "WHM Authorization header (standard)",
+          url: `${apiSettings.whmApiUrl}/json-api/version?api.version=1`,
+          headers: {
+            "Authorization": `whm root:${apiSettings.whmApiToken}`,
+            "Content-Type": "application/json",
+          }
+        },
+        {
+          name: "Token in Authorization header",
+          url: `${apiSettings.whmApiUrl}/json-api/version?api.version=1`,
+          headers: {
+            "Authorization": apiSettings.whmApiToken,
+            "Content-Type": "application/json",
+          }
+        },
+        {
+          name: "Basic authentication with root user",
+          url: `${apiSettings.whmApiUrl}/json-api/version?api.version=1`,
+          headers: {
+            "Authorization": `Basic ${Buffer.from(`root:${apiSettings.whmApiToken}`).toString('base64')}`,
+            "Content-Type": "application/json",
+          }
+        },
+        {
+          name: "Token as URL parameter",
+          url: `${apiSettings.whmApiUrl}/json-api/version?api.version=1&access_token=${apiSettings.whmApiToken}`,
+          headers: {
+            "Content-Type": "application/json",
+          }
+        },
+        {
+          name: "Token as api_token parameter",
+          url: `${apiSettings.whmApiUrl}/json-api/version?api.version=1&api_token=${apiSettings.whmApiToken}`,
+          headers: {
+            "Content-Type": "application/json",
+          }
+        },
+        {
+          name: "Simple listaccts endpoint",
+          url: `${apiSettings.whmApiUrl}/json-api/listaccts?api.version=1`,
+          headers: {
+            "Authorization": `whm root:${apiSettings.whmApiToken}`,
+            "Content-Type": "application/json",
+          }
+        }
+      ];
+
+      let lastError = null;
+      
+      for (const endpoint of testEndpoints) {
+        try {
+          console.log(`Trying ${endpoint.name}:`, endpoint.url);
+          
+          const response = await fetch(endpoint.url, {
+            method: "GET",
+            headers: endpoint.headers,
+          });
+
+          console.log(`Response status: ${response.status} ${response.statusText}`);
+          
+          // Log response headers for debugging
+          const responseHeaders: Record<string, string> = {};
+          response.headers.forEach((value, key) => {
+            responseHeaders[key] = value;
+          });
+          console.log("Response headers:", responseHeaders);
+
+          if (response.ok) {
+            const data = await response.json();
+            console.log("WHM API response data:", data);
+            
+            if (data.metadata && data.metadata.result === 1) {
+              console.log("WHM API connection successful!");
+              return res.json({ 
+                success: true, 
+                version: data.data?.version || "Unknown",
+                message: `WHM API connection successful using ${endpoint.name}`,
+                method: endpoint.name
+              });
+            } else {
+              console.log("WHM API returned error:", data.metadata?.reason);
+              lastError = new Error(data.metadata?.reason || "Unknown WHM API error");
+            }
+          } else {
+            const errorText = await response.text();
+            console.log(`WHM API error response body:`, errorText);
+            lastError = new Error(`WHM API returned ${response.status}: ${response.statusText}. Response: ${errorText}`);
+          }
+        } catch (fetchError) {
+          console.log(`Error with ${endpoint.name}:`, fetchError);
+          lastError = fetchError;
+        }
       }
 
-      const data = await response.json();
-      
-      if (data.metadata && data.metadata.result === 1) {
-        res.json({ 
-          success: true, 
-          version: data.data?.version || "Unknown",
-          message: "WHM API connection successful"
-        });
-      } else {
-        throw new Error(data.metadata?.reason || "Unknown WHM API error");
-      }
+      // If we get here, all endpoints failed
+      throw lastError || new Error("All WHM API connection attempts failed");
+
     } catch (error) {
       console.error("WHM connection test error:", error);
       res.status(500).json({ 
-        message: error instanceof Error ? error.message : "Failed to connect to WHM API" 
+        message: error instanceof Error ? error.message : "Failed to connect to WHM API",
+        details: "Check server logs for detailed error information"
       });
     }
   });
