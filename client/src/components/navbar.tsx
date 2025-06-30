@@ -30,14 +30,12 @@ export default function Navbar() {
           </Link>
 
           <div className="hidden md:flex items-center space-x-8">
-            <Link href="/plugins">
-              <a className={`transition-colors ${
-                location === "/plugins" 
-                  ? "text-primary font-medium" 
-                  : "text-gray-600 hover:text-primary"
-              }`}>
-                Plugin Library
-              </a>
+            <Link href="/plugins" className={`transition-colors ${
+              location === "/plugins" 
+                ? "text-primary font-medium" 
+                : "text-gray-600 hover:text-primary"
+            }`}>
+              Plugin Library
             </Link>
             {isAuthenticated && (
               <>

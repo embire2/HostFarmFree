@@ -193,7 +193,7 @@ export default function AdminDashboard() {
                 <Users className="h-8 w-8 text-primary" />
                 <div className="ml-4">
                   <p className="text-sm font-medium text-muted-foreground">Total Users</p>
-                  <p className="text-2xl font-bold">{stats?.totalUsers || 0}</p>
+                  <p className="text-2xl font-bold">{(stats as any)?.totalUsers || 0}</p>
                 </div>
               </div>
             </CardContent>
@@ -205,7 +205,7 @@ export default function AdminDashboard() {
                 <Puzzle className="h-8 w-8 text-accent" />
                 <div className="ml-4">
                   <p className="text-sm font-medium text-muted-foreground">Active Plugins</p>
-                  <p className="text-2xl font-bold">{stats?.totalPlugins || 0}</p>
+                  <p className="text-2xl font-bold">{(stats as any)?.totalPlugins || 0}</p>
                 </div>
               </div>
             </CardContent>
@@ -217,7 +217,7 @@ export default function AdminDashboard() {
                 <Globe className="h-8 w-8 text-orange-500" />
                 <div className="ml-4">
                   <p className="text-sm font-medium text-muted-foreground">Active Websites</p>
-                  <p className="text-2xl font-bold">{stats?.totalWebsites || 0}</p>
+                  <p className="text-2xl font-bold">{(stats as any)?.totalWebsites || 0}</p>
                 </div>
               </div>
             </CardContent>
@@ -230,7 +230,7 @@ export default function AdminDashboard() {
                 <div className="ml-4">
                   <p className="text-sm font-medium text-muted-foreground">Total Donations</p>
                   <p className="text-2xl font-bold">
-                    ${((stats?.totalDonations || 0) / 100).toLocaleString()}
+                    ${(((stats as any)?.totalDonations || 0) / 100).toLocaleString()}
                   </p>
                 </div>
               </div>
@@ -393,7 +393,7 @@ export default function AdminDashboard() {
                 <CardContent>
                   {plugins ? (
                     <div className="space-y-4 max-h-96 overflow-y-auto">
-                      {plugins.slice(0, 10).map((plugin: any) => (
+                      {Array.isArray(plugins) && plugins.slice(0, 10).map((plugin: any) => (
                         <div key={plugin.id} className="border rounded-lg p-4">
                           <div className="flex items-start justify-between mb-2">
                             <div>
@@ -465,7 +465,7 @@ export default function AdminDashboard() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                {donations && donations.length > 0 ? (
+                {Array.isArray(donations) && donations.length > 0 ? (
                   <div className="space-y-4">
                     {donations.map((donation: any) => (
                       <div key={donation.id} className="border rounded-lg p-4">
