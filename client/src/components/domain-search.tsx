@@ -35,8 +35,9 @@ export default function DomainSearch({ onSuccess }: DomainSearchProps) {
 
   const createAccountMutation = useMutation({
     mutationFn: async (subdomain: string) => {
-      const response = await apiRequest("POST", "/api/hosting-accounts", {
+      const response = await apiRequest("POST", "/api/create-hosting-account", {
         subdomain,
+        packageId: 1, // Default to free package
       });
       return response.json();
     },
@@ -88,8 +89,8 @@ export default function DomainSearch({ onSuccess }: DomainSearchProps) {
     setLocation('/auth');
   };
 
-  const isAvailable = lastSearched && !searchResult && !isSearching;
-  const isUnavailable = lastSearched && searchResult && !isSearching;
+  const isAvailable = lastSearched && searchResult?.available && !isSearching;
+  const isUnavailable = lastSearched && searchResult && !searchResult.available && !isSearching;
 
   return (
     <Card className="max-w-2xl mx-auto glass border-white/20">
@@ -137,9 +138,12 @@ export default function DomainSearch({ onSuccess }: DomainSearchProps) {
                   <div className="flex items-center text-green-100">
                     <CheckCircle className="w-5 h-5 mr-2" />
                     <span className="font-medium">
-                      {lastSearched}.hostme.today is available!
+                      {searchResult?.domain || `${lastSearched}.hostme.today`} is available!
                     </span>
                   </div>
+                  {searchResult?.message && (
+                    <p className="text-green-200 text-sm mt-1">{searchResult.message}</p>
+                  )}
                 </div>
                 
                 {isAuthenticated ? (
@@ -184,12 +188,12 @@ export default function DomainSearch({ onSuccess }: DomainSearchProps) {
                 <div className="flex items-center text-red-100">
                   <XCircle className="w-5 h-5 mr-2" />
                   <span className="font-medium">
-                    {lastSearched}.hostme.today is already taken
+                    {searchResult?.domain || `${lastSearched}.hostme.today`} is not available
                   </span>
                 </div>
-                {searchResult?.createdAt && (
+                {searchResult?.message && (
                   <div className="mt-2 text-sm text-red-200">
-                    Created: {new Date(searchResult.createdAt).toLocaleDateString()}
+                    {searchResult.message}
                   </div>
                 )}
               </div>

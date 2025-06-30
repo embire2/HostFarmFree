@@ -689,45 +689,69 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Domain registration with package selection
   app.post("/api/create-hosting-account", isAuthenticated, async (req: any, res) => {
     try {
-      const { subdomain, packageId } = req.body;
+      const { subdomain, packageId = 1 } = req.body;
       const userId = req.user.id;
 
-      // Check if subdomain is available
-      const existingAccount = await storage.getHostingAccountByDomain(`${subdomain}.hostme.today`);
-      if (existingAccount) {
-        return res.status(400).json({ message: "Subdomain already taken" });
+      // Validate subdomain
+      if (!subdomain || subdomain.length < 3 || subdomain.length > 63) {
+        return res.status(400).json({ 
+          message: "Subdomain must be between 3 and 63 characters"
+        });
       }
 
-      // Get package details
-      const hostingPackage = await storage.getHostingPackageById(packageId);
-      if (!hostingPackage || !hostingPackage.isActive) {
-        return res.status(400).json({ message: "Invalid package selected" });
+      // Check if subdomain is valid format
+      const validSubdomain = /^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/i.test(subdomain);
+      if (!validSubdomain) {
+        return res.status(400).json({ 
+          message: "Subdomain can only contain letters, numbers, and hyphens (not at start/end)"
+        });
+      }
+
+      // Check if subdomain already exists
+      const fullDomain = `${subdomain.toLowerCase()}.hostme.today`;
+      const existingDomainAccount = await storage.getHostingAccountByDomain(fullDomain);
+      
+      if (existingAccount) {
+        return res.status(400).json({ 
+          message: "This subdomain is already taken"
+        });
+      }
+
+      // Get the selected package
+      const selectedPackage = await storage.getHostingPackageById(packageId);
+      if (!selectedPackage) {
+        return res.status(400).json({ 
+          message: "Selected package not found"
+        });
       }
 
       // Create hosting account
-      const cpanelUsername = `${subdomain}${userId}`;
-      const domain = `${subdomain}.hostme.today`;
-
-      const account = await storage.createHostingAccount({
+      const hostingAccount = await storage.createHostingAccount({
         userId,
+        domain: fullDomain,
+        subdomain: subdomain.toLowerCase(),
         packageId,
-        domain,
-        subdomain,
-        cpanelUsername,
-        status: "pending"
+        status: 'pending',
+        diskUsage: 0,
+        bandwidthUsed: 0,
       });
 
       // Create package usage tracking
       await storage.createPackageUsage({
-        hostingAccountId: account.id,
+        hostingAccountId: hostingAccount.id,
+        packageId,
         diskUsed: 0,
         bandwidthUsed: 0,
         emailAccountsUsed: 0,
         databasesUsed: 0,
-        subdomainsUsed: 0,
+        subdomainsUsed: 1, // The main subdomain counts as 1
       });
 
-      res.status(201).json(account);
+      res.status(201).json({
+        message: "Hosting account created successfully",
+        account: hostingAccount,
+        domain: fullDomain,
+      });
     } catch (error) {
       console.error("Error creating hosting account:", error);
       res.status(500).json({ message: "Failed to create hosting account" });
