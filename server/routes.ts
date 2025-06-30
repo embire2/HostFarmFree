@@ -711,7 +711,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const fullDomain = `${subdomain.toLowerCase()}.hostme.today`;
       const existingDomainAccount = await storage.getHostingAccountByDomain(fullDomain);
       
-      if (existingAccount) {
+      if (existingDomainAccount) {
         return res.status(400).json({ 
           message: "This subdomain is already taken"
         });
@@ -739,7 +739,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Create package usage tracking
       await storage.createPackageUsage({
         hostingAccountId: hostingAccount.id,
-        packageId,
         diskUsed: 0,
         bandwidthUsed: 0,
         emailAccountsUsed: 0,
