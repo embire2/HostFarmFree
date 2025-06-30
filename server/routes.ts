@@ -463,11 +463,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "WHM API settings not configured" });
       }
 
-      // Clean up the base URL
-      const baseUrl = apiSettings.whmApiUrl.replace(/\/+$/, '');
+      // Clean up the base URL and extract just the domain/host
+      let baseUrl = apiSettings.whmApiUrl.replace(/\/+$/, ''); // Remove trailing slashes
       
-      // Generate WHM login URL - for production, you would create a temporary login session
-      // For now, we'll direct to the main WHM login page with the configured URL
+      // Remove any API paths and port numbers from the URL
+      baseUrl = baseUrl.replace(/\/json-api.*$/, ''); // Remove /json-api path
+      baseUrl = baseUrl.replace(/:2087.*$/, ''); // Remove existing port
+      
+      // Generate WHM login URL - direct to WHM panel
       const loginUrl = `${baseUrl}:2087`;
       
       console.log("Generated WHM login URL:", loginUrl);
