@@ -72,18 +72,16 @@ export default function Navbar() {
           <div className="flex items-center space-x-4">
             {!isAuthenticated ? (
               <>
-                <Button
-                  variant="ghost"
-                  onClick={() => window.location.href = "/api/login"}
-                >
-                  Sign In
-                </Button>
-                <Button
-                  onClick={() => window.location.href = "/api/login"}
-                  className="bg-primary text-white hover:bg-secondary"
-                >
-                  Get Started Free
-                </Button>
+                <Link href="/auth">
+                  <Button variant="ghost">
+                    Sign In
+                  </Button>
+                </Link>
+                <Link href="/auth">
+                  <Button className="bg-primary text-white hover:bg-secondary">
+                    Get Started Free
+                  </Button>
+                </Link>
               </>
             ) : (
               <DropdownMenu>

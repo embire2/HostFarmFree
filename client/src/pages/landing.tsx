@@ -236,7 +236,7 @@ export default function Landing() {
                       <span>{plugin.downloads.toLocaleString()}</span>
                     </div>
                     <Button 
-                      onClick={() => window.location.href = "/api/login"}
+                      onClick={() => window.location.href = "/auth"}
                       className="bg-accent text-white hover:bg-green-600 transition-colors text-sm font-medium"
                     >
                       Download
@@ -406,7 +406,7 @@ export default function Landing() {
           
           <div className="flex flex-col sm:flex-row justify-center items-center gap-4 mb-8">
             <Button 
-              onClick={() => window.location.href = "/api/login"}
+              onClick={() => window.location.href = "/auth"}
               className="bg-white text-primary px-8 py-4 rounded-lg font-semibold hover:bg-gray-100 transition-colors text-lg"
             >
               <Rocket className="mr-2 w-5 h-5" />
