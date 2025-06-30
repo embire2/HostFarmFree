@@ -28,6 +28,7 @@ import {
 import Navbar from "@/components/navbar";
 import { apiRequest } from "@/lib/queryClient";
 import ApiSettings from "@/components/api-settings";
+import PackageManagement from "@/components/package-management";
 
 export default function AdminDashboard() {
   const { user, isAuthenticated, isLoading } = useAuth();
@@ -238,8 +239,8 @@ export default function AdminDashboard() {
         </div>
 
         {/* Admin Tabs */}
-        <Tabs defaultValue="plugins" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
+        <Tabs defaultValue="packages" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="plugins" className="flex items-center">
               <Upload className="mr-2 h-4 w-4" />
               Plugin Management

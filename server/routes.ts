@@ -487,6 +487,176 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Package Management endpoints
+  app.get("/api/packages", async (req, res) => {
+    try {
+      const packages = await storage.getActiveHostingPackages();
+      res.json(packages);
+    } catch (error) {
+      console.error("Error fetching packages:", error);
+      res.status(500).json({ message: "Failed to fetch packages" });
+    }
+  });
+
+  app.get("/api/admin/packages", isAuthenticated, requireAdmin, async (req, res) => {
+    try {
+      const packages = await storage.getHostingPackages();
+      res.json(packages);
+    } catch (error) {
+      console.error("Error fetching packages:", error);
+      res.status(500).json({ message: "Failed to fetch packages" });
+    }
+  });
+
+  app.post("/api/admin/packages", isAuthenticated, requireAdmin, async (req, res) => {
+    try {
+      const packageData = req.body;
+      const newPackage = await storage.createHostingPackage(packageData);
+      res.status(201).json(newPackage);
+    } catch (error) {
+      console.error("Error creating package:", error);
+      res.status(500).json({ message: "Failed to create package" });
+    }
+  });
+
+  app.put("/api/admin/packages/:id", isAuthenticated, requireAdmin, async (req, res) => {
+    try {
+      const packageId = parseInt(req.params.id);
+      const packageData = req.body;
+      const updatedPackage = await storage.updateHostingPackage(packageId, packageData);
+      res.json(updatedPackage);
+    } catch (error) {
+      console.error("Error updating package:", error);
+      res.status(500).json({ message: "Failed to update package" });
+    }
+  });
+
+  app.delete("/api/admin/packages/:id", isAuthenticated, requireAdmin, async (req, res) => {
+    try {
+      const packageId = parseInt(req.params.id);
+      await storage.deleteHostingPackage(packageId);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting package:", error);
+      res.status(500).json({ message: "Failed to delete package" });
+    }
+  });
+
+  // WHM Package endpoints
+  app.get("/api/admin/whm-packages", isAuthenticated, requireAdmin, async (req, res) => {
+    try {
+      const apiSettings = await storage.getApiSettings();
+      if (!apiSettings || !apiSettings.whmApiUrl || !apiSettings.whmApiToken) {
+        return res.status(400).json({ message: "WHM API settings not configured" });
+      }
+
+      const baseUrl = apiSettings.whmApiUrl.replace(/\/+$/, '').replace(/\/json-api.*$/, '').replace(/:2087.*$/, '');
+      const apiUrl = `${baseUrl}:2087/json-api/listpkgs?api.version=1`;
+
+      const response = await fetch(apiUrl, {
+        method: 'GET',
+        headers: {
+          'Authorization': `WHM ${apiSettings.whmApiToken}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`WHM API request failed: ${response.status}`);
+      }
+
+      const data = await response.json();
+      const packages = data.data?.pkg || [];
+      
+      res.json({ packages });
+    } catch (error) {
+      console.error("Error fetching WHM packages:", error);
+      res.status(500).json({ message: "Failed to fetch WHM packages" });
+    }
+  });
+
+  // Domain registration with package selection
+  app.post("/api/create-hosting-account", isAuthenticated, async (req: any, res) => {
+    try {
+      const { subdomain, packageId } = req.body;
+      const userId = req.user.id;
+
+      // Check if subdomain is available
+      const existingAccount = await storage.getHostingAccountByDomain(`${subdomain}.hostme.today`);
+      if (existingAccount) {
+        return res.status(400).json({ message: "Subdomain already taken" });
+      }
+
+      // Get package details
+      const hostingPackage = await storage.getHostingPackageById(packageId);
+      if (!hostingPackage || !hostingPackage.isActive) {
+        return res.status(400).json({ message: "Invalid package selected" });
+      }
+
+      // Create hosting account
+      const cpanelUsername = `${subdomain}${userId}`;
+      const domain = `${subdomain}.hostme.today`;
+
+      const account = await storage.createHostingAccount({
+        userId,
+        packageId,
+        domain,
+        subdomain,
+        cpanelUsername,
+        status: "pending"
+      });
+
+      // Create package usage tracking
+      await storage.createPackageUsage({
+        hostingAccountId: account.id,
+        diskUsed: 0,
+        bandwidthUsed: 0,
+        emailAccountsUsed: 0,
+        databasesUsed: 0,
+        subdomainsUsed: 0,
+      });
+
+      res.status(201).json(account);
+    } catch (error) {
+      console.error("Error creating hosting account:", error);
+      res.status(500).json({ message: "Failed to create hosting account" });
+    }
+  });
+
+  // cPanel login endpoint
+  app.post("/api/cpanel-login/:accountId", isAuthenticated, async (req: any, res) => {
+    try {
+      const accountId = parseInt(req.params.accountId);
+      const userId = req.user.id;
+
+      // Get hosting account
+      const accounts = await storage.getHostingAccountsByUserId(userId);
+      const userAccount = accounts.find((acc: any) => acc.id === accountId);
+      
+      if (!userAccount) {
+        return res.status(404).json({ message: "Hosting account not found" });
+      }
+
+      // Get API settings for cPanel URL
+      const apiSettings = await storage.getApiSettings();
+      if (!apiSettings || !apiSettings.cpanelBaseUrl) {
+        return res.status(400).json({ message: "cPanel settings not configured" });
+      }
+
+      // Generate cPanel login URL
+      const cpanelUrl = `${apiSettings.cpanelBaseUrl}:2083`;
+      
+      res.json({ 
+        loginUrl: cpanelUrl,
+        username: userAccount.cpanelUsername,
+        message: "cPanel access URL generated successfully"
+      });
+    } catch (error) {
+      console.error("Error generating cPanel login:", error);
+      res.status(500).json({ message: "Failed to generate cPanel login URL" });
+    }
+  });
+
   app.post("/api/admin/plugins", isAuthenticated, requireAdmin, upload.single("pluginFile"), async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
