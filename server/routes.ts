@@ -548,15 +548,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     
     try {
       const apiSettings = await storage.getApiSettings();
+      const envToken = process.env.WHM_API_TOKEN;
+      
       console.log(`[WHM API] Retrieved API settings:`, {
         hasUrl: !!apiSettings?.whmApiUrl,
         hasToken: !!apiSettings?.whmApiToken,
+        hasEnvToken: !!envToken,
         urlLength: apiSettings?.whmApiUrl?.length,
-        tokenLength: apiSettings?.whmApiToken?.length
+        tokenLength: apiSettings?.whmApiToken?.length,
+        envTokenLength: envToken?.length
       });
 
-      if (!apiSettings || !apiSettings.whmApiUrl || !apiSettings.whmApiToken) {
-        console.error(`[WHM API] Missing API settings - URL: ${!!apiSettings?.whmApiUrl}, Token: ${!!apiSettings?.whmApiToken}`);
+      // Use environment token if available, otherwise fall back to database token
+      const apiToken = envToken || apiSettings?.whmApiToken;
+      
+      if (!apiSettings?.whmApiUrl || !apiToken) {
+        console.error(`[WHM API] Missing API settings - URL: ${!!apiSettings?.whmApiUrl}, Token: ${!!apiToken}`);
         return res.status(400).json({ message: "WHM API settings not configured" });
       }
 
@@ -571,7 +578,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Method 1: Direct API token (per cPanel documentation)
       try {
-        const cleanToken = apiSettings.whmApiToken.replace(/^(whm|bearer)\s+/i, '');
+        const cleanToken = apiToken.replace(/^(whm|bearer)\s+/i, '');
         console.log(`[WHM API] Method 1 - Direct API token, token length: ${cleanToken.length}`);
         
         response = await fetch(apiUrl, {
@@ -617,7 +624,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Method 2: Bearer token format
       try {
-        const cleanToken = apiSettings.whmApiToken.replace(/^(whm|bearer)\s+/i, '');
+        const cleanToken = apiToken.replace(/^(whm|bearer)\s+/i, '');
         const authHeader = `Bearer ${cleanToken}`;
         console.log(`[WHM API] Method 2 - Bearer token format, token length: ${cleanToken.length}`);
         
@@ -663,7 +670,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Method 3: Direct token in URL
       try {
-        const cleanToken = apiSettings.whmApiToken.replace(/^(whm|bearer)\s+/i, '');
+        const cleanToken = apiToken.replace(/^(whm|bearer)\s+/i, '');
         const urlWithToken = `${apiUrl}&api.token=${cleanToken}`;
         console.log(`[WHM API] Method 3 - URL token format, full URL length: ${urlWithToken.length}`);
         
