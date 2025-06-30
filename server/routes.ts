@@ -198,10 +198,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Statistics endpoint
+  app.get("/api/stats", async (req, res) => {
+    try {
+      const stats = await storage.getStats();
+      res.json(stats);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch stats" });
+    }
+  });
+
   // Admin-only routes
   const requireAdmin = async (req: any, res: any, next: any) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const user = await storage.getUser(userId);
       
       if (!user || user.role !== "admin") {
@@ -213,6 +223,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to verify admin status" });
     }
   };
+
+  // API Settings endpoints (admin only)
+  app.get("/api/api-settings", isAuthenticated, requireAdmin, async (req: any, res) => {
+    try {
+      const settings = await storage.getApiSettings();
+      res.json(settings);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch API settings" });
+    }
+  });
+
+  app.post("/api/api-settings", isAuthenticated, requireAdmin, async (req: any, res) => {
+    try {
+      const settings = await storage.upsertApiSettings(req.body);
+      res.json(settings);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to save API settings" });
+    }
+  });
 
   app.post("/api/admin/plugins", isAuthenticated, requireAdmin, upload.single("pluginFile"), async (req: any, res) => {
     try {
