@@ -28,7 +28,8 @@ import {
   Loader2,
   Server,
   Link,
-  CheckCircle
+  CheckCircle,
+  RefreshCw
 } from "lucide-react";
 import { z } from "zod";
 
@@ -81,7 +82,7 @@ export default function PackageManagement() {
   });
 
   // Fetch WHM packages
-  const { data: whmPackagesData, isLoading: whmLoading } = useQuery({
+  const { data: whmPackagesData, isLoading: whmLoading, refetch: refetchWhmPackages } = useQuery({
     queryKey: ["/api/admin/whm-packages"],
   });
 
@@ -335,7 +336,24 @@ export default function PackageManagement() {
                     name="whmPackageName"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>WHM Package</FormLabel>
+                        <FormLabel className="flex items-center justify-between">
+                          WHM Package
+                          <Button 
+                            type="button"
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => refetchWhmPackages()}
+                            disabled={whmLoading}
+                            className="h-6 px-2 text-xs"
+                          >
+                            {whmLoading ? (
+                              <Loader2 className="h-3 w-3 animate-spin" />
+                            ) : (
+                              <RefreshCw className="h-3 w-3" />
+                            )}
+                            Sync
+                          </Button>
+                        </FormLabel>
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger>
@@ -350,7 +368,7 @@ export default function PackageManagement() {
                             ) : whmPackages.length > 0 ? (
                               whmPackages.map((pkg: any) => (
                                 <SelectItem key={pkg.name} value={pkg.name}>
-                                  {pkg.name}
+                                  {pkg.displayname || pkg.name}
                                 </SelectItem>
                               ))
                             ) : (
