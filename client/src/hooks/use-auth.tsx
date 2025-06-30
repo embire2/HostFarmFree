@@ -73,6 +73,16 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
         title: "Welcome back!",
         description: "You have been logged in successfully.",
       });
+      // Force redirect after successful login
+      setTimeout(() => {
+        const pendingDomain = localStorage.getItem('pendingDomain');
+        if (pendingDomain) {
+          localStorage.removeItem('pendingDomain');
+          window.location.href = '/?domain=' + pendingDomain;
+        } else {
+          window.location.href = '/';
+        }
+      }, 500);
     },
     onError: (error: Error) => {
       toast({
@@ -94,6 +104,16 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
         title: "Account created!",
         description: "Welcome to HostFarm! Your account has been created successfully.",
       });
+      // Force redirect after successful registration
+      setTimeout(() => {
+        const pendingDomain = localStorage.getItem('pendingDomain');
+        if (pendingDomain) {
+          localStorage.removeItem('pendingDomain');
+          window.location.href = '/?domain=' + pendingDomain;
+        } else {
+          window.location.href = '/';
+        }
+      }, 500);
     },
     onError: (error: Error) => {
       toast({
