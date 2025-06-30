@@ -51,15 +51,26 @@ export default function Navbar() {
                   </a>
                 </Link>
                 {user?.role === "admin" && (
-                  <Link href="/client">
-                    <a className={`transition-colors ${
-                      location === "/client" 
-                        ? "text-primary font-medium" 
-                        : "text-gray-600 hover:text-primary"
-                    }`}>
-                      Client View
-                    </a>
-                  </Link>
+                  <>
+                    <Link href="/client">
+                      <a className={`transition-colors ${
+                        location === "/client" 
+                          ? "text-primary font-medium" 
+                          : "text-gray-600 hover:text-primary"
+                      }`}>
+                        Client View
+                      </a>
+                    </Link>
+                    <Link href="/admin/api-settings">
+                      <a className={`transition-colors ${
+                        location === "/admin/api-settings" 
+                          ? "text-primary font-medium" 
+                          : "text-gray-600 hover:text-primary"
+                      }`}>
+                        API Settings
+                      </a>
+                    </Link>
+                  </>
                 )}
               </>
             )}
