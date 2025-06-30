@@ -12,7 +12,7 @@ import { Server, Heart, LogOut, User, Settings, Home } from "lucide-react";
 import { Link, useLocation } from "wouter";
 
 export default function Navbar() {
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, logoutMutation } = useAuth();
   const [location] = useLocation();
 
   return (
@@ -131,11 +131,12 @@ export default function Navbar() {
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem 
-                    onClick={() => window.location.href = "/api/logout"}
+                    onClick={() => logoutMutation.mutate()}
                     className="text-red-600"
+                    disabled={logoutMutation.isPending}
                   >
                     <LogOut className="mr-2 h-4 w-4" />
-                    Sign Out
+                    {logoutMutation.isPending ? "Signing Out..." : "Sign Out"}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
