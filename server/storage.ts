@@ -4,6 +4,7 @@ import {
   plugins,
   pluginDownloads,
   donations,
+  apiSettings,
   type User,
   type InsertUser,
   type HostingAccount,
@@ -13,6 +14,8 @@ import {
   type PluginDownload,
   type Donation,
   type InsertDonation,
+  type ApiSettings,
+  type InsertApiSettings,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, ilike, and, sql } from "drizzle-orm";
@@ -42,6 +45,10 @@ export interface IStorage {
   createDonation(donation: InsertDonation): Promise<Donation>;
   getDonations(): Promise<Donation[]>;
 
+  // API Settings operations
+  getApiSettings(): Promise<ApiSettings | undefined>;
+  upsertApiSettings(settings: InsertApiSettings): Promise<ApiSettings>;
+  
   // Statistics
   getStats(): Promise<{
     totalUsers: number;
@@ -173,6 +180,32 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(donations)
       .orderBy(desc(donations.createdAt));
+  }
+
+  async getApiSettings(): Promise<ApiSettings | undefined> {
+    const [settings] = await db
+      .select()
+      .from(apiSettings)
+      .where(eq(apiSettings.isActive, true))
+      .orderBy(desc(apiSettings.createdAt))
+      .limit(1);
+    return settings;
+  }
+
+  async upsertApiSettings(settingsData: InsertApiSettings): Promise<ApiSettings> {
+    // First deactivate all existing settings
+    await db.update(apiSettings).set({ isActive: false });
+    
+    // Insert new settings
+    const [newSettings] = await db
+      .insert(apiSettings)
+      .values({
+        ...settingsData,
+        isActive: true,
+        updatedAt: new Date(),
+      })
+      .returning();
+    return newSettings;
   }
 
   // Statistics

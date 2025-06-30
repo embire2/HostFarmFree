@@ -93,6 +93,19 @@ export const donations = pgTable("donations", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// API Settings table for WHM/cPanel configuration
+export const apiSettings = pgTable("api_settings", {
+  id: serial("id").primaryKey(),
+  whmApiUrl: varchar("whm_api_url", { length: 255 }).notNull(),
+  whmApiToken: varchar("whm_api_token", { length: 500 }).notNull(),
+  cpanelBaseUrl: varchar("cpanel_base_url", { length: 255 }).notNull(),
+  emailFromAddress: varchar("email_from_address", { length: 255 }).notNull(),
+  emailFromName: varchar("email_from_name", { length: 255 }).notNull(),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   hostingAccounts: many(hostingAccounts),
@@ -144,6 +157,12 @@ export const insertDonationSchema = createInsertSchema(donations).omit({
   createdAt: true,
 });
 
+export const insertApiSettingsSchema = createInsertSchema(apiSettings).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Types
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -154,3 +173,5 @@ export type Plugin = typeof plugins.$inferSelect;
 export type PluginDownload = typeof pluginDownloads.$inferSelect;
 export type InsertDonation = z.infer<typeof insertDonationSchema>;
 export type Donation = typeof donations.$inferSelect;
+export type InsertApiSettings = z.infer<typeof insertApiSettingsSchema>;
+export type ApiSettings = typeof apiSettings.$inferSelect;
