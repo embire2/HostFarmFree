@@ -106,6 +106,8 @@ Changelog:
 - June 30, 2025. Added API Settings system for admin configuration of WHM/cPanel credentials
 - June 30, 2025. Implemented cPanel auto-login functionality for client dashboard
 - June 30, 2025. Updated admin user role and added API Settings navigation link
+- June 30, 2025. Enhanced WHM API testing with comprehensive error logging and multiple authentication methods
+- June 30, 2025. Fixed URL path duplication issues and added support for multiple WHM API response formats
 ```
 
 # User Preferences

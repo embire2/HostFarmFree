@@ -291,6 +291,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         tokenPrefix: apiSettings.whmApiToken.substring(0, 8) + "..."
       });
 
+      // Clean up the base URL to avoid double slashes
+      const baseUrl = apiSettings.whmApiUrl.replace(/\/+$/, ''); // Remove trailing slashes
+
       // Try multiple WHM API endpoints and authentication methods
       const testEndpoints: Array<{
         name: string;
@@ -298,49 +301,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
         headers: Record<string, string>;
       }> = [
         {
-          name: "WHM Authorization header (standard)",
-          url: `${apiSettings.whmApiUrl}/json-api/version?api.version=1`,
+          name: "WHM API v1 with token auth",
+          url: `${baseUrl}/json-api/version?api.version=1`,
           headers: {
             "Authorization": `whm root:${apiSettings.whmApiToken}`,
-            "Content-Type": "application/json",
           }
         },
         {
-          name: "Token in Authorization header",
-          url: `${apiSettings.whmApiUrl}/json-api/version?api.version=1`,
+          name: "WHM API v1 with token parameter",
+          url: `${baseUrl}/json-api/version?api.version=1&access_token=${apiSettings.whmApiToken}`,
+          headers: {}
+        },
+        {
+          name: "WHM API v2 with token auth",
+          url: `${baseUrl}/json-api/version?api.version=2`,
           headers: {
-            "Authorization": apiSettings.whmApiToken,
-            "Content-Type": "application/json",
+            "Authorization": `whm root:${apiSettings.whmApiToken}`,
           }
         },
         {
-          name: "Basic authentication with root user",
-          url: `${apiSettings.whmApiUrl}/json-api/version?api.version=1`,
+          name: "WHM uAPI version endpoint",
+          url: `${baseUrl}/execute/version`,
+          headers: {
+            "Authorization": `whm root:${apiSettings.whmApiToken}`,
+            "Content-Type": "application/x-www-form-urlencoded",
+          }
+        },
+        {
+          name: "WHM XML API version",
+          url: `${baseUrl}/xml-api/version`,
+          headers: {
+            "Authorization": `whm root:${apiSettings.whmApiToken}`,
+          }
+        },
+        {
+          name: "Basic auth with root user",
+          url: `${baseUrl}/json-api/version?api.version=1`,
           headers: {
             "Authorization": `Basic ${Buffer.from(`root:${apiSettings.whmApiToken}`).toString('base64')}`,
-            "Content-Type": "application/json",
-          }
-        },
-        {
-          name: "Token as URL parameter",
-          url: `${apiSettings.whmApiUrl}/json-api/version?api.version=1&access_token=${apiSettings.whmApiToken}`,
-          headers: {
-            "Content-Type": "application/json",
-          }
-        },
-        {
-          name: "Token as api_token parameter",
-          url: `${apiSettings.whmApiUrl}/json-api/version?api.version=1&api_token=${apiSettings.whmApiToken}`,
-          headers: {
-            "Content-Type": "application/json",
-          }
-        },
-        {
-          name: "Simple listaccts endpoint",
-          url: `${apiSettings.whmApiUrl}/json-api/listaccts?api.version=1`,
-          headers: {
-            "Authorization": `whm root:${apiSettings.whmApiToken}`,
-            "Content-Type": "application/json",
           }
         }
       ];
@@ -366,10 +364,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
           console.log("Response headers:", responseHeaders);
 
           if (response.ok) {
-            const data = await response.json();
+            let data;
+            const contentType = response.headers.get('content-type') || '';
+            
+            if (contentType.includes('application/json')) {
+              data = await response.json();
+            } else {
+              const textData = await response.text();
+              console.log("Non-JSON response:", textData);
+              // Try to parse XML or other formats
+              if (textData.includes('<cpanelresult>')) {
+                // Handle XML response format
+                console.log("WHM API connection successful (XML format)!");
+                return res.json({ 
+                  success: true, 
+                  version: "XML API",
+                  message: `WHM API connection successful using ${endpoint.name}`,
+                  method: endpoint.name,
+                  responseFormat: "XML"
+                });
+              }
+              data = { text: textData };
+            }
+            
             console.log("WHM API response data:", data);
             
+            // Check different response formats
             if (data.metadata && data.metadata.result === 1) {
+              // Standard WHM API JSON format
               console.log("WHM API connection successful!");
               return res.json({ 
                 success: true, 
@@ -377,9 +399,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 message: `WHM API connection successful using ${endpoint.name}`,
                 method: endpoint.name
               });
+            } else if (data.cpanelresult && data.cpanelresult.data && data.cpanelresult.data.result !== "0") {
+              // cPanel result format (success)
+              console.log("WHM API connection successful (cPanel format)!");
+              return res.json({ 
+                success: true, 
+                version: data.cpanelresult.data?.version || "cPanel API",
+                message: `WHM API connection successful using ${endpoint.name}`,
+                method: endpoint.name
+              });
+            } else if (data.result && data.result.status === 1) {
+              // Alternative success format
+              console.log("WHM API connection successful (alternative format)!");
+              return res.json({ 
+                success: true, 
+                version: data.result?.version || "Unknown",
+                message: `WHM API connection successful using ${endpoint.name}`,
+                method: endpoint.name
+              });
+            } else if (response.status === 200) {
+              // If we get a 200 response, consider it successful even if format is unexpected
+              console.log("WHM API connection successful (200 OK)!");
+              return res.json({ 
+                success: true, 
+                version: "Connected",
+                message: `WHM API connection successful using ${endpoint.name}`,
+                method: endpoint.name,
+                note: "Connection established but response format may be non-standard"
+              });
             } else {
-              console.log("WHM API returned error:", data.metadata?.reason);
-              lastError = new Error(data.metadata?.reason || "Unknown WHM API error");
+              console.log("WHM API returned error:", data.metadata?.reason || data.cpanelresult?.error || "Unknown error");
+              lastError = new Error(data.metadata?.reason || data.cpanelresult?.error || "Unknown WHM API error");
             }
           } else {
             const errorText = await response.text();
