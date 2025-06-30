@@ -5,6 +5,8 @@ import {
   pluginDownloads,
   donations,
   apiSettings,
+  hostingPackages,
+  packageUsage,
   type User,
   type InsertUser,
   type HostingAccount,
@@ -16,6 +18,10 @@ import {
   type InsertDonation,
   type ApiSettings,
   type InsertApiSettings,
+  type HostingPackage,
+  type InsertHostingPackage,
+  type PackageUsage,
+  type InsertPackageUsage,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, ilike, and, sql } from "drizzle-orm";
@@ -48,6 +54,23 @@ export interface IStorage {
   // API Settings operations
   getApiSettings(): Promise<ApiSettings | undefined>;
   upsertApiSettings(settings: InsertApiSettings): Promise<ApiSettings>;
+  
+  // Package Management operations
+  createHostingPackage(packageData: InsertHostingPackage): Promise<HostingPackage>;
+  getHostingPackages(): Promise<HostingPackage[]>;
+  getHostingPackageById(id: number): Promise<HostingPackage | undefined>;
+  updateHostingPackage(id: number, packageData: Partial<InsertHostingPackage>): Promise<HostingPackage>;
+  deleteHostingPackage(id: number): Promise<void>;
+  getActiveHostingPackages(): Promise<HostingPackage[]>;
+  getFreeHostingPackage(): Promise<HostingPackage | undefined>;
+  
+  // Package Usage operations
+  createPackageUsage(usageData: InsertPackageUsage): Promise<PackageUsage>;
+  getPackageUsageByAccountId(accountId: number): Promise<PackageUsage | undefined>;
+  updatePackageUsage(accountId: number, usageData: Partial<InsertPackageUsage>): Promise<PackageUsage>;
+  
+  // WHM Package operations
+  getWHMPackages(): Promise<any[]>; // Will fetch from WHM API
   
   // Statistics
   getStats(): Promise<{
@@ -206,6 +229,79 @@ export class DatabaseStorage implements IStorage {
       })
       .returning();
     return newSettings;
+  }
+
+  // Package Management operations
+  async createHostingPackage(packageData: InsertHostingPackage): Promise<HostingPackage> {
+    const [hostingPackage] = await db
+      .insert(hostingPackages)
+      .values(packageData)
+      .returning();
+    return hostingPackage;
+  }
+
+  async getHostingPackages(): Promise<HostingPackage[]> {
+    return await db.select().from(hostingPackages).orderBy(hostingPackages.createdAt);
+  }
+
+  async getHostingPackageById(id: number): Promise<HostingPackage | undefined> {
+    const [hostingPackage] = await db.select().from(hostingPackages).where(eq(hostingPackages.id, id));
+    return hostingPackage;
+  }
+
+  async updateHostingPackage(id: number, packageData: Partial<InsertHostingPackage>): Promise<HostingPackage> {
+    const [hostingPackage] = await db
+      .update(hostingPackages)
+      .set({ ...packageData, updatedAt: new Date() })
+      .where(eq(hostingPackages.id, id))
+      .returning();
+    return hostingPackage;
+  }
+
+  async deleteHostingPackage(id: number): Promise<void> {
+    await db.delete(hostingPackages).where(eq(hostingPackages.id, id));
+  }
+
+  async getActiveHostingPackages(): Promise<HostingPackage[]> {
+    return await db.select().from(hostingPackages)
+      .where(eq(hostingPackages.isActive, true))
+      .orderBy(hostingPackages.price);
+  }
+
+  async getFreeHostingPackage(): Promise<HostingPackage | undefined> {
+    const [freePackage] = await db.select().from(hostingPackages)
+      .where(and(eq(hostingPackages.isFree, true), eq(hostingPackages.isActive, true)))
+      .limit(1);
+    return freePackage;
+  }
+
+  // Package Usage operations
+  async createPackageUsage(usageData: InsertPackageUsage): Promise<PackageUsage> {
+    const [usage] = await db
+      .insert(packageUsage)
+      .values(usageData)
+      .returning();
+    return usage;
+  }
+
+  async getPackageUsageByAccountId(accountId: number): Promise<PackageUsage | undefined> {
+    const [usage] = await db.select().from(packageUsage)
+      .where(eq(packageUsage.hostingAccountId, accountId));
+    return usage;
+  }
+
+  async updatePackageUsage(accountId: number, usageData: Partial<InsertPackageUsage>): Promise<PackageUsage> {
+    const [usage] = await db
+      .update(packageUsage)
+      .set({ ...usageData, lastUpdated: new Date() })
+      .where(eq(packageUsage.hostingAccountId, accountId))
+      .returning();
+    return usage;
+  }
+
+  async getWHMPackages(): Promise<any[]> {
+    // This will be implemented to fetch from WHM API
+    return [];
   }
 
   // Statistics

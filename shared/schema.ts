@@ -223,3 +223,20 @@ export type InsertDonation = z.infer<typeof insertDonationSchema>;
 export type Donation = typeof donations.$inferSelect;
 export type InsertApiSettings = z.infer<typeof insertApiSettingsSchema>;
 export type ApiSettings = typeof apiSettings.$inferSelect;
+
+// Package management schemas
+export const insertHostingPackageSchema = createInsertSchema(hostingPackages).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertPackageUsageSchema = createInsertSchema(packageUsage).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertHostingPackage = z.infer<typeof insertHostingPackageSchema>;
+export type HostingPackage = typeof hostingPackages.$inferSelect;
+export type InsertPackageUsage = z.infer<typeof insertPackageUsageSchema>;
+export type PackageUsage = typeof packageUsage.$inferSelect;
