@@ -15,7 +15,8 @@ import {
   HardDrive,
   Wifi,
   Calendar,
-  TrendingUp
+  TrendingUp,
+  Settings
 } from "lucide-react";
 import Navbar from "@/components/navbar";
 import DomainSearch from "@/components/domain-search";
@@ -72,6 +73,27 @@ export default function ClientDashboard() {
 
   const getUsagePercentage = (used: number, limit: number) => {
     return Math.round((used / limit) * 100);
+  };
+
+  const handleCpanelLogin = async (domain: string) => {
+    try {
+      const res = await apiRequest("GET", `/api/cpanel-login/${domain}`);
+      const data = await res.json();
+      
+      // Open cPanel in a new tab
+      window.open(data.loginUrl, '_blank');
+      
+      toast({
+        title: "Opening cPanel",
+        description: `Accessing cPanel for ${domain}`,
+      });
+    } catch (error: any) {
+      toast({
+        title: "cPanel access failed",
+        description: error.message || "Could not access cPanel for this domain",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -189,6 +211,14 @@ export default function ClientDashboard() {
                             >
                               {account.status}
                             </Badge>
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => handleCpanelLogin(account.domain)}
+                            >
+                              <Settings className="h-4 w-4 mr-1" />
+                              cPanel
+                            </Button>
                             <Button size="sm" variant="outline">
                               <ExternalLink className="h-4 w-4 mr-1" />
                               Visit
