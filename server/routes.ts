@@ -275,6 +275,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Test WHM API connection endpoint
+  app.post("/api/test-whm-connection", isAuthenticated, requireAdmin, async (req, res) => {
+    try {
+      // Get API settings
+      const apiSettings = await storage.getApiSettings();
+      if (!apiSettings || !apiSettings.whmApiUrl || !apiSettings.whmApiToken) {
+        return res.status(400).json({ message: "WHM API settings not configured" });
+      }
+
+      // Test WHM API connection by calling version endpoint
+      const whmUrl = `${apiSettings.whmApiUrl}/json-api/version?api.version=1`;
+      const response = await fetch(whmUrl, {
+        method: "GET",
+        headers: {
+          "Authorization": `whm ${apiSettings.whmApiToken}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`WHM API returned ${response.status}: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      
+      if (data.metadata && data.metadata.result === 1) {
+        res.json({ 
+          success: true, 
+          version: data.data?.version || "Unknown",
+          message: "WHM API connection successful"
+        });
+      } else {
+        throw new Error(data.metadata?.reason || "Unknown WHM API error");
+      }
+    } catch (error) {
+      console.error("WHM connection test error:", error);
+      res.status(500).json({ 
+        message: error instanceof Error ? error.message : "Failed to connect to WHM API" 
+      });
+    }
+  });
+
   app.post("/api/admin/plugins", isAuthenticated, requireAdmin, upload.single("pluginFile"), async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;

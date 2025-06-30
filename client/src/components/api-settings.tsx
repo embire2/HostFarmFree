@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, Save, Settings, AlertCircle } from "lucide-react";
+import { Loader2, Save, Settings, AlertCircle, Wifi, CheckCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -82,6 +82,26 @@ export default function ApiSettings() {
       toast({
         title: "Failed to save settings",
         description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const testConnectionMutation = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest("POST", "/api/test-whm-connection");
+      return await res.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Connection Successful",
+        description: `Connected to WHM successfully. Version: ${data.version || 'Unknown'}`,
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Connection Failed",
+        description: error.message || "Unable to connect to WHM API",
         variant: "destructive",
       });
     },
@@ -212,35 +232,54 @@ export default function ApiSettings() {
             </div>
           </div>
 
-          <div className="flex justify-end gap-3 pt-6 border-t">
-            {!isEditing ? (
-              <Button onClick={() => setIsEditing(true)} variant="outline">
-                Edit Settings
+          <div className="flex justify-between items-center pt-6 border-t">
+            {settings && (
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => testConnectionMutation.mutate()}
+                disabled={testConnectionMutation.isPending || !settings.whmApiUrl || !settings.whmApiToken}
+                className="flex items-center gap-2"
+              >
+                {testConnectionMutation.isPending ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Wifi className="w-4 h-4" />
+                )}
+                Test API Connection
               </Button>
-            ) : (
-              <>
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  onClick={handleCancel}
-                  disabled={saveMutation.isPending}
-                >
-                  Cancel
-                </Button>
-                <Button 
-                  type="submit" 
-                  disabled={saveMutation.isPending}
-                  className="flex items-center gap-2"
-                >
-                  {saveMutation.isPending ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <Save className="w-4 h-4" />
-                  )}
-                  Save Settings
-                </Button>
-              </>
             )}
+            
+            <div className="flex gap-3">
+              {!isEditing ? (
+                <Button onClick={() => setIsEditing(true)} variant="outline">
+                  Edit Settings
+                </Button>
+              ) : (
+                <>
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    onClick={handleCancel}
+                    disabled={saveMutation.isPending}
+                  >
+                    Cancel
+                  </Button>
+                  <Button 
+                    type="submit" 
+                    disabled={saveMutation.isPending}
+                    className="flex items-center gap-2"
+                  >
+                    {saveMutation.isPending ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Save className="w-4 h-4" />
+                    )}
+                    Save Settings
+                  </Button>
+                </>
+              )}
+            </div>
           </div>
         </form>
       </CardContent>
