@@ -454,6 +454,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // WHM admin login endpoint
+  app.post("/api/admin/whm-login", isAuthenticated, requireAdmin, async (req, res) => {
+    try {
+      // Get API settings
+      const apiSettings = await storage.getApiSettings();
+      if (!apiSettings || !apiSettings.whmApiUrl || !apiSettings.whmApiToken) {
+        return res.status(400).json({ message: "WHM API settings not configured" });
+      }
+
+      // Clean up the base URL
+      const baseUrl = apiSettings.whmApiUrl.replace(/\/+$/, '');
+      
+      // Generate WHM login URL - for production, you would create a temporary login session
+      // For now, we'll direct to the main WHM login page with the configured URL
+      const loginUrl = `${baseUrl}:2087`;
+      
+      console.log("Generated WHM login URL:", loginUrl);
+      
+      res.json({ 
+        loginUrl,
+        message: "WHM panel access URL generated successfully"
+      });
+    } catch (error) {
+      console.error("Error generating WHM login:", error);
+      res.status(500).json({ 
+        message: error instanceof Error ? error.message : "Failed to generate WHM login URL" 
+      });
+    }
+  });
+
   app.post("/api/admin/plugins", isAuthenticated, requireAdmin, upload.single("pluginFile"), async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;

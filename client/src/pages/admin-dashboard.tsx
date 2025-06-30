@@ -18,10 +18,12 @@ import {
   Plus,
   Download,
   Eye,
+  ExternalLink,
   Settings,
   BarChart3,
   Globe,
-  Puzzle
+  Puzzle,
+  Loader2
 } from "lucide-react";
 import Navbar from "@/components/navbar";
 import { apiRequest } from "@/lib/queryClient";
@@ -31,6 +33,29 @@ export default function AdminDashboard() {
   const { user, isAuthenticated, isLoading } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  const whmLoginMutation = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest("POST", "/api/admin/whm-login");
+      return await res.json();
+    },
+    onSuccess: (data) => {
+      if (data.loginUrl) {
+        window.open(data.loginUrl, '_blank', 'noopener,noreferrer');
+      }
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Failed to open WHM",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleOpenWHM = () => {
+    whmLoginMutation.mutate();
+  };
 
   const [pluginData, setPluginData] = useState({
     name: "",
@@ -488,7 +513,18 @@ export default function AdminDashboard() {
                       <p className="text-sm text-muted-foreground mb-4">
                         Monitor and manage hosting infrastructure
                       </p>
-                      <Button variant="outline" size="sm" disabled>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={handleOpenWHM}
+                        disabled={whmLoginMutation.isPending}
+                        className="flex items-center gap-2"
+                      >
+                        {whmLoginMutation.isPending ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <ExternalLink className="h-4 w-4" />
+                        )}
                         Open WHM Panel
                       </Button>
                     </CardContent>
