@@ -21,6 +21,7 @@ import {
 import Navbar from "@/components/navbar";
 import DomainSearch from "@/components/domain-search";
 import { HostingAccount, PluginDownload } from "@shared/schema";
+import { apiRequest } from "@/lib/queryClient";
 
 export default function ClientDashboard() {
   const { user, isAuthenticated, isLoading } = useAuth();

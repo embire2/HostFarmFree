@@ -103,6 +103,9 @@ HostFarm.org is a full-stack web application built with modern web technologies 
 ```
 Changelog:
 - June 27, 2025. Initial setup
+- June 30, 2025. Added API Settings system for admin configuration of WHM/cPanel credentials
+- June 30, 2025. Implemented cPanel auto-login functionality for client dashboard
+- June 30, 2025. Updated admin user role and added API Settings navigation link
 ```
 
 # User Preferences

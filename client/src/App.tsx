@@ -10,6 +10,7 @@ import AdminDashboard from "@/pages/admin-dashboard";
 import PluginLibrary from "@/pages/plugin-library";
 import AuthPage from "@/pages/auth-page";
 import NotFound from "@/pages/not-found";
+import ApiSettingsPage from "@/pages/api-settings-page";
 
 function Router() {
   const { user, isAuthenticated, isLoading } = useAuth();
@@ -39,6 +40,7 @@ function Router() {
             <>
               <Route path="/" component={AdminDashboard} />
               <Route path="/client" component={ClientDashboard} />
+              <Route path="/admin/api-settings" component={ApiSettingsPage} />
               <Route path="/plugins" component={PluginLibrary} />
             </>
           ) : (
