@@ -86,7 +86,15 @@ export default function PackageManagement() {
     queryKey: ["/api/admin/whm-packages"],
   });
 
-  const whmPackages = Array.isArray(whmPackagesData) ? whmPackagesData : [];
+  // Extract packages from the response object
+  const whmPackages = (whmPackagesData as { packages?: any[] })?.packages || [];
+  
+  // Debug logging for WHM packages
+  console.log("[Frontend] WHM packages data:", { 
+    whmPackagesData, 
+    extractedPackages: whmPackages, 
+    packagesLength: whmPackages.length 
+  });
 
   // Create package mutation
   const createPackageMutation = useMutation({
@@ -366,11 +374,14 @@ export default function PackageManagement() {
                                 Loading packages...
                               </SelectItem>
                             ) : whmPackages.length > 0 ? (
-                              whmPackages.map((pkg: any) => (
-                                <SelectItem key={pkg.name} value={pkg.name}>
-                                  {pkg.displayname || pkg.name}
-                                </SelectItem>
-                              ))
+                              whmPackages.map((pkg: any, index: number) => {
+                                console.log(`[Frontend] Rendering WHM package ${index}:`, pkg);
+                                return (
+                                  <SelectItem key={pkg.name || index} value={pkg.name}>
+                                    {pkg.displayname || pkg.name}
+                                  </SelectItem>
+                                );
+                              })
                             ) : (
                               <SelectItem value="none" disabled>
                                 No WHM packages found
