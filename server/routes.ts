@@ -33,10 +33,23 @@ const upload = multer({
     fileSize: 50 * 1024 * 1024, // 50MB limit
   },
   fileFilter: (req, file, cb) => {
-    if (file.mimetype === "application/zip" || file.originalname.endsWith(".zip")) {
-      cb(null, true);
+    // Allow ZIP files for plugins
+    if (file.fieldname === 'pluginFile') {
+      if (file.mimetype === "application/zip" || file.originalname.endsWith(".zip")) {
+        cb(null, true);
+      } else {
+        cb(new Error("Only ZIP files are allowed for plugins"));
+      }
+    }
+    // Allow images for plugin thumbnails
+    else if (file.fieldname === 'imageFile') {
+      if (file.mimetype.startsWith('image/')) {
+        cb(null, true);
+      } else {
+        cb(new Error("Only image files are allowed for thumbnails"));
+      }
     } else {
-      cb(new Error("Only ZIP files are allowed"));
+      cb(new Error("Unexpected field"));
     }
   },
 });
@@ -855,18 +868,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/admin/plugins", isAuthenticated, requireAdmin, upload.single("pluginFile"), async (req: any, res) => {
+  app.post("/api/admin/plugins", isAuthenticated, requireAdmin, upload.fields([
+    { name: 'pluginFile', maxCount: 1 },
+    { name: 'imageFile', maxCount: 1 }
+  ]), async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const file = req.file;
-
-      if (!file) {
+      // Fixed: Use correct user ID structure for custom auth
+      const userId = req.user.id;
+      const files = req.files as { [fieldname: string]: Express.Multer.File[] };
+      
+      if (!files || !files.pluginFile || !files.pluginFile[0]) {
         return res.status(400).json({ message: "Plugin file is required" });
       }
 
-      console.log(`[Plugin Upload] File uploaded: ${file.filename}, Size: ${file.size} bytes, Path: ${file.path}`);
+      const pluginFile = files.pluginFile[0];
+      const imageFile = files.imageFile ? files.imageFile[0] : null;
 
-      const validation = insertPluginSchema.safeParse(req.body);
+      console.log(`[Plugin Upload] Plugin file: ${pluginFile.filename}, Size: ${pluginFile.size} bytes`);
+      if (imageFile) {
+        console.log(`[Plugin Upload] Image file: ${imageFile.filename}, Size: ${imageFile.size} bytes`);
+      }
+
+      // Hardcode author to HostFarm.org as requested
+      const pluginData = {
+        ...req.body,
+        author: "HostFarm.org"
+      };
+
+      const validation = insertPluginSchema.safeParse(pluginData);
       if (!validation.success) {
         return res.status(400).json({
           message: "Invalid plugin data",
@@ -874,14 +903,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Store the relative path to plugins directory for production deployment
-      const relativeFilePath = path.relative(process.cwd(), file.path);
+      // Store relative paths for production deployment
+      const relativePluginPath = path.relative(process.cwd(), pluginFile.path);
+      const imageUrl = imageFile ? `/static/plugins/${imageFile.filename}` : validation.data.imageUrl;
       
       const plugin = await storage.createPlugin({
         ...validation.data,
-        fileName: file.filename,
-        fileSize: file.size,
-        filePath: relativeFilePath, // Store relative path for production
+        fileName: pluginFile.filename,
+        fileSize: pluginFile.size,
+        filePath: relativePluginPath,
+        imageUrl: imageUrl,
         uploadedBy: userId,
       });
 

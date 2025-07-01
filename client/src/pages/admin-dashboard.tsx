@@ -63,10 +63,11 @@ export default function AdminDashboard() {
     description: "",
     category: "",
     version: "",
-    author: "",
+    author: "HostFarm.org", // Hardcoded as requested
     imageUrl: "",
   });
   const [pluginFile, setPluginFile] = useState<File | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
 
   useEffect(() => {
     if (!isLoading && (!isAuthenticated || user?.role !== "admin")) {
