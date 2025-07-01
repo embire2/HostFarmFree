@@ -112,10 +112,11 @@ export default function AdminDashboard() {
         description: "",
         category: "",
         version: "",
-        author: "",
+        author: "HostFarm.org", // Keep hardcoded value
         imageUrl: "",
       });
       setPluginFile(null);
+      setImageFile(null); // Reset image file
     },
     onError: (error: Error) => {
       toast({
@@ -140,6 +141,13 @@ export default function AdminDashboard() {
 
     const formData = new FormData();
     formData.append("pluginFile", pluginFile);
+    
+    // Add image file if selected
+    if (imageFile) {
+      formData.append("imageFile", imageFile);
+    }
+    
+    // Append all other form data (author is already hardcoded)
     Object.entries(pluginData).forEach(([key, value]) => {
       formData.append(key, value);
     });
@@ -344,21 +352,26 @@ export default function AdminDashboard() {
                       <Input
                         id="author"
                         value={pluginData.author}
-                        onChange={(e) => setPluginData(prev => ({ ...prev, author: e.target.value }))}
+                        readOnly
+                        className="bg-gray-100 cursor-not-allowed"
                         placeholder="Plugin author"
-                        required
                       />
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Author is automatically set to HostFarm.org
+                      </p>
                     </div>
 
                     <div>
-                      <Label htmlFor="imageUrl">Image URL (optional)</Label>
+                      <Label htmlFor="imageFile">Plugin Image (optional)</Label>
                       <Input
-                        id="imageUrl"
-                        type="url"
-                        value={pluginData.imageUrl}
-                        onChange={(e) => setPluginData(prev => ({ ...prev, imageUrl: e.target.value }))}
-                        placeholder="https://example.com/plugin-image.jpg"
+                        id="imageFile"
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => setImageFile(e.target.files?.[0] || null)}
                       />
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Upload an image that will be displayed with your plugin
+                      </p>
                     </div>
 
                     <div>
