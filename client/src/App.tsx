@@ -33,6 +33,7 @@ function Router() {
           <Route path="/" component={Landing} />
           <Route path="/auth" component={AuthPage} />
           <Route path="/plugins" component={PluginLibrary} />
+          <Route path="/plugin-library" component={PluginLibrary} />
         </>
       ) : (
         <>
@@ -42,11 +43,13 @@ function Router() {
               <Route path="/client" component={ClientDashboard} />
               <Route path="/admin/api-settings" component={ApiSettingsPage} />
               <Route path="/plugins" component={PluginLibrary} />
+              <Route path="/plugin-library" component={PluginLibrary} />
             </>
           ) : (
             <>
               <Route path="/" component={ClientDashboard} />
               <Route path="/plugins" component={PluginLibrary} />
+              <Route path="/plugin-library" component={PluginLibrary} />
             </>
           )}
         </>
