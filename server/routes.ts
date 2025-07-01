@@ -7,9 +7,27 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 
-// Configure multer for file uploads
+// Ensure plugins directory exists
+const pluginsDir = path.join(process.cwd(), "plugins");
+if (!fs.existsSync(pluginsDir)) {
+  fs.mkdirSync(pluginsDir, { recursive: true });
+}
+
+// Configure multer for plugin uploads with proper storage
+const pluginStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, pluginsDir);
+  },
+  filename: (req, file, cb) => {
+    // Use timestamp + original name to avoid conflicts
+    const timestamp = Date.now();
+    const sanitizedName = file.originalname.replace(/[^a-zA-Z0-9.-]/g, '_');
+    cb(null, `${timestamp}-${sanitizedName}`);
+  }
+});
+
 const upload = multer({
-  dest: "uploads/",
+  storage: pluginStorage,
   limits: {
     fileSize: 50 * 1024 * 1024, // 50MB limit
   },
@@ -845,6 +863,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Plugin file is required" });
       }
 
+      console.log(`[Plugin Upload] File uploaded: ${file.filename}, Size: ${file.size} bytes, Path: ${file.path}`);
+
       const validation = insertPluginSchema.safeParse(req.body);
       if (!validation.success) {
         return res.status(400).json({
@@ -853,13 +873,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
+      // Store the relative path to plugins directory for production deployment
+      const relativeFilePath = path.relative(process.cwd(), file.path);
+      
       const plugin = await storage.createPlugin({
         ...validation.data,
         fileName: file.filename,
         fileSize: file.size,
+        filePath: relativeFilePath, // Store relative path for production
         uploadedBy: userId,
       });
 
+      console.log(`[Plugin Upload] Plugin created in database with ID: ${plugin.id}`);
       res.json(plugin);
     } catch (error) {
       console.error("Error uploading plugin:", error);

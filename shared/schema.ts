@@ -68,6 +68,7 @@ export const plugins = pgTable("plugins", {
   version: varchar("version").notNull(),
   author: varchar("author"),
   fileName: varchar("file_name").notNull(),
+  filePath: varchar("file_path").notNull(), // relative path from project root for deployment
   fileSize: integer("file_size"), // in bytes
   downloadCount: integer("download_count").default(0),
   imageUrl: varchar("image_url"),
