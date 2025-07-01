@@ -1,4 +1,5 @@
 import type { Express } from "express";
+import express from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./auth";
@@ -890,6 +891,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error uploading plugin:", error);
       res.status(500).json({ message: "Failed to upload plugin" });
     }
+  });
+
+  // Plugin download route - serves plugin files from the plugins directory
+  app.get("/api/plugins/:id/download", async (req, res) => {
+    try {
+      const plugin = await storage.getPluginById(parseInt(req.params.id));
+      if (!plugin) {
+        return res.status(404).json({ message: "Plugin not found" });
+      }
+
+      // Construct the absolute file path
+      const filePath = path.join(process.cwd(), plugin.filePath || `plugins/${plugin.fileName}`);
+      
+      console.log(`[Plugin Download] Serving file: ${filePath}`);
+
+      // Check if file exists
+      if (!fs.existsSync(filePath)) {
+        console.error(`[Plugin Download] File not found: ${filePath}`);
+        return res.status(404).json({ message: "Plugin file not found" });
+      }
+
+      // Increment download count
+      await storage.incrementPluginDownloads(plugin.id);
+
+      // Set appropriate headers for download
+      res.setHeader('Content-Disposition', `attachment; filename="${plugin.fileName}"`);
+      res.setHeader('Content-Type', 'application/zip');
+      res.setHeader('Content-Length', plugin.fileSize || fs.statSync(filePath).size);
+
+      // Stream the file
+      const fileStream = fs.createReadStream(filePath);
+      fileStream.pipe(res);
+
+      fileStream.on('error', (error) => {
+        console.error('[Plugin Download] Stream error:', error);
+        if (!res.headersSent) {
+          res.status(500).json({ message: "Error streaming file" });
+        }
+      });
+
+    } catch (error) {
+      console.error("Error downloading plugin:", error);
+      res.status(500).json({ message: "Failed to download plugin" });
+    }
+  });
+
+  // Serve static plugin files in production (for direct access if needed)
+  app.use("/static/plugins", (req, res, next) => {
+    const staticHandler = require('express').static(path.join(process.cwd(), "plugins"));
+    staticHandler(req, res, next);
   });
 
   // Donation routes

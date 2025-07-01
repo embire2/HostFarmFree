@@ -4,3 +4,11 @@ dist
 server/public
 vite.config.ts.*
 *.tar.gz
+
+# Plugin uploads directory - keep structure but ignore content for security
+plugins/*
+!plugins/.gitkeep
+
+# Uploads directory - keep structure but ignore content  
+uploads/*
+!uploads/.gitkeep
