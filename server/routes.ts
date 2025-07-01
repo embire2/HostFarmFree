@@ -568,7 +568,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const baseUrl = apiSettings.whmApiUrl.replace(/\/+$/, '').replace(/\/json-api.*$/, '').replace(/:2087.*$/, '');
-      const apiUrl = `${baseUrl}:2087/json-api/listpkgs?api.version=1`;
+      // Ensure we're calling WHM API 1, not API 0
+      const apiUrl = `${baseUrl}:2087/json-api/listpkgs?api.version=1&api.format=json`;
       console.log(`[WHM API] Constructed API URL: ${apiUrl}`);
 
       // Try multiple authentication methods based on cPanel documentation
@@ -576,17 +577,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let lastError;
       const authMethods = [];
       
-      // Method 1: API Token with WHM root format (standard cPanel format)
+      // Method 1: API Token with WHM root format - forcing API version 1
       try {
         const cleanToken = apiToken.replace(/^(whm|bearer)\s+/i, '');
         console.log(`[WHM API] Method 1 - WHM root token format, token length: ${cleanToken.length}`);
+        
+        // Add SSL options for self-signed certificates
+        const agent = new (await import('https')).Agent({
+          rejectUnauthorized: false
+        });
         
         response = await fetch(apiUrl, {
           method: 'GET',
           headers: {
             'Authorization': `WHM root:${cleanToken}`,
             'Content-Type': 'application/json',
+            'Accept': 'application/json',
           },
+          // @ts-ignore
+          agent: apiUrl.startsWith('https:') ? agent : undefined,
         });
         
         console.log(`[WHM API] Method 1 Response - Status: ${response.status}, Status Text: ${response.statusText}`);
@@ -628,12 +637,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const basicAuth = Buffer.from(`root:${cleanToken}`).toString('base64');
         console.log(`[WHM API] Method 2 - Basic Auth format, token length: ${cleanToken.length}`);
         
+        // Add SSL options for self-signed certificates
+        const agent = new (await import('https')).Agent({
+          rejectUnauthorized: false
+        });
+        
         response = await fetch(apiUrl, {
           method: 'GET',
           headers: {
             'Authorization': `Basic ${basicAuth}`,
             'Content-Type': 'application/json',
+            'Accept': 'application/json',
           },
+          // @ts-ignore
+          agent: apiUrl.startsWith('https:') ? agent : undefined,
         });
         
         console.log(`[WHM API] Method 2 Response - Status: ${response.status}, Status Text: ${response.statusText}`);
@@ -668,17 +685,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
         authMethods.push({ method: 2, error: error instanceof Error ? error.message : String(error) });
       }
 
-      // Method 3: Direct token in URL parameter
+      // Method 3: Direct token in URL parameter with proper SSL handling
       try {
         const cleanToken = apiToken.replace(/^(whm|bearer)\s+/i, '');
         const urlWithToken = `${apiUrl}&api.token=${cleanToken}`;
         console.log(`[WHM API] Method 3 - URL token parameter, full URL length: ${urlWithToken.length}`);
+        
+        // Add SSL options to handle self-signed certificates
+        const agent = new (await import('https')).Agent({
+          rejectUnauthorized: false
+        });
         
         response = await fetch(urlWithToken, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
           },
+          // @ts-ignore
+          agent: urlWithToken.startsWith('https:') ? agent : undefined,
         });
         
         console.log(`[WHM API] Method 3 Response - Status: ${response.status}, Status Text: ${response.statusText}`);
@@ -718,12 +742,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const cleanToken = apiToken.replace(/^(whm|bearer)\s+/i, '');
         console.log(`[WHM API] Method 4 - X-API-TOKEN header, token length: ${cleanToken.length}`);
         
+        // Add SSL options for self-signed certificates
+        const agent = new (await import('https')).Agent({
+          rejectUnauthorized: false
+        });
+        
         response = await fetch(apiUrl, {
           method: 'GET',
           headers: {
             'X-API-TOKEN': cleanToken,
             'Content-Type': 'application/json',
+            'Accept': 'application/json',
           },
+          // @ts-ignore
+          agent: apiUrl.startsWith('https:') ? agent : undefined,
         });
         
         console.log(`[WHM API] Method 4 Response - Status: ${response.status}, Status Text: ${response.statusText}`);
