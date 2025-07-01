@@ -976,11 +976,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Serve static plugin files in production (for direct access if needed)
-  app.use("/static/plugins", (req, res, next) => {
-    const staticHandler = require('express').static(path.join(process.cwd(), "plugins"));
-    staticHandler(req, res, next);
-  });
+  // Serve static plugin files and images
+  app.use("/static/plugins", express.static(path.join(process.cwd(), "plugins")));
 
   // Donation routes
   app.post("/api/donations", async (req, res) => {
