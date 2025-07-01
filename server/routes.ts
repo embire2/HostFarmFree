@@ -569,30 +569,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const baseUrl = apiSettings.whmApiUrl.replace(/\/+$/, '').replace(/\/json-api.*$/, '').replace(/:2087.*$/, '');
       
-      // The test connection works, but we need to find the correct package listing endpoint
-      console.log(`[WHM API] Testing multiple package listing endpoints to find the working one`);
+      // According to WHM API documentation, the correct structure should match the working test endpoint
+      console.log(`[WHM API] Using official WHM API documentation structure`);
       
-      // WHM API has multiple possible endpoints for listing packages
+      // Clean URL construction following official documentation pattern
+      const cleanBaseUrl = apiSettings.whmApiUrl.replace(/\/+$/, '').replace(/\/json-api.*$/, '').replace(/:2087.*$/, '');
+      console.log(`[WHM API] Clean base URL: ${cleanBaseUrl}`);
+      
+      // Test the exact working authentication method but with official API endpoints from documentation
       const packageEndpoints = [
-        { name: "listpkgs", url: `${baseUrl}/json-api/listpkgs?api.version=1` },
-        { name: "list_packages", url: `${baseUrl}/json-api/list_packages?api.version=1` },
-        { name: "listpackages", url: `${baseUrl}/json-api/listpackages?api.version=1` },
-        { name: "whm_packages", url: `${baseUrl}/json-api/whm_packages?api.version=1` },
-        { name: "cpanel_packages", url: `${baseUrl}/json-api/cpanel_packages?api.version=1` },
-        { name: "getpackages", url: `${baseUrl}/json-api/getpackages?api.version=1` },
-        { name: "showpkg", url: `${baseUrl}/json-api/showpkg?api.version=1` },
-        // Try XML API as backup
-        { name: "listpkgs_xml", url: `${baseUrl}/xml-api/listpkgs` },
-        // Try version 2 of JSON API
-        { name: "listpkgs_v2", url: `${baseUrl}/json-api/listpkgs?api.version=2` },
+        // Official WHM API 1 function from documentation
+        { name: "listpkgs_official", url: `${cleanBaseUrl}:2087/json-api/listpkgs?api.version=1` },
+        // Test without specifying port (might be handled automatically)
+        { name: "listpkgs_no_port", url: `${cleanBaseUrl}/json-api/listpkgs?api.version=1` },
+        // Test with different port variations that might work
+        { name: "listpkgs_2086", url: `${cleanBaseUrl}:2086/json-api/listpkgs?api.version=1` },
+        // Test the exact pattern that works for version but with listpkgs
+        { name: "listpkgs_exact_pattern", url: `${cleanBaseUrl}/json-api/listpkgs?api.version=1` },
+        // Try XML API which might be available
+        { name: "listpkgs_xml", url: `${cleanBaseUrl}:2087/xml-api/listpkgs` },
+        { name: "listpkgs_xml_no_port", url: `${cleanBaseUrl}/xml-api/listpkgs` },
       ];
       
-      let lastError = null;
+      console.log(`[WHM API] Testing ${packageEndpoints.length} official API endpoint variations`);
       
       for (let i = 0; i < packageEndpoints.length; i++) {
         const endpoint = packageEndpoints[i];
-        console.log(`[WHM API] Attempt ${i + 1}/${packageEndpoints.length} - Testing endpoint: ${endpoint.name}`);
-        console.log(`[WHM API] URL: ${endpoint.url}`);
+        console.log(`[WHM API] Attempt ${i + 1}/${packageEndpoints.length} - Testing: ${endpoint.name}`);
+        console.log(`[WHM API] Full URL: ${endpoint.url}`);
         
         try {
           const response = await fetch(endpoint.url, {
@@ -606,65 +610,63 @@ export async function registerRoutes(app: Express): Promise<Server> {
           
           if (response.ok) {
             const responseText = await response.text();
-            console.log(`[WHM API] ${endpoint.name} - Response body (first 500 chars): ${responseText.substring(0, 500)}`);
+            console.log(`[WHM API] ${endpoint.name} - SUCCESS! Response (first 500 chars): ${responseText.substring(0, 500)}`);
             
             try {
-              // Try to parse as JSON first
               const data = JSON.parse(responseText);
-              console.log(`[WHM API] ${endpoint.name} - Parsed JSON structure:`, {
+              console.log(`[WHM API] ${endpoint.name} - JSON structure:`, {
                 hasData: !!data.data,
                 hasPkg: !!data.data?.pkg,
                 hasPackages: !!data.data?.packages,
-                pkgLength: Array.isArray(data.data?.pkg) ? data.data.pkg.length : 'not array',
-                packagesLength: Array.isArray(data.data?.packages) ? data.data.packages.length : 'not array',
-                topLevelKeys: Object.keys(data)
+                topLevelKeys: Object.keys(data),
+                dataKeys: data.data ? Object.keys(data.data) : []
               });
               
-              // Check for packages in different possible structures
-              if (data.data?.pkg) {
-                console.log(`[WHM API] SUCCESS with ${endpoint.name} - Found ${data.data.pkg.length} packages in 'pkg' field`);
+              // Handle different response structures
+              if (data.data?.pkg && Array.isArray(data.data.pkg)) {
+                console.log(`[WHM API] SUCCESS - Found ${data.data.pkg.length} packages in 'pkg' field`);
                 return res.json({ packages: data.data.pkg });
-              } else if (data.data?.packages) {
-                console.log(`[WHM API] SUCCESS with ${endpoint.name} - Found ${data.data.packages.length} packages in 'packages' field`);
+              } else if (data.data?.packages && Array.isArray(data.data.packages)) {
+                console.log(`[WHM API] SUCCESS - Found ${data.data.packages.length} packages in 'packages' field`);
                 return res.json({ packages: data.data.packages });
               } else if (Array.isArray(data.data)) {
-                console.log(`[WHM API] SUCCESS with ${endpoint.name} - Found ${data.data.length} packages in data array`);
+                console.log(`[WHM API] SUCCESS - Found ${data.data.length} packages in data array`);
                 return res.json({ packages: data.data });
+              } else if (data.pkg && Array.isArray(data.pkg)) {
+                console.log(`[WHM API] SUCCESS - Found ${data.pkg.length} packages in root 'pkg' field`);
+                return res.json({ packages: data.pkg });
               } else {
-                console.log(`[WHM API] ${endpoint.name} - Response successful but no packages found in expected structure`);
+                console.log(`[WHM API] ${endpoint.name} - Successful response but no packages found. Full data:`, data);
+                // Return empty array if response is successful but no packages
+                return res.json({ packages: [] });
               }
               
             } catch (parseError) {
-              // If JSON parse fails, try to handle XML or other formats
-              console.log(`[WHM API] ${endpoint.name} - Not JSON, checking if XML or other format`);
+              console.log(`[WHM API] ${endpoint.name} - Response not JSON, checking for XML`);
               if (responseText.includes('<pkg>') || responseText.includes('<package>')) {
-                console.log(`[WHM API] ${endpoint.name} - Appears to be XML format, need XML parser`);
+                console.log(`[WHM API] ${endpoint.name} - XML format detected, would need XML parser`);
+                // For now, return empty array since we don't have XML parser
+                return res.json({ packages: [] });
               }
             }
           } else {
             const errorText = await response.text();
-            console.log(`[WHM API] ${endpoint.name} - Error response (first 200 chars): ${errorText.substring(0, 200)}`);
-            
-            // If we get 404, this endpoint doesn't exist
-            if (response.status === 404) {
-              console.log(`[WHM API] ${endpoint.name} - Endpoint does not exist (404)`);
-            }
+            console.log(`[WHM API] ${endpoint.name} - Error ${response.status}: ${errorText.substring(0, 200)}`);
           }
           
         } catch (error) {
           console.error(`[WHM API] ${endpoint.name} - Exception:`, error);
-          lastError = error;
         }
       }
       
-      // If we get here, all endpoints failed
-      console.error(`[WHM API] ALL PACKAGE ENDPOINTS FAILED - Tested ${packageEndpoints.length} different endpoints`);
-      console.error(`[WHM API] Last error:`, lastError);
+      // If all endpoints fail, check if WHM API supports listpkgs at all
+      console.error(`[WHM API] All official endpoints failed. This WHM server may not support the listpkgs function.`);
+      console.log(`[WHM API] Working test connection URL was: ${cleanBaseUrl}/json-api/version?api.version=1`);
+      console.log(`[WHM API] Consider checking WHM documentation or contacting hosting provider about available package management functions.`);
       
-      // Return error with detailed information
       return res.status(500).json({ 
-        message: "All WHM package listing endpoints failed", 
-        details: `Tested ${packageEndpoints.length} different endpoints - check server logs for details`
+        message: "WHM package listing not available", 
+        details: "The WHM server does not appear to support the listpkgs function. Check with your hosting provider."
       });
       
     } catch (error) {

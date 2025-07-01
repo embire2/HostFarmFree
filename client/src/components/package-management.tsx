@@ -229,7 +229,7 @@ export default function PackageManagement() {
               Add Package
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" aria-describedby="package-dialog-description">
             <DialogHeader>
               <DialogTitle>
                 {editingPackage ? "Edit Package" : "Create New Package"}
