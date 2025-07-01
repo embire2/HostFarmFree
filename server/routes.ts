@@ -568,45 +568,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const baseUrl = apiSettings.whmApiUrl.replace(/\/+$/, '').replace(/\/json-api.*$/, '').replace(/:2087.*$/, '');
-      // Ensure we're calling WHM API 1, not API 0
-      const apiUrl = `${baseUrl}:2087/json-api/listpkgs?api.version=1&api.format=json`;
-      console.log(`[WHM API] Constructed API URL: ${apiUrl}`);
-
-      // Try multiple authentication methods based on cPanel documentation
-      let response;
-      let lastError;
-      const authMethods = [];
       
-      // Method 1: API Token with WHM root format - forcing API version 1
+      // Use the EXACT same authentication method that works for the test connection
+      console.log(`[WHM API] Using working authentication method from test connection`);
+      
       try {
-        const cleanToken = apiToken.replace(/^(whm|bearer)\s+/i, '');
-        console.log(`[WHM API] Method 1 - WHM root token format, token length: ${cleanToken.length}`);
+        // This is the exact format that works in the test connection
+        const workingUrl = `${baseUrl}/json-api/listpkgs?api.version=1`;
+        console.log(`[WHM API] Using working URL format: ${workingUrl}`);
         
-        // Add SSL options for self-signed certificates
-        const agent = new (await import('https')).Agent({
-          rejectUnauthorized: false
-        });
-        
-        response = await fetch(apiUrl, {
+        const response = await fetch(workingUrl, {
           method: 'GET',
           headers: {
-            'Authorization': `WHM root:${cleanToken}`,
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
+            'Authorization': `whm root:${apiToken}`,
           },
-          // @ts-ignore
-          agent: apiUrl.startsWith('https:') ? agent : undefined,
         });
         
-        console.log(`[WHM API] Method 1 Response - Status: ${response.status}, Status Text: ${response.statusText}`);
+        console.log(`[WHM API] Response - Status: ${response.status}, Status Text: ${response.statusText}`);
         
         if (response.ok) {
           const responseText = await response.text();
-          console.log(`[WHM API] Method 1 Response Body (first 500 chars): ${responseText.substring(0, 500)}`);
+          console.log(`[WHM API] Response body (first 500 chars): ${responseText.substring(0, 500)}`);
           
           try {
             const data = JSON.parse(responseText);
-            console.log(`[WHM API] Method 1 Parsed JSON structure:`, {
+            console.log(`[WHM API] Parsed JSON structure:`, {
               hasData: !!data.data,
               hasPkg: !!data.data?.pkg,
               pkgLength: Array.isArray(data.data?.pkg) ? data.data.pkg.length : 'not array',
@@ -614,205 +600,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
             });
             
             if (data.data?.pkg) {
-              console.log(`[WHM API] Method 1 SUCCESS - Returning ${data.data.pkg.length} packages`);
+              console.log(`[WHM API] SUCCESS - Returning ${data.data.pkg.length} packages`);
               return res.json({ packages: data.data.pkg });
             }
-          } catch (parseError) {
-            console.error(`[WHM API] Method 1 JSON parse error:`, parseError);
-          }
-        } else {
-          const errorText = await response.text();
-          console.error(`[WHM API] Method 1 Error Response: ${errorText.substring(0, 500)}`);
-        }
-        authMethods.push({ method: 1, status: response.status, ok: response.ok });
-      } catch (error) {
-        console.error(`[WHM API] Method 1 Exception:`, error);
-        lastError = error;
-        authMethods.push({ method: 1, error: error instanceof Error ? error.message : String(error) });
-      }
-
-      // Method 2: Basic Authentication with root user
-      try {
-        const cleanToken = apiToken.replace(/^(whm|bearer)\s+/i, '');
-        const basicAuth = Buffer.from(`root:${cleanToken}`).toString('base64');
-        console.log(`[WHM API] Method 2 - Basic Auth format, token length: ${cleanToken.length}`);
-        
-        // Add SSL options for self-signed certificates
-        const agent = new (await import('https')).Agent({
-          rejectUnauthorized: false
-        });
-        
-        response = await fetch(apiUrl, {
-          method: 'GET',
-          headers: {
-            'Authorization': `Basic ${basicAuth}`,
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-          },
-          // @ts-ignore
-          agent: apiUrl.startsWith('https:') ? agent : undefined,
-        });
-        
-        console.log(`[WHM API] Method 2 Response - Status: ${response.status}, Status Text: ${response.statusText}`);
-        
-        if (response.ok) {
-          const responseText = await response.text();
-          console.log(`[WHM API] Method 2 Response Body (first 500 chars): ${responseText.substring(0, 500)}`);
-          
-          try {
-            const data = JSON.parse(responseText);
-            console.log(`[WHM API] Method 2 Parsed JSON structure:`, {
-              hasData: !!data.data,
-              hasPkg: !!data.data?.pkg,
-              pkgLength: Array.isArray(data.data?.pkg) ? data.data.pkg.length : 'not array'
-            });
             
-            if (data.data?.pkg) {
-              console.log(`[WHM API] Method 2 SUCCESS - Returning ${data.data.pkg.length} packages`);
-              return res.json({ packages: data.data.pkg });
-            }
-          } catch (parseError) {
-            console.error(`[WHM API] Method 2 JSON parse error:`, parseError);
-          }
-        } else {
-          const errorText = await response.text();
-          console.error(`[WHM API] Method 2 Error Response: ${errorText.substring(0, 500)}`);
-        }
-        authMethods.push({ method: 2, status: response.status, ok: response.ok });
-      } catch (error) {
-        console.error(`[WHM API] Method 2 Exception:`, error);
-        lastError = error;
-        authMethods.push({ method: 2, error: error instanceof Error ? error.message : String(error) });
-      }
-
-      // Method 3: Direct token in URL parameter with proper SSL handling
-      try {
-        const cleanToken = apiToken.replace(/^(whm|bearer)\s+/i, '');
-        const urlWithToken = `${apiUrl}&api.token=${cleanToken}`;
-        console.log(`[WHM API] Method 3 - URL token parameter, full URL length: ${urlWithToken.length}`);
-        
-        // Add SSL options to handle self-signed certificates
-        const agent = new (await import('https')).Agent({
-          rejectUnauthorized: false
-        });
-        
-        response = await fetch(urlWithToken, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          // @ts-ignore
-          agent: urlWithToken.startsWith('https:') ? agent : undefined,
-        });
-        
-        console.log(`[WHM API] Method 3 Response - Status: ${response.status}, Status Text: ${response.statusText}`);
-        
-        if (response.ok) {
-          const responseText = await response.text();
-          console.log(`[WHM API] Method 3 Response Body (first 500 chars): ${responseText.substring(0, 500)}`);
-          
-          try {
-            const data = JSON.parse(responseText);
-            console.log(`[WHM API] Method 3 Parsed JSON structure:`, {
-              hasData: !!data.data,
-              hasPkg: !!data.data?.pkg,
-              pkgLength: Array.isArray(data.data?.pkg) ? data.data.pkg.length : 'not array'
-            });
+            // If no packages found, return empty array
+            console.log(`[WHM API] No packages found in response, returning empty array`);
+            return res.json({ packages: [] });
             
-            if (data.data?.pkg) {
-              console.log(`[WHM API] Method 3 SUCCESS - Returning ${data.data.pkg.length} packages`);
-              return res.json({ packages: data.data.pkg });
-            }
           } catch (parseError) {
-            console.error(`[WHM API] Method 3 JSON parse error:`, parseError);
+            console.error(`[WHM API] JSON parse error:`, parseError);
+            return res.status(500).json({ message: "Failed to parse WHM API response" });
           }
         } else {
           const errorText = await response.text();
-          console.error(`[WHM API] Method 3 Error Response: ${errorText.substring(0, 500)}`);
+          console.error(`[WHM API] Error response: ${errorText.substring(0, 500)}`);
+          return res.status(response.status).json({ message: `WHM API error: ${response.statusText}` });
         }
-        authMethods.push({ method: 3, status: response.status, ok: response.ok });
+        
       } catch (error) {
-        console.error(`[WHM API] Method 3 Exception:`, error);
-        lastError = error;
-        authMethods.push({ method: 3, error: error instanceof Error ? error.message : String(error) });
+        console.error(`[WHM API] Exception:`, error);
+        return res.status(500).json({ message: "Failed to connect to WHM API" });
       }
-
-      // Method 4: API Token with X-API-TOKEN header
-      try {
-        const cleanToken = apiToken.replace(/^(whm|bearer)\s+/i, '');
-        console.log(`[WHM API] Method 4 - X-API-TOKEN header, token length: ${cleanToken.length}`);
-        
-        // Add SSL options for self-signed certificates
-        const agent = new (await import('https')).Agent({
-          rejectUnauthorized: false
-        });
-        
-        response = await fetch(apiUrl, {
-          method: 'GET',
-          headers: {
-            'X-API-TOKEN': cleanToken,
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-          },
-          // @ts-ignore
-          agent: apiUrl.startsWith('https:') ? agent : undefined,
-        });
-        
-        console.log(`[WHM API] Method 4 Response - Status: ${response.status}, Status Text: ${response.statusText}`);
-        
-        if (response.ok) {
-          const responseText = await response.text();
-          console.log(`[WHM API] Method 4 Response Body (first 500 chars): ${responseText.substring(0, 500)}`);
-          
-          try {
-            const data = JSON.parse(responseText);
-            console.log(`[WHM API] Method 4 Parsed JSON structure:`, {
-              hasData: !!data.data,
-              hasPkg: !!data.data?.pkg,
-              pkgLength: Array.isArray(data.data?.pkg) ? data.data.pkg.length : 'not array'
-            });
-            
-            if (data.data?.pkg) {
-              console.log(`[WHM API] Method 4 SUCCESS - Returning ${data.data.pkg.length} packages`);
-              return res.json({ packages: data.data.pkg });
-            }
-          } catch (parseError) {
-            console.error(`[WHM API] Method 4 JSON parse error:`, parseError);
-          }
-        } else {
-          const errorText = await response.text();
-          console.error(`[WHM API] Method 4 Error Response: ${errorText.substring(0, 500)}`);
-        }
-        authMethods.push({ method: 4, status: response.status, ok: response.ok });
-      } catch (error) {
-        console.error(`[WHM API] Method 4 Exception:`, error);
-        lastError = error;
-        authMethods.push({ method: 4, error: error instanceof Error ? error.message : String(error) });
-      }
-
-      // Log comprehensive failure summary
-      console.error(`[WHM API] ALL METHODS FAILED - Summary:`, {
-        totalMethods: authMethods.length,
-        methods: authMethods,
-        lastError: lastError instanceof Error ? lastError.message : lastError ? String(lastError) : 'none',
-        apiUrl,
-        baseUrl
-      });
-
-      // Log comprehensive failure summary
-      console.warn(`[WHM API] ALL AUTHENTICATION METHODS FAILED - Falling back to sample data for development`);
-      console.log(`[WHM API] Authentication methods attempted:`, authMethods);
       
-      // Provide sample packages structure for development when API is not accessible
-      const samplePackages = [
-        { name: "starter", displayname: "Starter Package" },
-        { name: "business", displayname: "Business Package" },
-        { name: "premium", displayname: "Premium Package" },
-        { name: "enterprise", displayname: "Enterprise Package" }
-      ];
-      
-      console.log(`[WHM API] Returning ${samplePackages.length} sample packages for development`);
-      res.json({ packages: samplePackages });
     } catch (error) {
       console.error("Error fetching WHM packages:", error);
       res.status(500).json({ message: "Failed to fetch WHM packages" });
