@@ -889,32 +889,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log(`[Plugin Upload] Image file: ${imageFile.filename}, Size: ${imageFile.size} bytes`);
       }
 
-      // Hardcode author to HostFarm.org as requested
+      // Generate slug from name (required field)
+      const slug = req.body.name
+        ? req.body.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+        : pluginFile.filename.replace(/\.[^/.]+$/, "").toLowerCase().replace(/[^a-z0-9]+/g, '-');
+
+      // Store relative paths for production deployment
+      const relativePluginPath = path.relative(process.cwd(), pluginFile.path);
+      const imageUrl = imageFile ? `/static/plugins/${imageFile.filename}` : req.body.imageUrl || null;
+
+      // Prepare complete plugin data with all required fields
       const pluginData = {
         ...req.body,
-        author: "HostFarm.org"
+        author: "HostFarm.org", // Hardcoded as requested
+        slug: slug,
+        fileName: pluginFile.filename,
+        filePath: relativePluginPath,
+        fileSize: pluginFile.size,
+        imageUrl: imageUrl,
+        uploadedBy: userId,
       };
 
+      console.log('[Plugin Upload] Validating plugin data:', JSON.stringify(pluginData, null, 2));
+      
       const validation = insertPluginSchema.safeParse(pluginData);
       if (!validation.success) {
+        console.error('[Plugin Upload] Validation failed:', JSON.stringify(validation.error.errors, null, 2));
         return res.status(400).json({
           message: "Invalid plugin data",
           errors: validation.error.errors,
         });
       }
 
-      // Store relative paths for production deployment
-      const relativePluginPath = path.relative(process.cwd(), pluginFile.path);
-      const imageUrl = imageFile ? `/static/plugins/${imageFile.filename}` : validation.data.imageUrl;
-      
-      const plugin = await storage.createPlugin({
-        ...validation.data,
-        fileName: pluginFile.filename,
-        fileSize: pluginFile.size,
-        filePath: relativePluginPath,
-        imageUrl: imageUrl,
-        uploadedBy: userId,
-      });
+      // Create plugin with validated data (all fields already prepared)
+      const plugin = await storage.createPlugin(validation.data);
 
       console.log(`[Plugin Upload] Plugin created in database with ID: ${plugin.id}`);
       res.json(plugin);

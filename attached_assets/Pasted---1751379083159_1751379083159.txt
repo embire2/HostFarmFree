@@ -1,0 +1,92 @@
+
+      /////////////////////
+   ///////////////////////////
+  ////////@@@@@@@//////////////
+  ////////@@@@@@@//////////////
+  ////////@@@@@@@//////////////        Curious and driven?
+  ///////////////@@@@@@@///////        Work with us!
+  ///////////////@@@@@@@///////
+  ///////////////@@@@@@@///////        https://join.replit.com/hack.with.us
+  ////////@@@@@@@//////////////
+  ////////@@@@@@@//////////////
+  ////////@@@@@@#//////////////
+   ///////////////////////////
+      /////////////////////
+      
+_app-3064658b658be0bb.js:38 [LaunchDarkly] LaunchDarkly client initialized
+48Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.Understand this error
+framework-943d18a826233b26.js:1 Unrecognized feature: 'ambient-light-sensor'.
+_ @ framework-943d18a826233b26.js:1Understand this warning
+framework-943d18a826233b26.js:1 Unrecognized feature: 'battery'.
+_ @ framework-943d18a826233b26.js:1Understand this warning
+framework-943d18a826233b26.js:1 Unrecognized feature: 'execution-while-not-rendered'.
+_ @ framework-943d18a826233b26.js:1Understand this warning
+framework-943d18a826233b26.js:1 Unrecognized feature: 'execution-while-out-of-viewport'.
+_ @ framework-943d18a826233b26.js:1Understand this warning
+framework-943d18a826233b26.js:1 Unrecognized feature: 'layout-animations'.
+_ @ framework-943d18a826233b26.js:1Understand this warning
+framework-943d18a826233b26.js:1 Unrecognized feature: 'legacy-image-formats'.
+_ @ framework-943d18a826233b26.js:1Understand this warning
+framework-943d18a826233b26.js:1 Unrecognized feature: 'navigation-override'.
+_ @ framework-943d18a826233b26.js:1Understand this warning
+framework-943d18a826233b26.js:1 Unrecognized feature: 'oversized-images'.
+_ @ framework-943d18a826233b26.js:1Understand this warning
+framework-943d18a826233b26.js:1 Unrecognized feature: 'publickey-credentials'.
+_ @ framework-943d18a826233b26.js:1Understand this warning
+framework-943d18a826233b26.js:1 Unrecognized feature: 'speaker-selection'.
+_ @ framework-943d18a826233b26.js:1Understand this warning
+framework-943d18a826233b26.js:1 Unrecognized feature: 'unoptimized-images'.
+_ @ framework-943d18a826233b26.js:1Understand this warning
+framework-943d18a826233b26.js:1 Unrecognized feature: 'unsized-media'.
+_ @ framework-943d18a826233b26.js:1Understand this warning
+framework-943d18a826233b26.js:1 Unrecognized feature: 'pointer-lock'.
+_ @ framework-943d18a826233b26.js:1Understand this warning
+framework-943d18a826233b26.js:1 Allow attribute will take precedence over 'allowfullscreen'.
+_ @ framework-943d18a826233b26.js:1Understand this warning
+framework-943d18a826233b26.js:1 Allow attribute will take precedence over 'allowpaymentrequest'.
+_ @ framework-943d18a826233b26.js:1Understand this warning
+9HostFarmFree:1 Uncaught (in promise) Error: A listener indicated an asynchronous response by returning true, but the message channel closed before a response was receivedUnderstand this error
+_app-3064658b658be0bb.js:38 task queue exceeded allotted deadline by 35ms
+(anonymous) @ _app-3064658b658be0bb.js:38Understand this warning
+_app-3064658b658be0bb.js:38 task queue exceeded allotted deadline by 21ms
+(anonymous) @ _app-3064658b658be0bb.js:38Understand this warning
+Grammarly-check.js:1 [Violation] Permissions policy violation: unload is not allowed in this document.
+(anonymous) @ Grammarly-check.js:1Understand this error
+workspace_iframe.html:32 Unrecognized feature: 'ambient-light-sensor'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'battery'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'execution-while-not-rendered'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'execution-while-out-of-viewport'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'layout-animations'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'legacy-image-formats'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'navigation-override'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'oversized-images'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'publickey-credentials'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'speaker-selection'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'unoptimized-images'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'unsized-media'.Understand this warning
+workspace_iframe.html:32 Allow attribute will take precedence over 'allowfullscreen'.Understand this warning
+workspace_iframe.html:32 Allow attribute will take precedence over 'allowpaymentrequest'.Understand this warning
+Console.js:61 [Frontend] WHM packages data: Object
+Console.js:61 [Frontend] WHM packages data: Object
+Console.js:61 [Frontend] WHM packages data: Object
+Console.js:61 [Frontend] WHM packages data: Object
+Console.js:61 [Frontend] WHM packages data: Object
+Console.js:61 [Frontend] WHM packages data: Object
+Grammarly.js:2 grm ERROR [lib.tracking.telemetry] ░░ cs.unhandled Error: Promise timed out.
+    at S.csUnhandled (Grammarly.js:2:1540863)
+    at Object.next (Grammarly.js:2:496946)
+    at e.next (Grammarly.js:2:1907078)
+    at t._next (Grammarly.js:2:1906682)
+    at t.next (Grammarly.js:2:1906301)
+    at Grammarly.js:2:1949358
+    at a._next (Grammarly.js:2:1920625)
+    at t.next (Grammarly.js:2:1906301)
+    at Grammarly.js:2:1946819
+    at a._next (Grammarly.js:2:1920625)
+write @ Grammarly.js:2Understand this error
+Grammarly.js:2 Uncaught (in promise) a: Promise timed out.
+    at chrome-extension://kbfnbcaeplbcioakkpcpgfkobkghlhen/src/js/Grammarly.js:2:1521725Understand this error
+da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/api/admin/plugins:1 
+            
+            
+           Failed to load resource: the server responded with a status of 400 (Bad Request)Understand this error
