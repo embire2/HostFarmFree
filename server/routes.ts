@@ -1187,6 +1187,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
+      // Check WHM server for existing accounts
+      const apiSettings = await storage.getApiSettings();
+      if (apiSettings && apiSettings.whmApiUrl && apiSettings.whmApiToken) {
+        try {
+          console.log(`[Subdomain Check] Checking WHM server for existing account: ${subdomain.toLowerCase()}`);
+          
+          const whmUrl = `${apiSettings.whmApiUrl}/json-api/listaccts?api.version=1&searchusers=${subdomain.toLowerCase()}`;
+          const whmResponse = await fetch(whmUrl, {
+            method: 'GET',
+            headers: {
+              'Authorization': `whm root:${apiSettings.whmApiToken}`,
+              'Content-Type': 'application/json'
+            }
+          });
+
+          if (whmResponse.ok) {
+            const whmData = await whmResponse.json();
+            console.log(`[Subdomain Check] WHM response:`, JSON.stringify(whmData, null, 2));
+            
+            // Check if any accounts exist with this username
+            if (whmData.data?.acct && Array.isArray(whmData.data.acct) && whmData.data.acct.length > 0) {
+              // Found existing account on WHM server
+              const existingAccount = whmData.data.acct.find((acc: any) => 
+                acc.user && acc.user.toLowerCase() === subdomain.toLowerCase()
+              );
+              
+              if (existingAccount) {
+                console.log(`[Subdomain Check] Account ${subdomain.toLowerCase()} already exists on WHM server`);
+                return res.json({ 
+                  available: false, 
+                  message: "This subdomain is already taken on the server" 
+                });
+              }
+            }
+            
+            console.log(`[Subdomain Check] Account ${subdomain.toLowerCase()} not found on WHM server - available`);
+          } else {
+            console.warn(`[Subdomain Check] WHM API call failed with status: ${whmResponse.status}`);
+            // Continue with local check only if WHM fails
+          }
+        } catch (whmError) {
+          console.error('[Subdomain Check] Error checking WHM server:', whmError);
+          // Continue with local check only if WHM fails
+        }
+      } else {
+        console.warn('[Subdomain Check] WHM API not configured, using local database only');
+      }
+
       res.json({ 
         available: true, 
         domain: fullDomain,

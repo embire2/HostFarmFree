@@ -162,7 +162,23 @@ export class DatabaseStorage implements IStorage {
 
   async getHostingAccountByDomain(domain: string): Promise<HostingAccount | undefined> {
     const [account] = await db
-      .select()
+      .select({
+        id: hostingAccounts.id,
+        userId: hostingAccounts.userId,
+        packageId: hostingAccounts.packageId,
+        domain: hostingAccounts.domain,
+        subdomain: hostingAccounts.subdomain,
+        cpanelUsername: hostingAccounts.cpanelUsername,
+        cpanelPassword: hostingAccounts.cpanelPassword,
+        whmAccountId: hostingAccounts.whmAccountId,
+        status: hostingAccounts.status,
+        diskUsage: hostingAccounts.diskUsage,
+        diskLimit: hostingAccounts.diskLimit,
+        bandwidthUsed: hostingAccounts.bandwidthUsed,
+        bandwidthLimit: hostingAccounts.bandwidthLimit,
+        createdAt: hostingAccounts.createdAt,
+        updatedAt: hostingAccounts.updatedAt,
+      })
       .from(hostingAccounts)
       .where(eq(hostingAccounts.domain, domain));
     return account;
