@@ -137,6 +137,11 @@ Changelog:
 - July 2, 2025. Created beautiful plugin detail pages with download and donation functionality
 - July 2, 2025. Added public plugin API endpoints for non-authenticated access
 - July 2, 2025. Fixed routing conflicts between dynamic and static API endpoints
+- July 2, 2025. Implemented comprehensive Hosting Accounts Management system for admin dashboard
+- July 2, 2025. Added client hosting accounts grouped by user with detailed WHM API statistics
+- July 2, 2025. Created complete hosting account deletion with WHM integration - removes from both systems
+- July 2, 2025. Built comprehensive hosting account editing capabilities for admin management
+- July 2, 2025. Enhanced admin dashboard with new "Hosting Accounts" tab as primary management interface
 ```
 
 # User Preferences

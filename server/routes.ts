@@ -586,6 +586,164 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get all hosting accounts grouped by client (admin only)
+  app.get("/api/admin/hosting-accounts", isAuthenticated, requireAdmin, async (req, res) => {
+    try {
+      // Get all users
+      const allUsers = await storage.getAllUsers();
+      
+      // Get hosting accounts for each user
+      const clientAccounts = await Promise.all(
+        allUsers.map(async (user) => {
+          const hostingAccounts = await storage.getHostingAccountsByUserId(user.id);
+          return {
+            user,
+            hostingAccounts: hostingAccounts || []
+          };
+        })
+      );
+
+      // Filter to only include clients with hosting accounts
+      const clientsWithAccounts = clientAccounts.filter(
+        (client) => client.hostingAccounts.length > 0
+      );
+
+      res.json(clientsWithAccounts);
+    } catch (error) {
+      console.error("Error fetching client hosting accounts:", error);
+      res.status(500).json({ error: "Failed to fetch client hosting accounts" });
+    }
+  });
+
+  // Delete hosting account from both system and WHM (admin only)
+  app.delete("/api/admin/hosting-accounts/:id", isAuthenticated, requireAdmin, async (req, res) => {
+    try {
+      const accountId = parseInt(req.params.id);
+      
+      // Get the hosting account details first
+      const hostingAccounts = await storage.getHostingAccountsByUserId(0); // We need a better way to get all accounts
+      let account = null;
+      
+      // Find the account across all users (this is not ideal, should improve storage interface)
+      const allUsers = await storage.getAllUsers();
+      for (const user of allUsers) {
+        const userAccounts = await storage.getHostingAccountsByUserId(user.id);
+        const foundAccount = userAccounts.find((acc: any) => acc.id === accountId);
+        if (foundAccount) {
+          account = foundAccount;
+          break;
+        }
+      }
+
+      if (!account) {
+        return res.status(404).json({ error: "Hosting account not found" });
+      }
+
+      console.log(`[Admin Delete] Attempting to delete hosting account: ${account.domain} (ID: ${accountId})`);
+
+      // Get API settings for WHM integration
+      const apiSettings = await storage.getApiSettings();
+      const envToken = process.env.WHM_API_TOKEN;
+      const apiToken = envToken || apiSettings?.whmApiToken;
+      
+      if (apiSettings?.whmApiUrl && apiToken) {
+        try {
+          // Extract username from domain (remove .hostme.today)
+          const username = account.subdomain || account.domain.replace('.hostme.today', '');
+          
+          console.log(`[Admin Delete] Attempting to delete WHM account for user: ${username}`);
+          
+          // Clean base URL
+          const baseUrl = apiSettings.whmApiUrl.replace(/\/+$/, '').replace(/\/json-api.*$/, '').replace(/:2087.*$/, '');
+          
+          // Call WHM API to remove the account completely
+          const whmDeleteUrl = `${baseUrl}:2087/json-api/removeacct?api.version=1&user=${username}`;
+          
+          const whmResponse = await fetch(whmDeleteUrl, {
+            method: 'GET', // WHM uses GET for removeacct
+            headers: {
+              'Authorization': `whm root:${apiToken}`,
+              'Content-Type': 'application/json',
+            },
+          });
+
+          if (!whmResponse.ok) {
+            console.error(`[Admin Delete] WHM API error: ${whmResponse.status} ${whmResponse.statusText}`);
+            // Continue with local deletion even if WHM fails
+          } else {
+            const whmResult = await whmResponse.json();
+            console.log('[Admin Delete] WHM account deletion result:', whmResult);
+            
+            if (whmResult.metadata?.result !== 1) {
+              console.warn('[Admin Delete] WHM deletion may have failed:', whmResult.metadata?.reason);
+            } else {
+              console.log(`[Admin Delete] Successfully deleted WHM account for ${username}`);
+            }
+          }
+        } catch (whmError) {
+          console.error('[Admin Delete] Error deleting from WHM:', whmError);
+          // Continue with local deletion even if WHM fails
+        }
+      } else {
+        console.warn('[Admin Delete] WHM API not configured, skipping WHM deletion');
+      }
+
+      // Delete from local database
+      const deleted = await storage.deleteHostingAccount(accountId);
+      
+      if (!deleted) {
+        return res.status(500).json({ error: "Failed to delete hosting account from local database" });
+      }
+
+      console.log(`[Admin Delete] Successfully deleted hosting account ${account.domain} from local database`);
+
+      res.json({ 
+        message: "Hosting account deleted successfully",
+        deletedAccount: {
+          id: accountId,
+          domain: account.domain,
+          deletedFromWHM: !!(apiSettings?.whmApiUrl && apiToken),
+          deletedFromLocal: true
+        }
+      });
+    } catch (error) {
+      console.error("Error deleting hosting account:", error);
+      res.status(500).json({ error: "Failed to delete hosting account" });
+    }
+  });
+
+  // Update hosting account (admin only)
+  app.put("/api/admin/hosting-accounts/:id", isAuthenticated, requireAdmin, async (req, res) => {
+    try {
+      const accountId = parseInt(req.params.id);
+      const updates = req.body;
+      
+      // Validate updates (basic validation)
+      const allowedUpdates = ['status', 'packageId', 'diskLimit', 'bandwidthLimit'];
+      const filteredUpdates = Object.keys(updates)
+        .filter(key => allowedUpdates.includes(key))
+        .reduce((obj: any, key) => {
+          obj[key] = updates[key];
+          return obj;
+        }, {});
+
+      if (Object.keys(filteredUpdates).length === 0) {
+        return res.status(400).json({ error: "No valid updates provided" });
+      }
+
+      const updatedAccount = await storage.updateHostingAccount(accountId, filteredUpdates);
+      
+      if (!updatedAccount) {
+        return res.status(404).json({ error: "Hosting account not found" });
+      }
+
+      res.json(updatedAccount);
+    } catch (error) {
+      console.error("Error updating hosting account:", error);
+      res.status(500).json({ error: "Failed to update hosting account" });
+    }
+  });
+
   // Test WHM API connection endpoint
   app.post("/api/test-whm-connection", isAuthenticated, requireAdmin, async (req, res) => {
     try {

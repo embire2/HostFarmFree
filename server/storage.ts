@@ -41,6 +41,8 @@ export interface IStorage {
   getHostingAccountsByUserId(userId: number): Promise<HostingAccount[]>;
   getHostingAccountByDomain(domain: string): Promise<HostingAccount | undefined>;
   updateHostingAccountUsage(id: number, diskUsage: number, bandwidthUsed: number): Promise<void>;
+  updateHostingAccount(id: number, updates: Partial<InsertHostingAccount>): Promise<HostingAccount | undefined>;
+  deleteHostingAccount(id: number): Promise<boolean>;
 
   // Plugin operations
   createPlugin(plugin: InsertPlugin): Promise<Plugin>;
@@ -175,6 +177,30 @@ export class DatabaseStorage implements IStorage {
       .update(hostingAccounts)
       .set({ diskUsage, bandwidthUsed, updatedAt: new Date() })
       .where(eq(hostingAccounts.id, id));
+  }
+
+  async updateHostingAccount(id: number, updates: Partial<InsertHostingAccount>): Promise<HostingAccount | undefined> {
+    const [updatedAccount] = await db
+      .update(hostingAccounts)
+      .set({ 
+        ...updates,
+        updatedAt: new Date() 
+      })
+      .where(eq(hostingAccounts.id, id))
+      .returning();
+    return updatedAccount;
+  }
+
+  async deleteHostingAccount(id: number): Promise<boolean> {
+    try {
+      await db
+        .delete(hostingAccounts)
+        .where(eq(hostingAccounts.id, id));
+      return true;
+    } catch (error) {
+      console.error('Error deleting hosting account:', error);
+      return false;
+    }
   }
 
   // Plugin operations

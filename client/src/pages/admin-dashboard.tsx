@@ -32,6 +32,7 @@ import Navbar from "@/components/navbar";
 import { apiRequest } from "@/lib/queryClient";
 import ApiSettings from "@/components/api-settings";
 import PackageManagement from "@/components/package-management";
+import HostingAccountsManagement from "@/components/hosting-accounts-management";
 
 export default function AdminDashboard() {
   const { user, isAuthenticated, isLoading } = useAuth();
@@ -408,8 +409,12 @@ export default function AdminDashboard() {
         </div>
 
         {/* Admin Tabs */}
-        <Tabs defaultValue="packages" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-6">
+        <Tabs defaultValue="hosting" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-7">
+            <TabsTrigger value="hosting" className="flex items-center">
+              <Globe className="mr-2 h-4 w-4" />
+              Hosting Accounts
+            </TabsTrigger>
             <TabsTrigger value="packages" className="flex items-center">
               <Puzzle className="mr-2 h-4 w-4" />
               Packages
@@ -435,6 +440,10 @@ export default function AdminDashboard() {
               System
             </TabsTrigger>
           </TabsList>
+
+          <TabsContent value="hosting" className="space-y-6">
+            <HostingAccountsManagement />
+          </TabsContent>
 
           <TabsContent value="packages" className="space-y-6">
             <PackageManagement />
