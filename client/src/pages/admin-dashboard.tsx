@@ -96,11 +96,13 @@ export default function AdminDashboard() {
     enabled: isAuthenticated && user?.role === "admin",
   });
 
-  // User Management queries
-  const { data: allUsers = [], isLoading: isLoadingUsers } = useQuery({
+  // User Management queries  
+  const { data: usersData, isLoading: isLoadingUsers } = useQuery<any[]>({
     queryKey: ["/api/admin/users"],
     enabled: isAuthenticated && user?.role === "admin",
   });
+  
+  const allUsers = usersData || [];
 
   const updateUserMutation = useMutation({
     mutationFn: async ({ userId, updates }: { userId: number; updates: any }) => {

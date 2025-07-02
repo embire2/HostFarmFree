@@ -546,7 +546,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // WHM admin login endpoint
+  // WHM admin login endpoint with automatic authentication
   app.post("/api/admin/whm-login", isAuthenticated, requireAdmin, async (req, res) => {
     try {
       // Get API settings
@@ -562,14 +562,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       baseUrl = baseUrl.replace(/\/json-api.*$/, ''); // Remove /json-api path
       baseUrl = baseUrl.replace(/:2087.*$/, ''); // Remove existing port
       
-      // Generate WHM login URL - direct to WHM panel
-      const loginUrl = `${baseUrl}:2087`;
+      // Generate WHM login URL with automatic authentication using API token
+      // This uses WHM's auto-login feature with the API token for seamless access
+      const loginUrl = `${baseUrl}:2087/login/?user=root&pass=${apiSettings.whmApiToken}&goto_uri=/`;
       
-      console.log("Generated WHM login URL:", loginUrl);
+      console.log("Generated WHM auto-login URL with authentication token");
       
       res.json({ 
         loginUrl,
-        message: "WHM panel access URL generated successfully"
+        message: "WHM panel auto-login URL generated successfully"
       });
     } catch (error) {
       console.error("Error generating WHM login:", error);
