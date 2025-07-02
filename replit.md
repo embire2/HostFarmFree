@@ -129,6 +129,9 @@ Changelog:
 - July 1, 2025. Implemented dedicated plugins directory with proper file path tracking
 - July 1, 2025. Added secure plugin download endpoints with stream handling
 - July 1, 2025. Created deployment-ready file structure with .gitkeep preservation
+- July 2, 2025. Implemented complete User Management system for admin dashboard
+- July 2, 2025. Added WHM Panel automatic authentication with API token for seamless admin access
+- July 2, 2025. Created admin "View Site" button for quick navigation to public website
 ```
 
 # User Preferences

@@ -8,7 +8,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Server, Heart, LogOut, User, Settings, Home } from "lucide-react";
+import { Server, Heart, LogOut, User, Settings, Home, Eye } from "lucide-react";
 import { Link, useLocation } from "wouter";
 
 export default function Navbar() {
@@ -62,6 +62,15 @@ export default function Navbar() {
                     }`}>
                       API Settings
                     </Link>
+                    <a 
+                      href="/" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-gray-600 hover:text-primary transition-colors flex items-center"
+                    >
+                      <Eye className="inline w-4 h-4 mr-1" />
+                      View Site
+                    </a>
                   </>
                 )}
               </>
