@@ -86,9 +86,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get public plugins (no authentication required) - must come before /:id route
+  app.get("/api/plugins/public", async (req, res) => {
+    try {
+      const plugins = await storage.getPublicPlugins();
+      res.json(plugins);
+    } catch (error) {
+      console.error("Error fetching public plugins:", error);
+      res.status(500).json({ message: "Failed to fetch public plugins" });
+    }
+  });
+
+  // Get plugin by slug (for public pages) - must come before /:id route
+  app.get("/api/plugins/slug/:slug", async (req, res) => {
+    try {
+      const plugin = await storage.getPluginBySlug(req.params.slug);
+      if (!plugin) {
+        return res.status(404).json({ message: "Plugin not found" });
+      }
+      res.json(plugin);
+    } catch (error) {
+      console.error("Error fetching plugin by slug:", error);
+      res.status(500).json({ message: "Failed to fetch plugin" });
+    }
+  });
+
   app.get("/api/plugins/:id", async (req, res) => {
     try {
-      const plugin = await storage.getPluginById(parseInt(req.params.id));
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid plugin ID" });
+      }
+      
+      const plugin = await storage.getPluginById(id);
       if (!plugin) {
         return res.status(404).json({ message: "Plugin not found" });
       }
@@ -229,6 +259,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to fetch plugin downloads" });
     }
   });
+
+  // Remove duplicate routes since they're now properly ordered above
 
   // Statistics endpoint
   app.get("/api/stats", async (req, res) => {
@@ -969,6 +1001,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         fileSize: pluginFile.size,
         imageUrl: imageUrl,
         uploadedBy: userId,
+        isPublic: req.body.isPublic === 'true',
       };
 
       console.log('[Plugin Upload] Validating plugin data:', JSON.stringify(pluginData, null, 2));
@@ -1039,6 +1072,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Serve static plugin files and images
   app.use("/static/plugins", express.static(path.join(process.cwd(), "plugins")));
+
+  // Stripe payment routes for donations
+  app.post("/api/create-payment-intent", async (req, res) => {
+    try {
+      const { amount, pluginId, pluginName } = req.body;
+      
+      if (!process.env.STRIPE_SECRET_KEY) {
+        return res.status(500).json({ message: "Stripe not configured" });
+      }
+      
+      const Stripe = (await import('stripe')).default;
+      const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: Math.round(amount * 100), // Convert to cents
+        currency: "usd",
+        metadata: {
+          pluginId: pluginId ? pluginId.toString() : '',
+          pluginName: pluginName || '',
+          type: 'plugin-donation'
+        }
+      });
+      
+      res.json({ clientSecret: paymentIntent.client_secret });
+    } catch (error: any) {
+      console.error("Error creating payment intent:", error);
+      res.status(500).json({ message: "Error creating payment intent: " + error.message });
+    }
+  });
 
   // Donation routes
   app.post("/api/donations", async (req, res) => {

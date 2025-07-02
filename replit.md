@@ -132,6 +132,11 @@ Changelog:
 - July 2, 2025. Implemented complete User Management system for admin dashboard
 - July 2, 2025. Added WHM Panel automatic authentication with API token for seamless admin access
 - July 2, 2025. Created admin "View Site" button for quick navigation to public website
+- July 2, 2025. Built comprehensive public plugin system with individual landing pages
+- July 2, 2025. Integrated Stripe payment system for $5 plugin donations
+- July 2, 2025. Created beautiful plugin detail pages with download and donation functionality
+- July 2, 2025. Added public plugin API endpoints for non-authenticated access
+- July 2, 2025. Fixed routing conflicts between dynamic and static API endpoints
 ```
 
 # User Preferences

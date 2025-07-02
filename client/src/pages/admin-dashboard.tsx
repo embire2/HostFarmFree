@@ -65,6 +65,7 @@ export default function AdminDashboard() {
     version: "",
     author: "HostFarm.org", // Hardcoded as requested
     imageUrl: "",
+    isPublic: false,
   });
   const [pluginFile, setPluginFile] = useState<File | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -165,6 +166,7 @@ export default function AdminDashboard() {
         version: "",
         author: "HostFarm.org", // Keep hardcoded value
         imageUrl: "",
+        isPublic: false,
       });
       setPluginFile(null);
       setImageFile(null); // Reset image file
@@ -200,7 +202,11 @@ export default function AdminDashboard() {
     
     // Append all other form data (author is already hardcoded)
     Object.entries(pluginData).forEach(([key, value]) => {
-      formData.append(key, value);
+      if (key !== 'isPublic') {
+        formData.append(key, String(value));
+      } else {
+        formData.append(key, value ? 'true' : 'false');
+      }
     });
 
     uploadPluginMutation.mutate(formData);
@@ -436,6 +442,22 @@ export default function AdminDashboard() {
                       />
                       <p className="text-sm text-muted-foreground mt-1">
                         Upload an image that will be displayed with your plugin
+                      </p>
+                    </div>
+
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        id="isPublic"
+                        checked={pluginData.isPublic || false}
+                        onChange={(e) => setPluginData(prev => ({ ...prev, isPublic: e.target.checked }))}
+                        className="rounded border-gray-300"
+                      />
+                      <Label htmlFor="isPublic" className="text-sm font-medium">
+                        Public Plugin
+                      </Label>
+                      <p className="text-sm text-muted-foreground ml-2">
+                        Allow downloads without user registration
                       </p>
                     </div>
 

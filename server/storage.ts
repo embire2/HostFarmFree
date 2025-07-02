@@ -45,7 +45,9 @@ export interface IStorage {
   // Plugin operations
   createPlugin(plugin: InsertPlugin): Promise<Plugin>;
   getPlugins(category?: string, search?: string): Promise<Plugin[]>;
+  getPublicPlugins(): Promise<Plugin[]>;
   getPluginById(id: number): Promise<Plugin | undefined>;
+  getPluginBySlug(slug: string): Promise<Plugin | undefined>;
   incrementPluginDownloads(pluginId: number): Promise<void>;
   recordPluginDownload(pluginId: number, userId: number): Promise<void>;
   getPluginDownloadsByUser(userId: number): Promise<PluginDownload[]>;
@@ -194,6 +196,24 @@ export class DatabaseStorage implements IStorage {
     return await query
       .where(and(...conditions))
       .orderBy(desc(plugins.downloadCount));
+  }
+
+  async getPublicPlugins(): Promise<Plugin[]> {
+    return await db.select().from(plugins)
+      .where(and(
+        eq(plugins.isActive, true),
+        eq(plugins.isPublic, true)
+      ))
+      .orderBy(desc(plugins.downloadCount));
+  }
+
+  async getPluginBySlug(slug: string): Promise<Plugin | undefined> {
+    const [plugin] = await db.select().from(plugins)
+      .where(and(
+        eq(plugins.slug, slug),
+        eq(plugins.isActive, true)
+      ));
+    return plugin;
   }
 
   async getPluginById(id: number): Promise<Plugin | undefined> {

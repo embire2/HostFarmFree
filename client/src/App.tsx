@@ -8,6 +8,8 @@ import Landing from "@/pages/landing";
 import ClientDashboard from "@/pages/client-dashboard";
 import AdminDashboard from "@/pages/admin-dashboard";
 import PluginLibrary from "@/pages/plugin-library";
+import PluginDetail from "@/pages/plugin-detail";
+import PluginCheckout from "@/pages/plugin-checkout";
 import AuthPage from "@/pages/auth-page";
 import NotFound from "@/pages/not-found";
 import ApiSettingsPage from "@/pages/api-settings-page";
@@ -34,6 +36,8 @@ function Router() {
           <Route path="/auth" component={AuthPage} />
           <Route path="/plugins" component={PluginLibrary} />
           <Route path="/plugin-library" component={PluginLibrary} />
+          <Route path="/plugin/:slug" component={PluginDetail} />
+          <Route path="/plugin/:slug/donate" component={PluginCheckout} />
         </>
       ) : (
         <>
@@ -44,12 +48,16 @@ function Router() {
               <Route path="/admin/api-settings" component={ApiSettingsPage} />
               <Route path="/plugins" component={PluginLibrary} />
               <Route path="/plugin-library" component={PluginLibrary} />
+              <Route path="/plugin/:slug" component={PluginDetail} />
+              <Route path="/plugin/:slug/donate" component={PluginCheckout} />
             </>
           ) : (
             <>
               <Route path="/" component={ClientDashboard} />
               <Route path="/plugins" component={PluginLibrary} />
               <Route path="/plugin-library" component={PluginLibrary} />
+              <Route path="/plugin/:slug" component={PluginDetail} />
+              <Route path="/plugin/:slug/donate" component={PluginCheckout} />
             </>
           )}
         </>

@@ -73,6 +73,7 @@ export const plugins = pgTable("plugins", {
   downloadCount: integer("download_count").default(0),
   imageUrl: varchar("image_url"),
   isActive: boolean("is_active").default(true),
+  isPublic: boolean("is_public").default(false),
   uploadedBy: integer("uploaded_by").notNull().references(() => users.id),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),

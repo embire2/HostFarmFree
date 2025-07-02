@@ -24,6 +24,10 @@ export default function Landing() {
     queryKey: ["/api/plugins", { limit: 6 }],
   });
 
+  const { data: publicPlugins } = useQuery({
+    queryKey: ["/api/plugins/public"],
+  });
+
   const features = [
     {
       title: "Free WordPress Hosting",
