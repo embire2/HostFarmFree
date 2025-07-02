@@ -256,6 +256,66 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   };
 
+  // User Management endpoints (admin only)
+  app.get("/api/admin/users", isAuthenticated, requireAdmin, async (req, res) => {
+    try {
+      const users = await storage.getAllUsers();
+      res.json(users);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      res.status(500).json({ message: "Failed to fetch users" });
+    }
+  });
+
+  app.put("/api/admin/users/:id", isAuthenticated, requireAdmin, async (req, res) => {
+    try {
+      const userId = parseInt(req.params.id);
+      const updates = req.body;
+      
+      // Prevent admin from removing their own admin role
+      const currentUser = req.user;
+      if (currentUser && currentUser.id === userId && updates.role !== "admin") {
+        return res.status(400).json({ 
+          message: "You cannot remove your own admin privileges" 
+        });
+      }
+      
+      const updatedUser = await storage.updateUser(userId, updates);
+      if (!updatedUser) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      res.json(updatedUser);
+    } catch (error) {
+      console.error("Error updating user:", error);
+      res.status(500).json({ message: "Failed to update user" });
+    }
+  });
+
+  app.delete("/api/admin/users/:id", isAuthenticated, requireAdmin, async (req, res) => {
+    try {
+      const userId = parseInt(req.params.id);
+      const currentUser = req.user;
+      
+      // Prevent admin from deleting their own account
+      if (currentUser && currentUser.id === userId) {
+        return res.status(400).json({ 
+          message: "You cannot delete your own account" 
+        });
+      }
+      
+      const success = await storage.deleteUser(userId);
+      if (!success) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      res.json({ message: "User deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      res.status(500).json({ message: "Failed to delete user" });
+    }
+  });
+
   // API Settings endpoints (admin only)
   app.get("/api/api-settings", isAuthenticated, requireAdmin, async (req: any, res) => {
     try {

@@ -96,6 +96,55 @@ export default function AdminDashboard() {
     enabled: isAuthenticated && user?.role === "admin",
   });
 
+  // User Management queries
+  const { data: allUsers = [], isLoading: isLoadingUsers } = useQuery({
+    queryKey: ["/api/admin/users"],
+    enabled: isAuthenticated && user?.role === "admin",
+  });
+
+  const updateUserMutation = useMutation({
+    mutationFn: async ({ userId, updates }: { userId: number; updates: any }) => {
+      const response = await apiRequest("PUT", `/api/admin/users/${userId}`, updates);
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success!",
+        description: "User updated successfully.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Update Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const deleteUserMutation = useMutation({
+    mutationFn: async (userId: number) => {
+      const response = await apiRequest("DELETE", `/api/admin/users/${userId}`);
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success!",
+        description: "User deleted successfully.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/stats"] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Delete Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
   const uploadPluginMutation = useMutation({
     mutationFn: async (formData: FormData) => {
       const response = await apiRequest("POST", "/api/admin/plugins", formData);
@@ -153,6 +202,20 @@ export default function AdminDashboard() {
     });
 
     uploadPluginMutation.mutate(formData);
+  };
+
+  // User Management handlers
+  const handleRoleChange = (userId: number, newRole: string) => {
+    updateUserMutation.mutate({
+      userId,
+      updates: { role: newRole }
+    });
+  };
+
+  const handleDeleteUser = (userId: number) => {
+    if (confirm("Are you sure you want to delete this user? This action cannot be undone.")) {
+      deleteUserMutation.mutate(userId);
+    }
   };
 
   if (isLoading) {
@@ -439,33 +502,84 @@ export default function AdminDashboard() {
           <TabsContent value="users" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Users className="mr-2 h-5 w-5" />
-                  User Management
+                <CardTitle className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    <Users className="mr-2 h-5 w-5" />
+                    User Management
+                  </div>
+                  <Badge variant="secondary">
+                    {allUsers?.length || 0} Total Users
+                  </Badge>
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-center py-8">
-                  <Users className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">User Management</h3>
-                  <p className="text-gray-500 mb-4">
-                    User management features will be available in the next update.
-                  </p>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-md mx-auto">
-                    <Button variant="outline" size="sm" disabled>
-                      <Eye className="mr-2 h-4 w-4" />
-                      View Users
-                    </Button>
-                    <Button variant="outline" size="sm" disabled>
-                      <Settings className="mr-2 h-4 w-4" />
-                      Manage Roles
-                    </Button>
-                    <Button variant="outline" size="sm" disabled>
-                      <BarChart3 className="mr-2 h-4 w-4" />
-                      User Analytics
-                    </Button>
+                {isLoadingUsers ? (
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                    <span className="ml-2">Loading users...</span>
                   </div>
-                </div>
+                ) : allUsers && allUsers.length > 0 ? (
+                  <div className="space-y-4">
+                    {allUsers.map((user: any) => (
+                      <div key={user.id} className="flex items-center justify-between p-4 border rounded-lg bg-gray-50">
+                        <div className="flex items-center space-x-4">
+                          <div className="w-10 h-10 bg-primary text-white rounded-full flex items-center justify-center font-semibold">
+                            {user.username.charAt(0).toUpperCase()}
+                          </div>
+                          <div>
+                            <h4 className="font-semibold text-gray-900">{user.username}</h4>
+                            <p className="text-sm text-gray-600">{user.email}</p>
+                            {user.firstName && user.lastName && (
+                              <p className="text-sm text-gray-500">{user.firstName} {user.lastName}</p>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-3">
+                          <Select
+                            value={user.role}
+                            onValueChange={(newRole) => handleRoleChange(user.id, newRole)}
+                            disabled={updateUserMutation.isPending}
+                          >
+                            <SelectTrigger className="w-32">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="client">Client</SelectItem>
+                              <SelectItem value="admin">Admin</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          
+                          <Badge 
+                            variant={user.role === "admin" ? "default" : "secondary"}
+                            className={user.role === "admin" ? "bg-primary text-white" : ""}
+                          >
+                            {user.role.toUpperCase()}
+                          </Badge>
+                          
+                          {user.id !== (user as any)?.id && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleDeleteUser(user.id)}
+                              disabled={deleteUserMutation.isPending}
+                              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                            >
+                              Delete
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <Users className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">No Users Found</h3>
+                    <p className="text-gray-500">
+                      There are no users in the system yet.
+                    </p>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
