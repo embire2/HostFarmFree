@@ -48,6 +48,8 @@ export interface IStorage {
   getPublicPlugins(): Promise<Plugin[]>;
   getPluginById(id: number): Promise<Plugin | undefined>;
   getPluginBySlug(slug: string): Promise<Plugin | undefined>;
+  updatePlugin(id: number, updates: Partial<InsertPlugin>): Promise<Plugin | undefined>;
+  deletePlugin(id: number): Promise<boolean>;
   incrementPluginDownloads(pluginId: number): Promise<void>;
   recordPluginDownload(pluginId: number, userId: number): Promise<void>;
   getPluginDownloadsByUser(userId: number): Promise<PluginDownload[]>;
@@ -222,6 +224,32 @@ export class DatabaseStorage implements IStorage {
       .from(plugins)
       .where(and(eq(plugins.id, id), eq(plugins.isActive, true)));
     return plugin;
+  }
+
+  async updatePlugin(id: number, updates: Partial<InsertPlugin>): Promise<Plugin | undefined> {
+    const [updatedPlugin] = await db
+      .update(plugins)
+      .set({
+        ...updates,
+        updatedAt: new Date(),
+      })
+      .where(eq(plugins.id, id))
+      .returning();
+    return updatedPlugin;
+  }
+
+  async deletePlugin(id: number): Promise<boolean> {
+    try {
+      // First delete related download records
+      await db.delete(pluginDownloads).where(eq(pluginDownloads.pluginId, id));
+      
+      // Then delete the plugin
+      const result = await db.delete(plugins).where(eq(plugins.id, id));
+      return result.rowCount ? result.rowCount > 0 : false;
+    } catch (error) {
+      console.error("Error deleting plugin:", error);
+      return false;
+    }
   }
 
   async incrementPluginDownloads(pluginId: number): Promise<void> {

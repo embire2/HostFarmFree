@@ -218,7 +218,7 @@ export default function Landing() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
-            {publicPlugins && publicPlugins.length > 0 ? (
+            {publicPlugins && Array.isArray(publicPlugins) && publicPlugins.length > 0 ? (
               publicPlugins.slice(0, 3).map((plugin: any) => (
                 <Card key={plugin.id} className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden hover:shadow-xl transition-shadow">
                   {plugin.imageUrl ? (

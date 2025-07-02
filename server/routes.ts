@@ -1026,6 +1026,67 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update plugin route
+  app.put("/api/admin/plugins/:id", isAuthenticated, requireAdmin, async (req, res) => {
+    try {
+      const pluginId = parseInt(req.params.id);
+      const updates = req.body;
+      
+      // Get the existing plugin to verify it exists
+      const existingPlugin = await storage.getPluginById(pluginId);
+      if (!existingPlugin) {
+        return res.status(404).json({ message: "Plugin not found" });
+      }
+      
+      // Update the plugin
+      const updatedPlugin = await storage.updatePlugin(pluginId, updates);
+      if (!updatedPlugin) {
+        return res.status(500).json({ message: "Failed to update plugin" });
+      }
+      
+      res.json(updatedPlugin);
+    } catch (error) {
+      console.error("Error updating plugin:", error);
+      res.status(500).json({ message: "Failed to update plugin" });
+    }
+  });
+
+  // Delete plugin route
+  app.delete("/api/admin/plugins/:id", isAuthenticated, requireAdmin, async (req, res) => {
+    try {
+      const pluginId = parseInt(req.params.id);
+      
+      // Get the plugin to access its file path before deletion
+      const plugin = await storage.getPluginById(pluginId);
+      if (!plugin) {
+        return res.status(404).json({ message: "Plugin not found" });
+      }
+      
+      // Delete the plugin from database
+      const success = await storage.deletePlugin(pluginId);
+      if (!success) {
+        return res.status(500).json({ message: "Failed to delete plugin from database" });
+      }
+      
+      // Try to delete the physical file (but don't fail if file doesn't exist)
+      try {
+        const filePath = path.join(process.cwd(), plugin.filePath || `plugins/${plugin.fileName}`);
+        if (fs.existsSync(filePath)) {
+          fs.unlinkSync(filePath);
+          console.log(`[Plugin Delete] File deleted: ${filePath}`);
+        }
+      } catch (fileError) {
+        console.warn(`[Plugin Delete] Could not delete file: ${fileError}`);
+        // Continue - database deletion succeeded
+      }
+      
+      res.json({ message: "Plugin deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting plugin:", error);
+      res.status(500).json({ message: "Failed to delete plugin" });
+    }
+  });
+
   // Plugin download route - serves plugin files from the plugins directory
   app.get("/api/plugins/:id/download", async (req, res) => {
     try {

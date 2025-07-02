@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { 
   Users, 
   Upload, 
@@ -23,7 +24,9 @@ import {
   BarChart3,
   Globe,
   Puzzle,
-  Loader2
+  Loader2,
+  Edit,
+  Trash2
 } from "lucide-react";
 import Navbar from "@/components/navbar";
 import { apiRequest } from "@/lib/queryClient";
@@ -69,6 +72,10 @@ export default function AdminDashboard() {
   });
   const [pluginFile, setPluginFile] = useState<File | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
+  
+  // Edit plugin state
+  const [editingPlugin, setEditingPlugin] = useState<any>(null);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
 
   useEffect(() => {
     if (!isLoading && (!isAuthenticated || user?.role !== "admin")) {
@@ -180,6 +187,53 @@ export default function AdminDashboard() {
     },
   });
 
+  const updatePluginMutation = useMutation({
+    mutationFn: async ({ id, updates }: { id: number; updates: any }) => {
+      const response = await apiRequest("PUT", `/api/admin/plugins/${id}`, updates);
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success!",
+        description: "Plugin updated successfully.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/plugins"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/plugins/public"] });
+      setEditDialogOpen(false);
+      setEditingPlugin(null);
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Update Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const deletePluginMutation = useMutation({
+    mutationFn: async (pluginId: number) => {
+      const response = await apiRequest("DELETE", `/api/admin/plugins/${pluginId}`);
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success!",
+        description: "Plugin deleted successfully.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/plugins"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/plugins/public"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/stats"] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Delete Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
   const handlePluginUpload = (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -223,6 +277,41 @@ export default function AdminDashboard() {
   const handleDeleteUser = (userId: number) => {
     if (confirm("Are you sure you want to delete this user? This action cannot be undone.")) {
       deleteUserMutation.mutate(userId);
+    }
+  };
+
+  // Plugin Management handlers
+  const handleEditPlugin = (plugin: any) => {
+    setEditingPlugin({
+      id: plugin.id,
+      name: plugin.name,
+      description: plugin.description,
+      category: plugin.category,
+      version: plugin.version,
+      isPublic: plugin.isPublic || false
+    });
+    setEditDialogOpen(true);
+  };
+
+  const handleUpdatePlugin = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingPlugin) return;
+
+    updatePluginMutation.mutate({
+      id: editingPlugin.id,
+      updates: {
+        name: editingPlugin.name,
+        description: editingPlugin.description,
+        category: editingPlugin.category,
+        version: editingPlugin.version,
+        isPublic: editingPlugin.isPublic
+      }
+    });
+  };
+
+  const handleDeletePlugin = (pluginId: number, pluginName: string) => {
+    if (confirm(`Are you sure you want to delete "${pluginName}"? This action cannot be undone.`)) {
+      deletePluginMutation.mutate(pluginId);
     }
   };
 
@@ -503,10 +592,31 @@ export default function AdminDashboard() {
                                 v{plugin.version} • {plugin.category}
                               </p>
                             </div>
-                            <Badge variant="outline">
-                              <Download className="mr-1 h-3 w-3" />
-                              {plugin.downloadCount || 0}
-                            </Badge>
+                            <div className="flex items-center space-x-2">
+                              <Badge variant="outline">
+                                <Download className="mr-1 h-3 w-3" />
+                                {plugin.downloadCount || 0}
+                              </Badge>
+                              {plugin.isPublic && (
+                                <Badge variant="secondary">Public</Badge>
+                              )}
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleEditPlugin(plugin)}
+                                className="h-8 w-8 p-0"
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleDeletePlugin(plugin.id, plugin.name)}
+                                className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
                           </div>
                           <p className="text-sm text-gray-600 line-clamp-2">{plugin.description}</p>
                         </div>
@@ -765,6 +875,105 @@ export default function AdminDashboard() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Edit Plugin Dialog */}
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Edit Plugin</DialogTitle>
+          </DialogHeader>
+          {editingPlugin && (
+            <form onSubmit={handleUpdatePlugin} className="space-y-4">
+              <div>
+                <Label htmlFor="edit-name">Plugin Name</Label>
+                <Input
+                  id="edit-name"
+                  value={editingPlugin.name}
+                  onChange={(e) => setEditingPlugin((prev: any) => ({ ...prev, name: e.target.value }))}
+                  placeholder="Plugin name"
+                  required
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="edit-description">Description</Label>
+                <Textarea
+                  id="edit-description"
+                  value={editingPlugin.description}
+                  onChange={(e) => setEditingPlugin((prev: any) => ({ ...prev, description: e.target.value }))}
+                  placeholder="Plugin description"
+                  required
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="edit-category">Category</Label>
+                  <Select 
+                    value={editingPlugin.category}
+                    onValueChange={(value) => setEditingPlugin((prev: any) => ({ ...prev, category: value }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categories.map((cat) => (
+                        <SelectItem key={cat} value={cat}>
+                          {cat.charAt(0).toUpperCase() + cat.slice(1).replace('-', ' ')}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label htmlFor="edit-version">Version</Label>
+                  <Input
+                    id="edit-version"
+                    value={editingPlugin.version}
+                    onChange={(e) => setEditingPlugin((prev: any) => ({ ...prev, version: e.target.value }))}
+                    placeholder="e.g., 1.0.0"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id="edit-isPublic"
+                  checked={editingPlugin.isPublic || false}
+                  onChange={(e) => setEditingPlugin((prev: any) => ({ ...prev, isPublic: e.target.checked }))}
+                  className="rounded border-gray-300"
+                />
+                <Label htmlFor="edit-isPublic" className="text-sm font-medium">
+                  Public Plugin
+                </Label>
+                <p className="text-sm text-muted-foreground ml-2">
+                  Allow downloads without user registration
+                </p>
+              </div>
+
+              <div className="flex justify-end space-x-2 pt-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setEditDialogOpen(false)}
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  type="submit" 
+                  disabled={updatePluginMutation.isPending}
+                  className="bg-primary hover:bg-secondary"
+                >
+                  {updatePluginMutation.isPending ? "Updating..." : "Update Plugin"}
+                </Button>
+              </div>
+            </form>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
