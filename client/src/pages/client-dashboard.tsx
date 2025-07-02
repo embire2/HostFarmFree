@@ -16,12 +16,228 @@ import {
   Wifi,
   Calendar,
   TrendingUp,
-  Settings
+  Settings,
+  Mail,
+  Database,
+  Link,
+  Users,
+  Folder,
+  Clock,
+  RefreshCw
 } from "lucide-react";
 import Navbar from "@/components/navbar";
 import DomainSearch from "@/components/domain-search";
 import { HostingAccount, PluginDownload } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
+
+// AccountCard component with comprehensive WHM API statistics
+function AccountCard({ account, onCpanelLogin }: { account: HostingAccount; onCpanelLogin: (domain: string) => void }) {
+  const { data: accountStats, isLoading: statsLoading, refetch: refetchStats } = useQuery({
+    queryKey: ["/api/hosting-accounts", account.id, "stats"],
+    queryFn: async () => {
+      const response = await apiRequest("GET", `/api/hosting-accounts/${account.id}/stats`);
+      return response.json();
+    },
+    refetchInterval: 30000, // Refresh every 30 seconds
+  });
+
+  const formatBytes = (bytes: number) => {
+    if (bytes === 0) return "0 MB";
+    const mb = bytes / (1024 * 1024);
+    return mb < 1024 ? `${mb.toFixed(1)} MB` : `${(mb / 1024).toFixed(1)} GB`;
+  };
+
+  const getUsagePercentage = (used: number, limit: number) => {
+    if (limit === 0) return 0;
+    return Math.min(Math.round((used / limit) * 100), 100);
+  };
+
+  const formatMBValue = (value: number) => {
+    return value < 1024 ? `${value.toFixed(1)} MB` : `${(value / 1024).toFixed(1)} GB`;
+  };
+
+  return (
+    <div className="border rounded-lg p-4 hover:shadow-md transition-shadow">
+      <div className="flex items-start justify-between mb-3">
+        <div>
+          <h3 className="font-semibold text-lg">{account.domain}</h3>
+          <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+            <span>Created {account.createdAt ? new Date(account.createdAt).toLocaleDateString() : 'N/A'}</span>
+            {accountStats?.packageName && (
+              <>
+                <span>•</span>
+                <span>Plan: {accountStats.packageName}</span>
+              </>
+            )}
+            {accountStats?.lastUpdate && (
+              <>
+                <span>•</span>
+                <span className="flex items-center">
+                  <Clock className="h-3 w-3 mr-1" />
+                  Updated {new Date(accountStats.lastUpdate).toLocaleTimeString()}
+                </span>
+              </>
+            )}
+          </div>
+        </div>
+        <div className="flex items-center space-x-2">
+          <Badge 
+            variant={account.status === "active" ? "default" : "secondary"}
+            className={account.status === "active" ? "bg-green-500" : accountStats?.suspended ? "bg-red-500" : ""}
+          >
+            {accountStats?.suspended ? "Suspended" : account.status}
+          </Badge>
+          <Button 
+            size="sm" 
+            variant="outline"
+            onClick={() => refetchStats()}
+            disabled={statsLoading}
+          >
+            <RefreshCw className={`h-4 w-4 ${statsLoading ? 'animate-spin' : ''}`} />
+          </Button>
+          <Button 
+            size="sm" 
+            variant="outline"
+            onClick={() => onCpanelLogin(account.domain)}
+          >
+            <Settings className="h-4 w-4 mr-1" />
+            cPanel
+          </Button>
+          <Button size="sm" variant="outline" onClick={() => window.open(`https://${account.domain}`, '_blank')}>
+            <ExternalLink className="h-4 w-4 mr-1" />
+            Visit
+          </Button>
+        </div>
+      </div>
+
+      {statsLoading ? (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {[...Array(8)].map((_, i) => (
+            <div key={i} className="animate-pulse">
+              <div className="h-4 bg-gray-200 rounded mb-2"></div>
+              <div className="h-2 bg-gray-200 rounded"></div>
+            </div>
+          ))}
+        </div>
+      ) : accountStats ? (
+        <>
+          {/* Primary Resource Usage */}
+          <div className="grid grid-cols-2 gap-4 mb-4">
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-sm text-muted-foreground flex items-center">
+                  <HardDrive className="mr-1 h-4 w-4" />
+                  Disk Usage
+                </span>
+                <span className="text-sm">
+                  {formatMBValue(accountStats.diskUsage)} / {formatMBValue(accountStats.diskLimit)}
+                </span>
+              </div>
+              <Progress 
+                value={getUsagePercentage(accountStats.diskUsage, accountStats.diskLimit)} 
+                className="h-2"
+              />
+            </div>
+
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-sm text-muted-foreground flex items-center">
+                  <Wifi className="mr-1 h-4 w-4" />
+                  Bandwidth
+                </span>
+                <span className="text-sm">
+                  {formatMBValue(accountStats.bandwidthUsed)} / {formatMBValue(accountStats.bandwidthLimit)}
+                </span>
+              </div>
+              <Progress 
+                value={getUsagePercentage(accountStats.bandwidthUsed, accountStats.bandwidthLimit)} 
+                className="h-2"
+              />
+            </div>
+          </div>
+
+          {/* Detailed Services Statistics */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-3">
+            <div className="text-center p-2 bg-gray-50 rounded">
+              <div className="flex items-center justify-center mb-1">
+                <Mail className="h-4 w-4 mr-1 text-blue-500" />
+                <span className="text-sm font-medium">Email</span>
+              </div>
+              <div className="text-lg font-bold text-blue-600">{accountStats.emailAccounts}</div>
+              <div className="text-xs text-muted-foreground">of {accountStats.emailLimit}</div>
+            </div>
+
+            <div className="text-center p-2 bg-gray-50 rounded">
+              <div className="flex items-center justify-center mb-1">
+                <Database className="h-4 w-4 mr-1 text-green-500" />
+                <span className="text-sm font-medium">Databases</span>
+              </div>
+              <div className="text-lg font-bold text-green-600">{accountStats.databases}</div>
+              <div className="text-xs text-muted-foreground">of {accountStats.databaseLimit}</div>
+            </div>
+
+            <div className="text-center p-2 bg-gray-50 rounded">
+              <div className="flex items-center justify-center mb-1">
+                <Link className="h-4 w-4 mr-1 text-purple-500" />
+                <span className="text-sm font-medium">Subdomains</span>
+              </div>
+              <div className="text-lg font-bold text-purple-600">{accountStats.subdomains}</div>
+              <div className="text-xs text-muted-foreground">of {accountStats.subdomainLimit}</div>
+            </div>
+
+            <div className="text-center p-2 bg-gray-50 rounded">
+              <div className="flex items-center justify-center mb-1">
+                <Users className="h-4 w-4 mr-1 text-orange-500" />
+                <span className="text-sm font-medium">FTP Accounts</span>
+              </div>
+              <div className="text-lg font-bold text-orange-600">{accountStats.ftpAccounts}</div>
+              <div className="text-xs text-muted-foreground">of {accountStats.ftpAccountLimit}</div>
+            </div>
+          </div>
+
+          {/* Additional Domain Statistics */}
+          {(accountStats.addonDomains > 0 || accountStats.parkDomains > 0) && (
+            <div className="grid grid-cols-2 gap-4 mb-3">
+              <div className="text-center p-2 bg-gray-50 rounded">
+                <div className="flex items-center justify-center mb-1">
+                  <Globe className="h-4 w-4 mr-1 text-indigo-500" />
+                  <span className="text-sm font-medium">Addon Domains</span>
+                </div>
+                <div className="text-lg font-bold text-indigo-600">{accountStats.addonDomains}</div>
+                <div className="text-xs text-muted-foreground">of {accountStats.addonDomainLimit}</div>
+              </div>
+
+              <div className="text-center p-2 bg-gray-50 rounded">
+                <div className="flex items-center justify-center mb-1">
+                  <Folder className="h-4 w-4 mr-1 text-teal-500" />
+                  <span className="text-sm font-medium">Parked Domains</span>
+                </div>
+                <div className="text-lg font-bold text-teal-600">{accountStats.parkDomains}</div>
+                <div className="text-xs text-muted-foreground">of {accountStats.parkDomainLimit}</div>
+              </div>
+            </div>
+          )}
+
+          {/* Data Source and IP Information */}
+          <div className="text-xs text-muted-foreground border-t pt-2 flex justify-between items-center">
+            <span>
+              Source: {accountStats.source === 'whm_api' ? 'Live WHM Data' : 
+                       accountStats.source === 'database_fallback' ? 'Database Cache' : 'Default Values'}
+              {accountStats.ip && ` • IP: ${accountStats.ip}`}
+            </span>
+            {accountStats.error && (
+              <span className="text-yellow-600 font-medium">{accountStats.error}</span>
+            )}
+          </div>
+        </>
+      ) : (
+        <div className="text-center py-4 text-muted-foreground">
+          Failed to load account statistics
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function ClientDashboard() {
   const { user, isAuthenticated, isLoading } = useAuth();
@@ -197,70 +413,7 @@ export default function ClientDashboard() {
                 ) : Array.isArray(hostingAccounts) && hostingAccounts.length > 0 ? (
                   <div className="space-y-4">
                     {hostingAccounts.map((account: HostingAccount) => (
-                      <div key={account.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
-                        <div className="flex items-start justify-between mb-3">
-                          <div>
-                            <h3 className="font-semibold text-lg">{account.domain}</h3>
-                            <p className="text-sm text-muted-foreground">
-                              Created {account.createdAt ? new Date(account.createdAt).toLocaleDateString() : 'N/A'}
-                            </p>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <Badge 
-                              variant={account.status === "active" ? "default" : "secondary"}
-                              className={account.status === "active" ? "bg-green-500" : ""}
-                            >
-                              {account.status}
-                            </Badge>
-                            <Button 
-                              size="sm" 
-                              variant="outline"
-                              onClick={() => handleCpanelLogin(account.domain)}
-                            >
-                              <Settings className="h-4 w-4 mr-1" />
-                              cPanel
-                            </Button>
-                            <Button size="sm" variant="outline">
-                              <ExternalLink className="h-4 w-4 mr-1" />
-                              Visit
-                            </Button>
-                          </div>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <div className="flex items-center justify-between mb-1">
-                              <span className="text-sm text-muted-foreground flex items-center">
-                                <HardDrive className="mr-1 h-4 w-4" />
-                                Disk Usage
-                              </span>
-                              <span className="text-sm">
-                                {formatBytes(account.diskUsage || 0)} / {formatBytes(account.diskLimit || 5120)}
-                              </span>
-                            </div>
-                            <Progress 
-                              value={getUsagePercentage(account.diskUsage || 0, account.diskLimit || 5120)} 
-                              className="h-2"
-                            />
-                          </div>
-
-                          <div>
-                            <div className="flex items-center justify-between mb-1">
-                              <span className="text-sm text-muted-foreground flex items-center">
-                                <Wifi className="mr-1 h-4 w-4" />
-                                Bandwidth
-                              </span>
-                              <span className="text-sm">
-                                {formatBytes(account.bandwidthUsed || 0)} / {formatBytes(account.bandwidthLimit || 10240)}
-                              </span>
-                            </div>
-                            <Progress 
-                              value={getUsagePercentage(account.bandwidthUsed || 0, account.bandwidthLimit || 10240)} 
-                              className="h-2"
-                            />
-                          </div>
-                        </div>
-                      </div>
+                      <AccountCard key={account.id} account={account} onCpanelLogin={handleCpanelLogin} />
                     ))}
                   </div>
                 ) : (

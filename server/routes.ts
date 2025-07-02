@@ -367,7 +367,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // cPanel auto-login endpoint
+  // cPanel auto-login endpoint using WHM API
   app.get("/api/cpanel-login/:domain", isAuthenticated, async (req: any, res) => {
     try {
       const { domain } = req.params;
@@ -381,21 +381,208 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Get API settings
       const apiSettings = await storage.getApiSettings();
-      if (!apiSettings) {
-        return res.status(500).json({ error: "cPanel integration not configured" });
+      const envToken = process.env.WHM_API_TOKEN;
+      const apiToken = envToken || apiSettings?.whmApiToken;
+      
+      if (!apiSettings?.whmApiUrl || !apiToken) {
+        return res.status(500).json({ error: "WHM API settings not configured" });
       }
 
-      // Create auto-login URL
-      const cpanelUrl = `${apiSettings.cpanelBaseUrl}/login/?user=${hostingAccount.subdomain}&domain=${domain}`;
+      // Clean base URL
+      const baseUrl = apiSettings.whmApiUrl.replace(/\/+$/, '').replace(/\/json-api.*$/, '').replace(/:2087.*$/, '');
       
-      res.json({ 
-        loginUrl: cpanelUrl,
-        domain: domain,
-        username: hostingAccount.subdomain 
-      });
+      try {
+        // Create user session using WHM API for auto-login
+        const sessionUrl = `${baseUrl}:2087/json-api/create_user_session?api.version=1&user=${hostingAccount.subdomain}&service=cpaneld`;
+        
+        console.log(`[cPanel Login] Creating session for user: ${hostingAccount.subdomain}`);
+        
+        const response = await fetch(sessionUrl, {
+          method: 'GET',
+          headers: {
+            'Authorization': `whm root:${apiToken}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error(`WHM API returned ${response.status}: ${response.statusText}`);
+        }
+
+        const result = await response.json();
+        console.log(`[cPanel Login] WHM API Response:`, result);
+
+        if (result.metadata?.result === 1 && result.data?.url) {
+          // Success - return the auto-login URL
+          res.json({ 
+            loginUrl: result.data.url,
+            domain: domain,
+            username: hostingAccount.subdomain,
+            message: "Auto-login session created successfully"
+          });
+        } else {
+          // Fallback to direct cPanel URL if session creation fails
+          const fallbackUrl = `${apiSettings.cpanelBaseUrl}:2083/login/?user=${hostingAccount.subdomain}`;
+          res.json({ 
+            loginUrl: fallbackUrl,
+            domain: domain,
+            username: hostingAccount.subdomain,
+            message: "Direct cPanel access (manual login required)"
+          });
+        }
+      } catch (apiError) {
+        console.error("[cPanel Login] WHM API Error:", apiError);
+        // Fallback to direct cPanel URL
+        const fallbackUrl = `${apiSettings.cpanelBaseUrl}:2083/login/?user=${hostingAccount.subdomain}`;
+        res.json({ 
+          loginUrl: fallbackUrl,
+          domain: domain,
+          username: hostingAccount.subdomain,
+          message: "Fallback cPanel access (manual login required)"
+        });
+      }
     } catch (error) {
       console.error("Error generating cPanel login:", error);
       res.status(500).json({ error: "Failed to generate cPanel login" });
+    }
+  });
+
+  // Get detailed hosting account statistics from WHM API
+  app.get("/api/hosting-accounts/:id/stats", isAuthenticated, async (req: any, res) => {
+    try {
+      const accountId = parseInt(req.params.id);
+      const userId = req.user.id;
+      
+      // Verify the user owns this hosting account
+      const hostingAccounts = await storage.getHostingAccountsByUserId(userId);
+      const account = hostingAccounts.find((acc: any) => acc.id === accountId);
+      
+      if (!account) {
+        return res.status(404).json({ error: "Hosting account not found" });
+      }
+
+      // Get API settings
+      const apiSettings = await storage.getApiSettings();
+      const envToken = process.env.WHM_API_TOKEN;
+      const apiToken = envToken || apiSettings?.whmApiToken;
+      
+      if (!apiSettings?.whmApiUrl || !apiToken) {
+        console.warn("[Account Stats] WHM API not configured, returning default stats");
+        return res.json({
+          diskUsage: 0,
+          diskLimit: 5120, // 5GB default
+          bandwidthUsed: 0,
+          bandwidthLimit: 10240, // 10GB default
+          emailAccounts: 0,
+          emailLimit: 50,
+          databases: 0,
+          databaseLimit: 10,
+          subdomains: 1,
+          subdomainLimit: 5,
+          addonDomains: 0,
+          addonDomainLimit: 3,
+          parkDomains: 0,
+          parkDomainLimit: 3,
+          ftpAccounts: 1,
+          ftpAccountLimit: 5,
+          lastUpdate: new Date().toISOString(),
+          source: "default"
+        });
+      }
+
+      // Clean base URL
+      const baseUrl = apiSettings.whmApiUrl.replace(/\/+$/, '').replace(/\/json-api.*$/, '').replace(/:2087.*$/, '');
+      
+      try {
+        // Get account summary from WHM API
+        const accountUrl = `${baseUrl}:2087/json-api/accountsummary?api.version=1&user=${account.subdomain}`;
+        
+        console.log(`[Account Stats] Fetching stats for user: ${account.subdomain}`);
+        
+        const response = await fetch(accountUrl, {
+          method: 'GET',
+          headers: {
+            'Authorization': `whm root:${apiToken}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error(`WHM API returned ${response.status}: ${response.statusText}`);
+        }
+
+        const result = await response.json();
+        console.log(`[Account Stats] WHM API Response for ${account.subdomain}:`, JSON.stringify(result, null, 2));
+
+        if (result.metadata?.result === 1 && result.data?.acct) {
+          const accountData = result.data.acct[0] || result.data.acct;
+          
+          // Parse WHM account data
+          const stats = {
+            diskUsage: parseFloat(accountData.diskused || 0),
+            diskLimit: parseFloat(accountData.disklimit || 5120),
+            bandwidthUsed: parseFloat(accountData.bwused || 0),
+            bandwidthLimit: parseFloat(accountData.bwlimit || 10240),
+            emailAccounts: parseInt(accountData.email || 0),
+            emailLimit: parseInt(accountData.maxpop || 50),
+            databases: parseInt(accountData.mysql || 0),
+            databaseLimit: parseInt(accountData.maxsql || 10),
+            subdomains: parseInt(accountData.subdomain || 1),
+            subdomainLimit: parseInt(accountData.maxsub || 5),
+            addonDomains: parseInt(accountData.addon || 0),
+            addonDomainLimit: parseInt(accountData.maxaddon || 3),
+            parkDomains: parseInt(accountData.park || 0),
+            parkDomainLimit: parseInt(accountData.maxpark || 3),
+            ftpAccounts: parseInt(accountData.ftp || 1),
+            ftpAccountLimit: parseInt(accountData.maxftp || 5),
+            lastUpdate: new Date().toISOString(),
+            source: "whm_api",
+            packageName: accountData.plan || "Unknown",
+            suspended: accountData.suspended === "1",
+            domain: accountData.domain,
+            ip: accountData.ip,
+            user: accountData.user
+          };
+          
+          // Update database with real statistics
+          await storage.updateHostingAccountUsage(
+            accountId, 
+            Math.round(stats.diskUsage * 1024 * 1024), // Convert MB to bytes
+            Math.round(stats.bandwidthUsed * 1024 * 1024) // Convert MB to bytes
+          );
+          
+          res.json(stats);
+        } else {
+          throw new Error("Invalid response from WHM API");
+        }
+      } catch (apiError) {
+        console.error("[Account Stats] WHM API Error:", apiError);
+        // Return database values as fallback
+        res.json({
+          diskUsage: (account.diskUsage || 0) / (1024 * 1024), // Convert bytes to MB
+          diskLimit: (account.diskLimit || 5120),
+          bandwidthUsed: (account.bandwidthUsed || 0) / (1024 * 1024), // Convert bytes to MB
+          bandwidthLimit: (account.bandwidthLimit || 10240),
+          emailAccounts: 0,
+          emailLimit: 50,
+          databases: 0,
+          databaseLimit: 10,
+          subdomains: 1,
+          subdomainLimit: 5,
+          addonDomains: 0,
+          addonDomainLimit: 3,
+          parkDomains: 0,
+          parkDomainLimit: 3,
+          ftpAccounts: 1,
+          ftpAccountLimit: 5,
+          lastUpdate: new Date().toISOString(),
+          source: "database_fallback",
+          error: "Unable to fetch real-time statistics from WHM API"
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching account statistics:", error);
+      res.status(500).json({ error: "Failed to fetch account statistics" });
     }
   });
 
