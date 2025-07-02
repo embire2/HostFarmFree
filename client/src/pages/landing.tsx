@@ -218,37 +218,51 @@ export default function Landing() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
-            {samplePlugins.map((plugin) => (
-              <Card key={plugin.id} className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden hover:shadow-xl transition-shadow">
-                <img 
-                  src={plugin.image} 
-                  alt={plugin.name}
-                  className="w-full h-48 object-cover"
-                />
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between mb-3">
-                    <Badge className="bg-primary text-white text-xs px-3 py-1 rounded-full font-medium">
-                      {plugin.category.toUpperCase()}
-                    </Badge>
-                    <span className="text-green-600 font-semibold">FREE</span>
-                  </div>
-                  <h3 className="text-xl font-semibold text-dark mb-2">{plugin.name}</h3>
-                  <p className="text-gray-600 text-sm mb-4">{plugin.description}</p>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center text-sm text-gray-500">
-                      <Server className="w-4 h-4 mr-1" />
-                      <span>{plugin.downloads.toLocaleString()}</span>
+            {publicPlugins && publicPlugins.length > 0 ? (
+              publicPlugins.slice(0, 3).map((plugin: any) => (
+                <Card key={plugin.id} className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden hover:shadow-xl transition-shadow">
+                  {plugin.imageUrl ? (
+                    <img 
+                      src={plugin.imageUrl} 
+                      alt={plugin.name}
+                      className="w-full h-48 object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-48 bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
+                      <Puzzle className="w-16 h-16 text-white opacity-50" />
                     </div>
-                    <Button 
-                      onClick={() => window.location.href = "/auth"}
-                      className="bg-accent text-white hover:bg-green-600 transition-colors text-sm font-medium"
-                    >
-                      Download
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                  )}
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between mb-3">
+                      <Badge className="bg-primary text-white text-xs px-3 py-1 rounded-full font-medium">
+                        {plugin.category.toUpperCase()}
+                      </Badge>
+                      <span className="text-green-600 font-semibold">FREE</span>
+                    </div>
+                    <h3 className="text-xl font-semibold text-dark mb-2">{plugin.name}</h3>
+                    <p className="text-gray-600 text-sm mb-4 line-clamp-3">{plugin.description}</p>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center text-sm text-gray-500">
+                        <Server className="w-4 h-4 mr-1" />
+                        <span>{plugin.downloadCount?.toLocaleString() || 0}</span>
+                      </div>
+                      <Button 
+                        onClick={() => window.location.href = `/plugin/${plugin.slug}`}
+                        className="bg-accent text-white hover:bg-green-600 transition-colors text-sm font-medium"
+                      >
+                        Download
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
+            ) : (
+              <div className="col-span-3 text-center py-12">
+                <Puzzle className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-gray-600 mb-2">No Public Plugins Available</h3>
+                <p className="text-gray-500">Check back soon for amazing plugins!</p>
+              </div>
+            )}
           </div>
 
           <div className="text-center">
