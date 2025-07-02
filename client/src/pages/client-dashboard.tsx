@@ -1,7 +1,7 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -28,7 +28,7 @@ import {
 import Navbar from "@/components/navbar";
 import DomainSearch from "@/components/domain-search";
 import { HostingAccount, PluginDownload } from "@shared/schema";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 
 // AccountCard component with comprehensive WHM API statistics
 function AccountCard({ account, onCpanelLogin }: { account: HostingAccount; onCpanelLogin: (domain: string) => void }) {
@@ -242,6 +242,49 @@ function AccountCard({ account, onCpanelLogin }: { account: HostingAccount; onCp
 export default function ClientDashboard() {
   const { user, isAuthenticated, isLoading } = useAuth();
   const { toast } = useToast();
+  const [isCreatingAccount, setIsCreatingAccount] = useState(false);
+
+  // Handle automatic domain creation from URL parameter
+  useEffect(() => {
+    if (!isLoading && isAuthenticated && user) {
+      const urlParams = new URLSearchParams(window.location.search);
+      const domainParam = urlParams.get('domain');
+      
+      if (domainParam && !isCreatingAccount) {
+        setIsCreatingAccount(true);
+        
+        // Clear the URL parameter
+        window.history.replaceState({}, '', '/');
+        
+        // Create the hosting account automatically
+        apiRequest("POST", "/api/hosting-accounts", {
+          subdomain: domainParam,
+          packageId: 1 // Default free package
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.account) {
+            toast({
+              title: "Hosting Account Created!",
+              description: `Your website ${data.domain} has been created successfully.`,
+            });
+            queryClient.invalidateQueries({ queryKey: ["/api/hosting-accounts"] });
+          }
+        })
+        .catch(error => {
+          console.error('Error creating hosting account:', error);
+          toast({
+            title: "Error Creating Account",
+            description: "There was an error creating your hosting account. Please try again.",
+            variant: "destructive",
+          });
+        })
+        .finally(() => {
+          setIsCreatingAccount(false);
+        });
+      }
+    }
+  }, [isAuthenticated, isLoading, user, toast, isCreatingAccount]);
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {

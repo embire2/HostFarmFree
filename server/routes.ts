@@ -1240,7 +1240,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Create hosting account
+      console.log(`[Account Creation] Creating hosting account for ${fullDomain} using package: ${selectedPackage.name}`);
+
+      // Get user details for WHM account creation
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(400).json({ 
+          message: "User not found"
+        });
+      }
+
+      // Create hosting account locally first (as pending)
       const hostingAccount = await storage.createHostingAccount({
         userId,
         domain: fullDomain,
@@ -1249,7 +1259,105 @@ export async function registerRoutes(app: Express): Promise<Server> {
         status: 'pending',
         diskUsage: 0,
         bandwidthUsed: 0,
+        diskLimit: selectedPackage.diskSpaceQuota * 1024 * 1024, // Convert MB to bytes
+        bandwidthLimit: selectedPackage.bandwidthQuota * 1024 * 1024, // Convert MB to bytes
       });
+
+      console.log(`[Account Creation] Local hosting account created with ID: ${hostingAccount.id}`);
+
+      // Get API settings for WHM integration
+      const apiSettings = await storage.getApiSettings();
+      const envToken = process.env.WHM_API_TOKEN;
+      const apiToken = envToken || apiSettings?.whmApiToken;
+      
+      if (apiSettings?.whmApiUrl && apiToken && selectedPackage.whmPackageName) {
+        try {
+          // Clean base URL
+          const baseUrl = apiSettings.whmApiUrl.replace(/\/+$/, '').replace(/\/json-api.*$/, '').replace(/:2087.*$/, '');
+          
+          console.log(`[Account Creation] Attempting to create WHM account for user: ${subdomain.toLowerCase()}`);
+          
+          // Generate a random password for the WHM account
+          const randomPassword = Math.random().toString(36).slice(-12) + Math.random().toString(36).slice(-12).toUpperCase() + '123!';
+          
+          // Build WHM createacct API URL with parameters
+          const createAccountParams = new URLSearchParams({
+            'api.version': '1',
+            'username': subdomain.toLowerCase(),
+            'domain': fullDomain,
+            'plan': selectedPackage.whmPackageName,
+            'password': randomPassword,
+            'contactemail': user.email || `admin@${fullDomain}`,
+            'quota': selectedPackage.diskSpaceQuota.toString(), // Disk quota in MB
+            'bwlimit': selectedPackage.bandwidthQuota.toString(), // Bandwidth quota in MB
+            'maxpop': selectedPackage.emailAccounts.toString(),
+            'maxsql': selectedPackage.databases.toString(),
+            'maxsub': selectedPackage.subdomains.toString(),
+            'maxaddon': '0', // Addon domains
+            'maxpark': '0', // Parked domains
+            'maxftp': '5', // FTP accounts
+          });
+          
+          const whmCreateUrl = `${baseUrl}:2087/json-api/createacct?${createAccountParams.toString()}`;
+          
+          console.log(`[Account Creation] WHM createacct URL (password hidden): ${whmCreateUrl.replace(/password=[^&]+/, 'password=***')}`);
+          
+          const whmResponse = await fetch(whmCreateUrl, {
+            method: 'GET', // WHM uses GET for createacct
+            headers: {
+              'Authorization': `whm root:${apiToken}`,
+              'Content-Type': 'application/json',
+            },
+          });
+
+          if (!whmResponse.ok) {
+            throw new Error(`WHM API returned ${whmResponse.status}: ${whmResponse.statusText}`);
+          }
+
+          const whmResult = await whmResponse.json();
+          console.log('[Account Creation] WHM account creation result:', JSON.stringify(whmResult, null, 2));
+          
+          if (whmResult.metadata?.result === 1) {
+            // WHM account created successfully
+            console.log(`[Account Creation] Successfully created WHM account for ${subdomain.toLowerCase()}`);
+            
+            // Update the hosting account status to active
+            await storage.updateHostingAccount(hostingAccount.id, { 
+              status: 'active',
+              cpanelUsername: subdomain.toLowerCase(),
+              cpanelPassword: randomPassword // Store for cPanel access
+            });
+            
+            console.log(`[Account Creation] Updated local account status to active`);
+            
+          } else {
+            throw new Error(`WHM account creation failed: ${whmResult.metadata?.reason || 'Unknown error'}`);
+          }
+        } catch (whmError: any) {
+          console.error('[Account Creation] Error creating WHM account:', whmError);
+          
+          // Update the account with error status but don't fail the request
+          await storage.updateHostingAccount(hostingAccount.id, { 
+            status: 'error'
+          });
+          
+          // Return success but with a warning about WHM
+          return res.status(201).json({
+            message: "Hosting account created locally, but WHM integration failed. Please contact support.",
+            account: hostingAccount,
+            domain: fullDomain,
+            whmError: whmError?.message || 'Unknown WHM error',
+            status: 'error'
+          });
+        }
+      } else {
+        console.warn('[Account Creation] WHM API not configured or package has no WHM package name, skipping WHM creation');
+        
+        // Update account to active since there's no WHM integration
+        await storage.updateHostingAccount(hostingAccount.id, { 
+          status: 'active'
+        });
+      }
 
       // Create package usage tracking
       await storage.createPackageUsage({
@@ -1261,10 +1369,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         subdomainsUsed: 1, // The main subdomain counts as 1
       });
 
+      // Get the updated account with current status
+      const updatedAccount = await storage.getHostingAccountsByUserId(userId);
+      const finalAccount = updatedAccount.find((acc: any) => acc.id === hostingAccount.id);
+
       res.status(201).json({
         message: "Hosting account created successfully",
-        account: hostingAccount,
+        account: finalAccount || hostingAccount,
         domain: fullDomain,
+        whmIntegration: !!(apiSettings?.whmApiUrl && apiToken && selectedPackage.whmPackageName)
       });
     } catch (error) {
       console.error("Error creating hosting account:", error);

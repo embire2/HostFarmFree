@@ -49,7 +49,8 @@ export const hostingAccounts = pgTable("hosting_accounts", {
   cpanelUsername: varchar("cpanel_username", { length: 255 }),
   cpanelPassword: varchar("cpanel_password", { length: 255 }), // encrypted
   whmAccountId: varchar("whm_account_id", { length: 255 }), // WHM account identifier
-  status: varchar("status").notNull().default("active"), // 'active' | 'suspended' | 'pending'
+  status: varchar("status").notNull().default("active"), // 'active' | 'suspended' | 'pending' | 'error'
+  statusMessage: text("status_message"), // Additional status information
   diskUsage: integer("disk_usage").default(0), // in MB
   diskLimit: integer("disk_limit").default(5120), // 5GB in MB
   bandwidthUsed: integer("bandwidth_used").default(0), // in MB
