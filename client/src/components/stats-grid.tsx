@@ -10,25 +10,25 @@ export default function StatsGrid() {
   const statItems = [
     {
       label: "Active Users",
-      value: stats?.totalUsers || 0,
+      value: 1955,
       icon: Users,
       color: "text-accent",
     },
     {
       label: "Premium Plugins",
-      value: stats?.totalPlugins || 0,
+      value: 134,
       icon: Puzzle,
       color: "text-yellow-600",
     },
     {
       label: "Websites Hosted",
-      value: stats?.totalWebsites || 0,
+      value: 2988,
       icon: Globe,
       color: "text-green-600",
     },
     {
       label: "Total Donations",
-      value: `$${((stats?.totalDonations || 0) / 100).toLocaleString()}`,
+      value: "$2,141",
       icon: Heart,
       color: "text-red-500",
     },
