@@ -142,6 +142,9 @@ Changelog:
 - July 2, 2025. Created complete hosting account deletion with WHM integration - removes from both systems
 - July 2, 2025. Built comprehensive hosting account editing capabilities for admin management
 - July 2, 2025. Enhanced admin dashboard with new "Hosting Accounts" tab as primary management interface
+- July 2, 2025. CRITICAL FIX: Resolved PostgreSQL integer overflow in hosting account creation
+- July 2, 2025. Fixed WHM-integrated domain search using listaccts API endpoint for accurate availability checking
+- July 2, 2025. Enhanced domain registration flow with automatic post-authentication account creation
 ```
 
 # User Preferences

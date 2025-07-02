@@ -1307,8 +1307,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         status: 'pending',
         diskUsage: 0,
         bandwidthUsed: 0,
-        diskLimit: selectedPackage.diskSpaceQuota * 1024 * 1024, // Convert MB to bytes
-        bandwidthLimit: selectedPackage.bandwidthQuota * 1024 * 1024, // Convert MB to bytes
+        diskLimit: selectedPackage.diskSpaceQuota, // Keep in MB as per schema
+        bandwidthLimit: selectedPackage.bandwidthQuota, // Keep in MB as per schema
       });
 
       console.log(`[Account Creation] Local hosting account created with ID: ${hostingAccount.id}`);
