@@ -235,8 +235,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           whmResult = JSON.parse(responseText);
           console.log('[WHM] Parsed JSON response:', JSON.stringify(whmResult, null, 2));
           
-          // Check JSON response for success
-          if (whmResult.metadata?.result === 1 || whmResult.cpanelresult?.event?.result === 1) {
+          // Check JSON response for success - multiple formats possible
+          if (whmResult.metadata?.result === 1 || 
+              whmResult.cpanelresult?.event?.result === 1 ||
+              (whmResult.data && whmResult.data.length > 0 && whmResult.data[0].statusmsg === "Account Creation Ok") ||
+              (Array.isArray(whmResult) && whmResult.some(item => item.statusmsg === "Account Creation Ok"))) {
             console.log('[WHM] SUCCESS: JSON response indicates success');
             isSuccess = true;
           } else {
@@ -971,8 +974,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           whmResult = JSON.parse(responseText);
           console.log('[Admin WHM] Parsed JSON response:', JSON.stringify(whmResult, null, 2));
           
-          // Check JSON response for success
-          if (whmResult.metadata?.result === 1 || whmResult.cpanelresult?.event?.result === 1) {
+          // Check JSON response for success - multiple formats possible
+          if (whmResult.metadata?.result === 1 || 
+              whmResult.cpanelresult?.event?.result === 1 ||
+              (whmResult.data && whmResult.data.length > 0 && whmResult.data[0].statusmsg === "Account Creation Ok") ||
+              (Array.isArray(whmResult) && whmResult.some(item => item.statusmsg === "Account Creation Ok"))) {
             console.log('[Admin WHM] SUCCESS: JSON response indicates success');
             isSuccess = true;
           } else {
