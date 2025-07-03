@@ -29,6 +29,89 @@ import Navbar from "@/components/navbar";
 import DomainSearch from "@/components/domain-search";
 import { HostingAccount, PluginDownload } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { Input } from "@/components/ui/input";
+import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+
+const emailUpdateSchema = z.object({
+  email: z.string().email("Please enter a valid email address").optional().or(z.literal(""))
+});
+
+type EmailUpdateFormData = z.infer<typeof emailUpdateSchema>;
+
+// EmailUpdateForm component
+function EmailUpdateForm({ userId, currentEmail }: { userId: number; currentEmail: string | null }) {
+  const { toast } = useToast();
+  
+  const form = useForm<EmailUpdateFormData>({
+    resolver: zodResolver(emailUpdateSchema),
+    defaultValues: {
+      email: currentEmail || "",
+    },
+  });
+
+  const updateEmailMutation = useMutation({
+    mutationFn: async (data: EmailUpdateFormData) => {
+      const response = await apiRequest("PATCH", `/api/user/${userId}`, {
+        email: data.email || null,
+      });
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Email updated!",
+        description: "Your email address has been saved for communication.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/user"] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Update failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const onSubmit = (data: EmailUpdateFormData) => {
+    updateEmailMutation.mutate(data);
+  };
+
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="flex space-x-2">
+        <FormField
+          control={form.control}
+          name="email"
+          render={({ field }) => (
+            <FormItem className="flex-1">
+              <FormControl>
+                <Input
+                  type="email"
+                  placeholder="your.email@example.com"
+                  {...field}
+                  className="text-sm"
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <Button
+          type="submit"
+          size="sm"
+          disabled={updateEmailMutation.isPending}
+          className="bg-red-600 hover:bg-red-700 text-white"
+        >
+          {updateEmailMutation.isPending ? "Saving..." : "Save Email"}
+        </Button>
+      </form>
+    </Form>
+  );
+}
+
 
 // AccountCard component with comprehensive WHM API statistics
 function AccountCard({ account, onCpanelLogin }: { account: HostingAccount; onCpanelLogin: (domain: string) => void }) {
@@ -431,6 +514,119 @@ export default function ClientDashboard() {
                     <RefreshCw className="h-4 w-4 mr-2" />
                     Refresh Now
                   </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {/* Account Credentials Box - Only for anonymous users */}
+        {user?.isAnonymous && (
+          <div className="mb-8">
+            <Card className="border-red-200 bg-red-50 dark:bg-red-900/20">
+              <CardContent className="p-6">
+                <div className="flex items-start space-x-4">
+                  <div className="flex-shrink-0">
+                    <Users className="h-8 w-8 text-red-600" />
+                  </div>
+                  <div className="flex-1 space-y-4">
+                    <div>
+                      <h3 className="text-lg font-semibold text-red-900 dark:text-red-100 mb-2">
+                        ⚠️ Critical: Your Account Credentials
+                      </h3>
+                      <p className="text-red-700 dark:text-red-200 text-sm mb-4">
+                        <strong>Save these details immediately!</strong> There is no way to recover your account without them.
+                      </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-red-800 dark:text-red-200">Username</label>
+                        <div className="flex items-center space-x-2">
+                          <input
+                            type="text"
+                            value={user.username}
+                            readOnly
+                            className="flex-1 px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md font-mono text-sm"
+                          />
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              navigator.clipboard.writeText(user.username);
+                              toast({
+                                title: "Copied!",
+                                description: "Username copied to clipboard",
+                              });
+                            }}
+                          >
+                            Copy
+                          </Button>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-red-800 dark:text-red-200">Password</label>
+                        <div className="flex items-center space-x-2">
+                          <input
+                            type="text"
+                            value="••••••••••••••••"
+                            readOnly
+                            className="flex-1 px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md font-mono text-sm"
+                            placeholder="Password not available here"
+                          />
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            disabled
+                            className="opacity-50"
+                          >
+                            N/A
+                          </Button>
+                        </div>
+                        <p className="text-xs text-red-600 dark:text-red-300">
+                          Password was only shown during registration. Use recovery phrase if lost.
+                        </p>
+                      </div>
+                    </div>
+
+                    {user.recoveryPhrase && (
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-red-800 dark:text-red-200">Recovery Phrase (Keep Secret!)</label>
+                        <div className="flex items-center space-x-2">
+                          <input
+                            type="text"
+                            value={user.recoveryPhrase}
+                            readOnly
+                            className="flex-1 px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md font-mono text-sm"
+                          />
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              navigator.clipboard.writeText(user.recoveryPhrase || '');
+                              toast({
+                                title: "Copied!",
+                                description: "Recovery phrase copied to clipboard",
+                              });
+                            }}
+                          >
+                            Copy
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="border-t border-red-200 dark:border-red-800 pt-4">
+                      <h4 className="font-medium text-red-800 dark:text-red-200 mb-2">
+                        Optional: Provide Email for Communication
+                      </h4>
+                      <p className="text-sm text-red-700 dark:text-red-300 mb-3">
+                        We can use your email strictly for important hosting updates and security notifications.
+                      </p>
+                      <EmailUpdateForm userId={user.id} currentEmail={user.email} />
+                    </div>
+                  </div>
                 </div>
               </CardContent>
             </Card>

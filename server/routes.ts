@@ -129,6 +129,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update user email
+  app.patch("/api/user/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = parseInt(req.params.id);
+      if (isNaN(userId)) {
+        return res.status(400).json({ message: "Invalid user ID" });
+      }
+
+      // Check if user is updating their own account
+      if (req.user.id !== userId) {
+        return res.status(403).json({ message: "You can only update your own account" });
+      }
+
+      const { email } = req.body;
+      
+      // Validate email if provided
+      if (email && typeof email !== 'string') {
+        return res.status(400).json({ message: "Invalid email format" });
+      }
+
+      const updatedUser = await storage.updateUser(userId, { email });
+      
+      if (!updatedUser) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      res.json(updatedUser);
+    } catch (error: any) {
+      console.error("Error updating user:", error);
+      res.status(500).json({ message: "Failed to update user" });
+    }
+  });
+
   // Protected routes
   app.post("/api/hosting-accounts", isAuthenticated, async (req: any, res) => {
     try {
