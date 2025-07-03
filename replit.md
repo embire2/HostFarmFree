@@ -156,6 +156,9 @@ Changelog:
 - July 3, 2025. Enhanced anonymous registration to show username/password immediately after account creation
 - July 3, 2025. CRITICAL WHM FIX: Removed deprecated "paper_lantern" cpmod parameter from WHM API calls
 - July 3, 2025. Fixed hosting account creation failures by updating WHM createacct API to use modern cPanel settings
+- July 3, 2025. NAVIGATION FIX: Replaced defunct /auth page links with proper login modal system
+- July 3, 2025. Created LoginModal component for better user experience instead of browser prompts
+- July 3, 2025. Updated WHM API to use shared IPs (ip: 'n') to resolve IP address allocation errors
 ```
 
 # User Preferences

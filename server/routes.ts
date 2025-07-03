@@ -216,7 +216,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             maxpark: '2',
             maxaddon: '2',
             bwlimit: '1024',
-            ip: 'y',
+            ip: 'n',
             cgi: '1',
             frontpage: '0',
             maxlst: '20',

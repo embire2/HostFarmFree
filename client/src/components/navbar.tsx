@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Server, Heart, LogOut, User, Settings, Home, Eye } from "lucide-react";
 import { Link, useLocation } from "wouter";
+import LoginModal from "@/components/login-modal";
 
 export default function Navbar() {
   const { user, isAuthenticated, logoutMutation } = useAuth();
@@ -84,12 +85,12 @@ export default function Navbar() {
           <div className="flex items-center space-x-4">
             {!isAuthenticated ? (
               <>
-                <Link href="/auth">
+                <LoginModal>
                   <Button variant="ghost">
                     Sign In
                   </Button>
-                </Link>
-                <Link href="/auth">
+                </LoginModal>
+                <Link href="/">
                   <Button className="bg-primary text-white hover:bg-secondary">
                     Get Started Free
                   </Button>
