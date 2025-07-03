@@ -162,6 +162,9 @@ Changelog:
 - July 3, 2025. AUTHENTICATION FIX: Updated login system to accept both username and email address
 - July 3, 2025. Modified passport LocalStrategy to check email if username lookup fails
 - July 3, 2025. Updated login modal interface to clearly indicate users can enter username OR email
+- July 3, 2025. CRITICAL SUCCESS: WHM API integration now working - accounts successfully created on server
+- July 3, 2025. Fixed IP address allocation by using shared IPs instead of dedicated IPs
+- July 3, 2025. Updated admin user password in database for successful login access
 ```
 
 # User Preferences
