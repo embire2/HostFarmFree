@@ -136,11 +136,37 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
       queryClient.setQueryData(["/api/user"], {
         id: response.id,
         username: response.username,
+        email: null,
         role: response.role,
-        isAnonymous: response.isAnonymous
+        isAnonymous: response.isAnonymous,
+        recoveryPhrase: response.recoveryPhrase
       });
       
-      // Don't redirect immediately - let the success screen show credentials
+      // Show credentials immediately with toast
+      toast({
+        title: "Account Created Successfully!",
+        description: `Username: ${response.username} | Password: ${response.password}`,
+        duration: 10000, // Show for 10 seconds
+      });
+      
+      // Store credentials temporarily for display
+      localStorage.setItem('tempCredentials', JSON.stringify({
+        username: response.username,
+        password: response.password,
+        recoveryPhrase: response.recoveryPhrase,
+        timestamp: Date.now()
+      }));
+      
+      // Force redirect to dashboard after brief delay
+      setTimeout(() => {
+        const pendingDomain = localStorage.getItem('pendingDomain');
+        if (pendingDomain) {
+          localStorage.removeItem('pendingDomain');
+          window.location.href = '/?domain=' + pendingDomain;
+        } else {
+          window.location.href = '/';
+        }
+      }, 1000);
     },
     onError: (error: Error) => {
       toast({

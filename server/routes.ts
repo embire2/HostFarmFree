@@ -219,7 +219,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
             ip: 'y',
             cgi: '1',
             frontpage: '0',
-            hasshell: '0',
             cpmod: 'paper_lantern',
             maxlst: '20',
             savepkg: '0'
@@ -262,7 +261,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.error('[WHM] API Error:', whmError);
         return res.status(500).json({ 
           message: "Failed to create hosting account on server", 
-          details: whmError.message
+          details: whmError instanceof Error ? whmError.message : 'Unknown error'
         });
       }
     } catch (error) {

@@ -10,7 +10,7 @@ import AdminDashboard from "@/pages/admin-dashboard";
 import PluginLibrary from "@/pages/plugin-library";
 import PluginDetail from "@/pages/plugin-detail";
 import PluginCheckout from "@/pages/plugin-checkout";
-import AuthPage from "@/pages/auth-page";
+
 import NotFound from "@/pages/not-found";
 import ApiSettingsPage from "@/pages/api-settings-page";
 
@@ -33,7 +33,7 @@ function Router() {
       {!isAuthenticated ? (
         <>
           <Route path="/" component={Landing} />
-          <Route path="/auth" component={AuthPage} />
+
           <Route path="/plugins" component={PluginLibrary} />
           <Route path="/plugin-library" component={PluginLibrary} />
           <Route path="/plugin/:slug" component={PluginDetail} />

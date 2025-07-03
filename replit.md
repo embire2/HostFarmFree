@@ -149,6 +149,11 @@ Changelog:
 - July 3, 2025. Added activation timing system - informs users accounts may take 2 minutes to activate with countdown
 - July 3, 2025. Implemented auto-refresh dashboard functionality for new hosting account activation
 - July 3, 2025. Created comprehensive credential backup screen for anonymous registration security
+- July 3, 2025. MAJOR FIX: Completely removed defunct /auth page and fixed anonymous registration flow
+- July 3, 2025. Fixed WHM API integration for actual hosting account creation on server
+- July 3, 2025. Implemented prominent credential display with 5-minute temporary storage
+- July 3, 2025. Added real-time credential alerts in dashboard with copy functionality
+- July 3, 2025. Enhanced anonymous registration to show username/password immediately after account creation
 ```
 
 # User Preferences

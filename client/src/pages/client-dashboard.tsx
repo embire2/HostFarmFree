@@ -23,7 +23,8 @@ import {
   Users,
   Folder,
   Clock,
-  RefreshCw
+  RefreshCw,
+  AlertTriangle
 } from "lucide-react";
 import Navbar from "@/components/navbar";
 import DomainSearch from "@/components/domain-search";
@@ -328,6 +329,7 @@ export default function ClientDashboard() {
   const [isCreatingAccount, setIsCreatingAccount] = useState(false);
   const [showActivationMessage, setShowActivationMessage] = useState(false);
   const [activationCountdown, setActivationCountdown] = useState(120); // 2 minutes
+  const [tempCredentials, setTempCredentials] = useState<any>(null);
 
   // Handle automatic domain creation from URL parameter
   useEffect(() => {
@@ -394,6 +396,29 @@ export default function ClientDashboard() {
       setActivationCountdown(120); // Reset for next time
     }
   }, [showActivationMessage, activationCountdown, queryClient]);
+
+  // Check for temporary credentials from recent registration
+  useEffect(() => {
+    const storedCredentials = localStorage.getItem('tempCredentials');
+    if (storedCredentials) {
+      try {
+        const credentials = JSON.parse(storedCredentials);
+        const now = Date.now();
+        const fiveMinutesAgo = now - (5 * 60 * 1000); // 5 minutes
+        
+        // Only show credentials if they're less than 5 minutes old
+        if (credentials.timestamp > fiveMinutesAgo) {
+          setTempCredentials(credentials);
+        } else {
+          // Clean up old credentials
+          localStorage.removeItem('tempCredentials');
+        }
+      } catch (error) {
+        console.error('Error parsing stored credentials:', error);
+        localStorage.removeItem('tempCredentials');
+      }
+    }
+  }, []);
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -479,6 +504,78 @@ export default function ClientDashboard() {
             Manage your hosting accounts, download plugins, and monitor your websites.
           </p>
         </div>
+
+        {/* New User Credentials Alert */}
+        {tempCredentials && (
+          <div className="mb-8">
+            <Card className="border-red-300 bg-red-50 dark:bg-red-900/20">
+              <CardContent className="p-6">
+                <div className="flex items-start space-x-4">
+                  <div className="flex-shrink-0">
+                    <AlertTriangle className="h-8 w-8 text-red-600" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-lg font-semibold text-red-900 dark:text-red-100 mb-2">
+                      🚨 SAVE YOUR CREDENTIALS NOW!
+                    </h3>
+                    <p className="text-red-700 dark:text-red-200 mb-4">
+                      Your account has been created successfully. These credentials will only be shown for 5 minutes. Save them immediately!
+                    </p>
+                    <div className="bg-white dark:bg-gray-800 p-4 rounded-md border-2 border-red-200">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                        <div>
+                          <strong className="text-red-800 dark:text-red-200">Username:</strong>
+                          <div className="font-mono bg-gray-100 dark:bg-gray-700 p-2 rounded mt-1">
+                            {tempCredentials.username}
+                          </div>
+                        </div>
+                        <div>
+                          <strong className="text-red-800 dark:text-red-200">Password:</strong>
+                          <div className="font-mono bg-gray-100 dark:bg-gray-700 p-2 rounded mt-1">
+                            {tempCredentials.password}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="mt-4">
+                        <strong className="text-red-800 dark:text-red-200">Recovery Phrase:</strong>
+                        <div className="font-mono bg-gray-100 dark:bg-gray-700 p-2 rounded mt-1 text-sm">
+                          {tempCredentials.recoveryPhrase}
+                        </div>
+                      </div>
+                      <div className="mt-4 flex space-x-2">
+                        <Button
+                          size="sm"
+                          onClick={() => {
+                            const credentials = `Username: ${tempCredentials.username}\nPassword: ${tempCredentials.password}\nRecovery Phrase: ${tempCredentials.recoveryPhrase}`;
+                            navigator.clipboard.writeText(credentials);
+                            toast({
+                              title: "Credentials Copied!",
+                              description: "All credentials copied to clipboard",
+                            });
+                          }}
+                          className="bg-red-600 hover:bg-red-700 text-white"
+                        >
+                          Copy All Credentials
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            setTempCredentials(null);
+                            localStorage.removeItem('tempCredentials');
+                          }}
+                          className="border-red-300 text-red-700 hover:bg-red-50"
+                        >
+                          I've Saved Them - Hide This Alert
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
 
         {/* Activation Message */}
         {showActivationMessage && (
@@ -570,22 +667,34 @@ export default function ClientDashboard() {
                         <div className="flex items-center space-x-2">
                           <input
                             type="text"
-                            value="••••••••••••••••"
+                            value={tempCredentials?.password || "••••••••••••••••"}
                             readOnly
                             className="flex-1 px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md font-mono text-sm"
-                            placeholder="Password not available here"
+                            placeholder={tempCredentials?.password ? "Your password" : "Password not available here"}
                           />
                           <Button
                             size="sm"
                             variant="outline"
-                            disabled
-                            className="opacity-50"
+                            disabled={!tempCredentials?.password}
+                            className={!tempCredentials?.password ? "opacity-50" : ""}
+                            onClick={() => {
+                              if (tempCredentials?.password) {
+                                navigator.clipboard.writeText(tempCredentials.password);
+                                toast({
+                                  title: "Copied!",
+                                  description: "Password copied to clipboard",
+                                });
+                              }
+                            }}
                           >
-                            N/A
+                            {tempCredentials?.password ? "Copy" : "N/A"}
                           </Button>
                         </div>
                         <p className="text-xs text-red-600 dark:text-red-300">
-                          Password was only shown during registration. Use recovery phrase if lost.
+                          {tempCredentials?.password ? 
+                            "⚠️ Save this password immediately! It will only be shown for 5 minutes after registration." :
+                            "Password was only shown during registration. Use recovery phrase if lost."
+                          }
                         </p>
                       </div>
                     </div>

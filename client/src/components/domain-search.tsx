@@ -17,7 +17,7 @@ export default function DomainSearch({ onSuccess }: DomainSearchProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [lastSearched, setLastSearched] = useState("");
   const { toast } = useToast();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, anonymousRegisterMutation } = useAuth();
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
 
@@ -84,13 +84,13 @@ export default function DomainSearch({ onSuccess }: DomainSearchProps) {
   const handleSignUp = () => {
     // Store the desired domain in localStorage for after registration
     localStorage.setItem('pendingDomain', lastSearched);
-    setLocation('/auth');
+    anonymousRegisterMutation.mutate();
   };
 
   const handleSignIn = () => {
-    // Store the desired domain in localStorage for after login
+    // For anonymous hosting, we also create an anonymous account
     localStorage.setItem('pendingDomain', lastSearched);
-    setLocation('/auth');
+    anonymousRegisterMutation.mutate();
   };
 
   const isAvailable = lastSearched && searchResult?.available && !isSearching;
