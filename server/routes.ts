@@ -895,16 +895,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log('[Admin WHM] Response status:', whmResponse.status);
         console.log('[Admin WHM] Response headers:', Object.fromEntries(whmResponse.headers.entries()));
 
-        const whmResult = await whmResponse.json();
-        console.log('[Admin WHM] WHM API Response:', JSON.stringify(whmResult, null, 2));
-
         if (!whmResponse.ok) {
-          throw new Error(`WHM API returned ${whmResponse.status}: ${whmResponse.statusText} - ${JSON.stringify(whmResult)}`);
+          const errorText = await whmResponse.text();
+          throw new Error(`WHM API returned ${whmResponse.status}: ${whmResponse.statusText} - ${errorText}`);
         }
 
-        // Check if the WHM API actually succeeded
-        if (whmResult.metadata?.result !== 1 && whmResult.cpanelresult?.event?.result !== 1) {
-          throw new Error(`WHM account creation failed: ${whmResult.metadata?.reason || whmResult.cpanelresult?.event?.reason || 'Unknown error'} - ${JSON.stringify(whmResult)}`);
+        // Try to parse as JSON first, if that fails, parse as text (HTML)
+        let whmResult;
+        let isSuccess = false;
+        
+        const responseText = await whmResponse.text();
+        console.log('[Admin WHM] Response body (first 500 chars):', responseText.substring(0, 500));
+        
+        try {
+          whmResult = JSON.parse(responseText);
+          console.log('[Admin WHM] Parsed JSON response:', JSON.stringify(whmResult, null, 2));
+          
+          // Check JSON response for success
+          if (whmResult.metadata?.result === 1 || whmResult.cpanelresult?.event?.result === 1) {
+            isSuccess = true;
+          }
+        } catch (jsonError) {
+          // Response is likely HTML, check for success indicators in the text
+          console.log('[Admin WHM] Response is HTML format, checking for success indicators');
+          
+          if (responseText.includes('Account Creation Complete') || 
+              responseText.includes('Account Creation Ok') || 
+              responseText.includes('wwwacct creation finished')) {
+            isSuccess = true;
+            whmResult = { success: true, message: 'Account created successfully (HTML response)' };
+          } else if (responseText.includes('failed') || responseText.includes('error')) {
+            whmResult = { success: false, message: 'Account creation failed (HTML response)' };
+          } else {
+            whmResult = { success: false, message: 'Unknown response format' };
+          }
+        }
+
+        if (!isSuccess) {
+          throw new Error(`WHM account creation failed: ${whmResult.metadata?.reason || whmResult.message || 'Unknown error'}`);
         }
 
         console.log('[Admin WHM] Account created successfully for:', fullDomain);
