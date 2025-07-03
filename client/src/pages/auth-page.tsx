@@ -40,6 +40,7 @@ export default function AuthPage() {
   const { user, isLoading, loginMutation, registerMutation, anonymousRegisterMutation, accountRecoveryMutation } = useAuth()
   const [activeTab, setActiveTab] = useState("anonymous")
   const [, setLocation] = useLocation()
+  const [anonymousSuccess, setAnonymousSuccess] = useState<any>(null)
   
   const loginForm = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -106,7 +107,11 @@ export default function AuthPage() {
   }
 
   const onAnonymousRegister = () => {
-    anonymousRegisterMutation.mutate()
+    anonymousRegisterMutation.mutate(undefined, {
+      onSuccess: (response) => {
+        setAnonymousSuccess(response)
+      }
+    })
   }
 
   const onRecovery = (data: RecoveryFormData) => {
@@ -117,6 +122,79 @@ export default function AuthPage() {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    )
+  }
+
+  // Success screen for anonymous registration
+  if (anonymousSuccess) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-4">
+        <Card className="w-full max-w-2xl">
+          <CardContent className="p-8">
+            <div className="text-center space-y-6">
+              <div className="w-16 h-16 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center mx-auto">
+                <span className="text-green-600 dark:text-green-400 text-2xl">✓</span>
+              </div>
+              
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+                Anonymous Account Created!
+              </h1>
+              
+              <p className="text-gray-600 dark:text-gray-300">
+                Your anonymous hosting account is ready. <strong className="text-red-600 dark:text-red-400">SAVE THESE CREDENTIALS NOW</strong> - they cannot be recovered without your recovery phrase!
+              </p>
+
+              <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-6 space-y-4">
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Your Account Details</h2>
+                
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center p-3 bg-white dark:bg-gray-800 rounded border">
+                    <span className="font-medium text-gray-700 dark:text-gray-300">Username:</span>
+                    <span className="font-mono text-lg text-blue-600 dark:text-blue-400">{anonymousSuccess.username}</span>
+                  </div>
+                  
+                  <div className="flex justify-between items-center p-3 bg-white dark:bg-gray-800 rounded border">
+                    <span className="font-medium text-gray-700 dark:text-gray-300">Password:</span>
+                    <span className="font-mono text-lg text-blue-600 dark:text-blue-400">{anonymousSuccess.password}</span>
+                  </div>
+                  
+                  <div className="flex justify-between items-center p-3 bg-red-50 dark:bg-red-900/20 rounded border border-red-200 dark:border-red-800">
+                    <span className="font-medium text-red-700 dark:text-red-300">Recovery Phrase:</span>
+                    <span className="font-mono text-lg text-red-600 dark:text-red-400">{anonymousSuccess.recoveryPhrase}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+                <h3 className="font-semibold text-red-800 dark:text-red-200 mb-2">Important Backup Instructions</h3>
+                <ul className="text-sm text-red-700 dark:text-red-300 space-y-1 text-left">
+                  <li>• Copy these credentials to a secure password manager</li>
+                  <li>• Write down the recovery phrase and store it safely</li>
+                  <li>• The recovery phrase is your ONLY way to retrieve lost credentials</li>
+                  <li>• HostFarm cannot recover your account without the recovery phrase</li>
+                </ul>
+              </div>
+
+              <div className="space-y-3">
+                <Button 
+                  onClick={() => {
+                    setAnonymousSuccess(null)
+                    setLocation("/")
+                  }} 
+                  className="w-full"
+                  size="lg"
+                >
+                  Continue to Dashboard
+                </Button>
+                
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Make sure you've saved your credentials before continuing!
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     )
   }

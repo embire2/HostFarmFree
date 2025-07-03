@@ -145,6 +145,10 @@ Changelog:
 - July 2, 2025. CRITICAL FIX: Resolved PostgreSQL integer overflow in hosting account creation
 - July 2, 2025. Fixed WHM-integrated domain search using listaccts API endpoint for accurate availability checking
 - July 2, 2025. Enhanced domain registration flow with automatic post-authentication account creation
+- July 3, 2025. CRITICAL UX FIX: Anonymous registration now displays credentials prominently with recovery instructions
+- July 3, 2025. Added activation timing system - informs users accounts may take 2 minutes to activate with countdown
+- July 3, 2025. Implemented auto-refresh dashboard functionality for new hosting account activation
+- July 3, 2025. Created comprehensive credential backup screen for anonymous registration security
 ```
 
 # User Preferences

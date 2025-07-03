@@ -140,23 +140,7 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
         isAnonymous: response.isAnonymous
       });
       
-      // Show credentials in a persistent toast with recovery phrase
-      toast({
-        title: "Anonymous Account Created!",
-        description: `Username: ${response.username}\nPassword: ${response.password}\nRecovery Phrase: ${response.recoveryPhrase}\n\nIMPORTANT: Save these credentials - they cannot be recovered without the recovery phrase!`,
-        duration: 0, // Never auto-dismiss
-      });
-      
-      // Force redirect after successful registration
-      setTimeout(() => {
-        const pendingDomain = localStorage.getItem('pendingDomain');
-        if (pendingDomain) {
-          localStorage.removeItem('pendingDomain');
-          window.location.href = '/?domain=' + pendingDomain;
-        } else {
-          window.location.href = '/';
-        }
-      }, 500);
+      // Don't redirect immediately - let the success screen show credentials
     },
     onError: (error: Error) => {
       toast({

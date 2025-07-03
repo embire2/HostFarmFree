@@ -243,12 +243,22 @@ export default function ClientDashboard() {
   const { user, isAuthenticated, isLoading } = useAuth();
   const { toast } = useToast();
   const [isCreatingAccount, setIsCreatingAccount] = useState(false);
+  const [showActivationMessage, setShowActivationMessage] = useState(false);
+  const [activationCountdown, setActivationCountdown] = useState(120); // 2 minutes
 
   // Handle automatic domain creation from URL parameter
   useEffect(() => {
     if (!isLoading && isAuthenticated && user) {
       const urlParams = new URLSearchParams(window.location.search);
       const domainParam = urlParams.get('domain');
+      const activationParam = urlParams.get('activation');
+      
+      // Show activation message if coming from account creation
+      if (activationParam === 'true') {
+        setShowActivationMessage(true);
+        // Clear the URL parameter
+        window.history.replaceState({}, '', '/');
+      }
       
       if (domainParam && !isCreatingAccount) {
         setIsCreatingAccount(true);
@@ -266,8 +276,9 @@ export default function ClientDashboard() {
           if (data.account) {
             toast({
               title: "Hosting Account Created!",
-              description: `Your website ${data.domain} has been created successfully.`,
+              description: `Your website ${data.domain} has been created successfully. It may take up to 2 minutes to activate.`,
             });
+            setShowActivationMessage(true);
             queryClient.invalidateQueries({ queryKey: ["/api/hosting-accounts"] });
           }
         })
@@ -285,6 +296,21 @@ export default function ClientDashboard() {
       }
     }
   }, [isAuthenticated, isLoading, user, toast, isCreatingAccount]);
+
+  // Countdown timer for activation message
+  useEffect(() => {
+    if (showActivationMessage && activationCountdown > 0) {
+      const timer = setTimeout(() => {
+        setActivationCountdown(prev => prev - 1);
+      }, 1000);
+      return () => clearTimeout(timer);
+    } else if (showActivationMessage && activationCountdown === 0) {
+      // Auto-refresh hosting accounts after countdown
+      queryClient.invalidateQueries({ queryKey: ["/api/hosting-accounts"] });
+      setShowActivationMessage(false);
+      setActivationCountdown(120); // Reset for next time
+    }
+  }, [showActivationMessage, activationCountdown, queryClient]);
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -370,6 +396,46 @@ export default function ClientDashboard() {
             Manage your hosting accounts, download plugins, and monitor your websites.
           </p>
         </div>
+
+        {/* Activation Message */}
+        {showActivationMessage && (
+          <div className="mb-8">
+            <Card className="border-blue-200 bg-blue-50 dark:bg-blue-900/20">
+              <CardContent className="p-6">
+                <div className="flex items-center space-x-4">
+                  <div className="flex-shrink-0">
+                    <Clock className="h-8 w-8 text-blue-600" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-100">
+                      Account Activation in Progress
+                    </h3>
+                    <p className="text-blue-700 dark:text-blue-200 mt-1">
+                      Your hosting account is being set up. This may take up to 2 minutes to complete.
+                    </p>
+                    <p className="text-sm text-blue-600 dark:text-blue-300 mt-2">
+                      Auto-refreshing in {Math.floor(activationCountdown / 60)}:{(activationCountdown % 60).toString().padStart(2, '0')}
+                    </p>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      queryClient.invalidateQueries({ queryKey: ["/api/hosting-accounts"] });
+                      toast({
+                        title: "Refreshed",
+                        description: "Checking for account activation...",
+                      });
+                    }}
+                  >
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                    Refresh Now
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
 
         {/* Quick Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">

@@ -41,14 +41,18 @@ export default function DomainSearch({ onSuccess }: DomainSearchProps) {
       });
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       toast({
         title: "Success!",
-        description: "Your hosting account has been created successfully.",
+        description: "Your hosting account has been created successfully. It may take up to 2 minutes to activate.",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/hosting-accounts"] });
       setSearchTerm("");
       setLastSearched("");
+      // Redirect to dashboard with activation flag
+      setTimeout(() => {
+        window.location.href = '/?activation=true';
+      }, 1000);
       onSuccess?.();
     },
     onError: (error: Error) => {
