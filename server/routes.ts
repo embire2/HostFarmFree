@@ -700,8 +700,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create anonymous account (admin only)
   app.post("/api/admin/create-anonymous-account", isAuthenticated, requireAdmin, async (req, res) => {
     try {
-      // Use the existing anonymous registration function from auth.ts
-      const { generateUsername, generatePassword, hashPassword } = require('./auth');
+      // Import the auth functions directly
+      const { generateUsername, generatePassword, hashPassword } = await import('./auth.js');
       
       const username = generateUsername();
       const password = generatePassword();
@@ -781,7 +781,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         const username = subdomain.toLowerCase().replace(/[^a-z0-9]/g, '');
-        const password = require('./auth').generatePassword();
+        const { generatePassword } = await import('./auth.js');
+        const password = generatePassword();
 
         const whmData = {
           username,

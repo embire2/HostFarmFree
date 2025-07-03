@@ -291,4 +291,4 @@ export function isAuthenticated(req: any, res: any, next: any) {
   res.status(401).json({ message: "Unauthorized" });
 }
 
-export { hashPassword, comparePasswords };
+export { hashPassword, comparePasswords, generateUsername, generatePassword, generateRecoveryPhrase };
