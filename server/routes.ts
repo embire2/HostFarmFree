@@ -794,9 +794,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         };
 
         const authHeader = `whm root:${apiSettings.whmApiToken}`;
-        const whmUrl = `${apiSettings.whmApiUrl}:2087/json-api/createacct`;
+        // Check if URL already has port, if not add it
+        const baseUrl = apiSettings.whmApiUrl.includes(':2087') ? apiSettings.whmApiUrl : `${apiSettings.whmApiUrl}:2087`;
+        const whmUrl = `${baseUrl}/json-api/createacct`;
 
         console.log('[Admin WHM] Creating account for:', fullDomain);
+        console.log('[Admin WHM] WHM API URL:', whmUrl);
+        console.log('[Admin WHM] Base URL from settings:', apiSettings.whmApiUrl);
 
         const whmResponse = await fetch(whmUrl, {
           method: 'POST',

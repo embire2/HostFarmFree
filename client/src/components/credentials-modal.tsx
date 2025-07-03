@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Copy, Eye, EyeOff, CheckCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -47,6 +47,9 @@ export default function CredentialsModal({ isOpen, onClose, credentials }: Crede
           <DialogTitle className="text-center text-lg font-semibold text-green-600">
             Anonymous Account Created Successfully!
           </DialogTitle>
+          <DialogDescription className="text-center text-sm text-gray-600">
+            New anonymous account credentials are ready to share with the user.
+          </DialogDescription>
         </DialogHeader>
         
         <div className="space-y-6 py-4">
