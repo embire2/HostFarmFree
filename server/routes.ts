@@ -880,6 +880,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log('[Admin WHM] Creating account for:', fullDomain);
         console.log('[Admin WHM] WHM API URL:', whmUrl);
         console.log('[Admin WHM] Base URL from settings:', apiSettings.whmApiUrl);
+        console.log('[Admin WHM] WHM Data being sent:', JSON.stringify(whmData, null, 2));
+        console.log('[Admin WHM] URL Parameters:', new URLSearchParams(whmData).toString());
 
         const whmResponse = await fetch(whmUrl, {
           method: 'POST',
@@ -890,11 +892,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
           body: new URLSearchParams(whmData).toString(),
         });
 
-        if (!whmResponse.ok) {
-          throw new Error(`WHM API returned ${whmResponse.status}: ${whmResponse.statusText}`);
-        }
+        console.log('[Admin WHM] Response status:', whmResponse.status);
+        console.log('[Admin WHM] Response headers:', Object.fromEntries(whmResponse.headers.entries()));
 
         const whmResult = await whmResponse.json();
+        console.log('[Admin WHM] WHM API Response:', JSON.stringify(whmResult, null, 2));
+
+        if (!whmResponse.ok) {
+          throw new Error(`WHM API returned ${whmResponse.status}: ${whmResponse.statusText} - ${JSON.stringify(whmResult)}`);
+        }
+
+        // Check if the WHM API actually succeeded
+        if (whmResult.metadata?.result !== 1 && whmResult.cpanelresult?.event?.result !== 1) {
+          throw new Error(`WHM account creation failed: ${whmResult.metadata?.reason || whmResult.cpanelresult?.event?.reason || 'Unknown error'} - ${JSON.stringify(whmResult)}`);
+        }
+
         console.log('[Admin WHM] Account created successfully for:', fullDomain);
 
         // Update account status
