@@ -237,34 +237,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
           
           // Check JSON response for success
           if (whmResult.metadata?.result === 1 || whmResult.cpanelresult?.event?.result === 1) {
+            console.log('[WHM] SUCCESS: JSON response indicates success');
             isSuccess = true;
+          } else {
+            console.log('[WHM] JSON response does not indicate success:', whmResult);
           }
         } catch (jsonError) {
           // Response is likely HTML, check for success indicators in the text
-          console.log('[WHM] Response is HTML format, checking for success indicators');
+          console.log('[WHM] Response is not valid JSON, treating as HTML format');
+          console.log('[WHM] JSON parse error:', jsonError instanceof Error ? jsonError.message : String(jsonError));
+          console.log('[WHM] Full response text length:', responseText.length);
+          console.log('[WHM] Response text (first 2000 chars):');
+          console.log(responseText.substring(0, 2000));
           
+          // Check for multiple success indicators that WHM uses
           const successIndicators = [
             'Account Creation Complete',
-            'Account Creation Ok', 
+            'Account Creation Ok',
             'wwwacct creation finished',
             'Account Creation Complete!!!',
-            'creation finished'
+            'creation finished',
+            'statusmsg":"Account Creation Ok"'
           ];
           
-          const hasSuccessIndicator = successIndicators.some(indicator => 
-            responseText.includes(indicator)
-          );
+          console.log('[WHM] Checking for success indicators...');
+          
+          let foundIndicator = null;
+          const hasSuccessIndicator = successIndicators.some(indicator => {
+            const found = responseText.includes(indicator);
+            if (found) {
+              foundIndicator = indicator;
+              console.log(`[WHM] FOUND SUCCESS INDICATOR: "${indicator}"`);
+            }
+            return found;
+          });
           
           if (hasSuccessIndicator) {
-            console.log('[WHM] SUCCESS: Found success indicator in HTML response');
+            console.log(`[WHM] SUCCESS: Found success indicator "${foundIndicator}" in HTML response`);
             isSuccess = true;
-            whmResult = { success: true, message: 'Account created successfully (HTML response)' };
+            whmResult = { success: true, message: `Account created successfully (HTML response - found: ${foundIndicator})` };
           } else if (responseText.includes('failed') || responseText.includes('error')) {
             console.log('[WHM] FAILED: Found error indicator in HTML response');
             whmResult = { success: false, message: 'Account creation failed (HTML response)' };
           } else {
             console.log('[WHM] UNKNOWN: Could not determine status from HTML response');
-            whmResult = { success: false, message: 'Unknown response format' };
+            console.log('[WHM] No success or error indicators found');
+            whmResult = { success: false, message: 'Unknown response format - no clear success/error indicators' };
           }
         }
         
@@ -955,12 +973,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
           
           // Check JSON response for success
           if (whmResult.metadata?.result === 1 || whmResult.cpanelresult?.event?.result === 1) {
+            console.log('[Admin WHM] SUCCESS: JSON response indicates success');
             isSuccess = true;
+          } else {
+            console.log('[Admin WHM] JSON response does not indicate success:', whmResult);
           }
         } catch (jsonError) {
           // Response is likely HTML, check for success indicators in the text
-          console.log('[Admin WHM] Response is HTML format, checking for success indicators');
-          console.log('[Admin WHM] Checking response text for success indicators...');
+          console.log('[Admin WHM] Response is not valid JSON, treating as HTML format');
+          console.log('[Admin WHM] JSON parse error:', jsonError instanceof Error ? jsonError.message : String(jsonError));
+          console.log('[Admin WHM] Full response text length:', responseText.length);
+          console.log('[Admin WHM] Response text (first 2000 chars):');
+          console.log(responseText.substring(0, 2000));
           
           // Check for multiple success indicators that WHM uses
           const successIndicators = [
@@ -968,24 +992,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
             'Account Creation Ok',
             'wwwacct creation finished',
             'Account Creation Complete!!!',
-            'creation finished'
+            'creation finished',
+            'statusmsg":"Account Creation Ok"'
           ];
           
-          const hasSuccessIndicator = successIndicators.some(indicator => 
-            responseText.includes(indicator)
-          );
+          console.log('[Admin WHM] Checking for success indicators...');
+          
+          let foundIndicator = null;
+          const hasSuccessIndicator = successIndicators.some(indicator => {
+            const found = responseText.includes(indicator);
+            if (found) {
+              foundIndicator = indicator;
+              console.log(`[Admin WHM] FOUND SUCCESS INDICATOR: "${indicator}"`);
+            }
+            return found;
+          });
           
           if (hasSuccessIndicator) {
-            console.log('[Admin WHM] SUCCESS: Found success indicator in HTML response');
+            console.log(`[Admin WHM] SUCCESS: Found success indicator "${foundIndicator}" in HTML response`);
             isSuccess = true;
-            whmResult = { success: true, message: 'Account created successfully (HTML response)' };
+            whmResult = { success: true, message: `Account created successfully (HTML response - found: ${foundIndicator})` };
           } else if (responseText.includes('failed') || responseText.includes('error')) {
             console.log('[Admin WHM] FAILED: Found error indicator in HTML response');
             whmResult = { success: false, message: 'Account creation failed (HTML response)' };
           } else {
             console.log('[Admin WHM] UNKNOWN: Could not determine status from HTML response');
-            console.log('[Admin WHM] Response text (first 1000 chars):', responseText.substring(0, 1000));
-            whmResult = { success: false, message: 'Unknown response format' };
+            console.log('[Admin WHM] No success or error indicators found');
+            whmResult = { success: false, message: 'Unknown response format - no clear success/error indicators' };
           }
         }
 
