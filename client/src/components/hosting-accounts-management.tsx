@@ -45,6 +45,7 @@ import {
 } from "lucide-react";
 
 import type { User, HostingPackage } from "@shared/schema";
+import CredentialsModal from "@/components/credentials-modal";
 
 interface HostingAccount {
   id: number;
@@ -74,6 +75,14 @@ export default function HostingAccountsManagement() {
     userId: "",
     createAnonymous: false
   });
+  const [credentialsModal, setCredentialsModal] = useState({
+    isOpen: false,
+    credentials: null as {
+      username: string;
+      password: string;
+      recoveryPhrase: string;
+    } | null
+  });
 
   // Fetch hosting accounts grouped by client
   const { data: clientAccounts = [], isLoading, refetch } = useQuery<ClientWithAccounts[]>({
@@ -99,9 +108,14 @@ export default function HostingAccountsManagement() {
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
-      toast({
-        title: "Anonymous Account Created",
-        description: `Username: ${data.username} | Password: ${data.password}`,
+      // Show credentials modal instead of toast
+      setCredentialsModal({
+        isOpen: true,
+        credentials: {
+          username: data.username,
+          password: data.password,
+          recoveryPhrase: data.recoveryPhrase
+        }
       });
       setNewAccountData(prev => ({ ...prev, userId: data.id.toString() }));
     },
@@ -587,6 +601,13 @@ export default function HostingAccountsManagement() {
           ))}
         </div>
       )}
+
+      {/* Credentials Modal */}
+      <CredentialsModal
+        isOpen={credentialsModal.isOpen}
+        onClose={() => setCredentialsModal({ isOpen: false, credentials: null })}
+        credentials={credentialsModal.credentials}
+      />
     </div>
   );
 }
