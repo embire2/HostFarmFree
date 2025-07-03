@@ -41,7 +41,8 @@ import {
   RefreshCw,
   Plus,
   UserPlus,
-  Package
+  Package,
+  Settings
 } from "lucide-react";
 
 import type { User, HostingPackage } from "@shared/schema";
@@ -180,6 +181,27 @@ export default function HostingAccountsManagement() {
 
   const handleDeleteAccount = (account: HostingAccount, clientName: string) => {
     console.log(`Deleting hosting account: ${account.domain} (ID: ${account.id}) for client: ${clientName}`);
+  };
+
+  const handleCpanelLogin = async (domain: string) => {
+    try {
+      const res = await apiRequest("GET", `/api/admin/cpanel-login/${domain}`);
+      const data = await res.json();
+      
+      // Open cPanel in a new tab
+      window.open(data.loginUrl, '_blank');
+      
+      toast({
+        title: "Opening cPanel",
+        description: `Admin access to cPanel for ${domain}`,
+      });
+    } catch (error: any) {
+      toast({
+        title: "cPanel access failed",
+        description: error.message || "Could not access cPanel for this domain",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleCreateAnonymousAccount = async () => {
@@ -527,6 +549,17 @@ export default function HostingAccountsManagement() {
                           ID: {account.id} • Package: {account.packageId || 'Default'}
                         </div>
                         <div className="flex items-center space-x-1">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-7 px-2"
+                            onClick={() => handleCpanelLogin(account.domain)}
+                            title="Access cPanel"
+                          >
+                            <Settings className="h-3 w-3 mr-1" />
+                            cPanel
+                          </Button>
+                          
                           <Button
                             size="sm"
                             variant="outline"
