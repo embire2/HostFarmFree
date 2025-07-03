@@ -224,15 +224,57 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }),
         });
 
-        const whmResult = await whmResponse.json();
+        // Try to parse as JSON first, if that fails, parse as HTML
+        let whmResult;
+        let isSuccess = false;
         
-        console.log(`[WHM] API Response:`, JSON.stringify(whmResult, null, 2));
+        const responseText = await whmResponse.text();
+        console.log('[WHM] Response body (first 500 chars):', responseText.substring(0, 500));
         
-        if (!whmResult.metadata?.result || whmResult.metadata.result !== 1) {
-          console.error('[WHM] Account creation failed:', whmResult);
+        try {
+          whmResult = JSON.parse(responseText);
+          console.log('[WHM] Parsed JSON response:', JSON.stringify(whmResult, null, 2));
+          
+          // Check JSON response for success
+          if (whmResult.metadata?.result === 1 || whmResult.cpanelresult?.event?.result === 1) {
+            isSuccess = true;
+          }
+        } catch (jsonError) {
+          // Response is likely HTML, check for success indicators in the text
+          console.log('[WHM] Response is HTML format, checking for success indicators');
+          
+          const successIndicators = [
+            'Account Creation Complete',
+            'Account Creation Ok', 
+            'wwwacct creation finished',
+            'Account Creation Complete!!!',
+            'creation finished'
+          ];
+          
+          const hasSuccessIndicator = successIndicators.some(indicator => 
+            responseText.includes(indicator)
+          );
+          
+          if (hasSuccessIndicator) {
+            console.log('[WHM] SUCCESS: Found success indicator in HTML response');
+            isSuccess = true;
+            whmResult = { success: true, message: 'Account created successfully (HTML response)' };
+          } else if (responseText.includes('failed') || responseText.includes('error')) {
+            console.log('[WHM] FAILED: Found error indicator in HTML response');
+            whmResult = { success: false, message: 'Account creation failed (HTML response)' };
+          } else {
+            console.log('[WHM] UNKNOWN: Could not determine status from HTML response');
+            whmResult = { success: false, message: 'Unknown response format' };
+          }
+        }
+        
+        if (!isSuccess) {
+          const errorMessage = whmResult.metadata?.reason || whmResult.message || 'Unknown WHM error';
+          console.error('[WHM] Account creation failed with error:', errorMessage);
+          console.error('[WHM] Full response:', JSON.stringify(whmResult, null, 2));
           return res.status(500).json({ 
             message: "Failed to create hosting account on server", 
-            details: whmResult.metadata?.reason || 'Unknown WHM error'
+            details: errorMessage
           });
         }
 
@@ -918,21 +960,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
         } catch (jsonError) {
           // Response is likely HTML, check for success indicators in the text
           console.log('[Admin WHM] Response is HTML format, checking for success indicators');
+          console.log('[Admin WHM] Checking response text for success indicators...');
           
-          if (responseText.includes('Account Creation Complete') || 
-              responseText.includes('Account Creation Ok') || 
-              responseText.includes('wwwacct creation finished')) {
+          // Check for multiple success indicators that WHM uses
+          const successIndicators = [
+            'Account Creation Complete',
+            'Account Creation Ok',
+            'wwwacct creation finished',
+            'Account Creation Complete!!!',
+            'creation finished'
+          ];
+          
+          const hasSuccessIndicator = successIndicators.some(indicator => 
+            responseText.includes(indicator)
+          );
+          
+          if (hasSuccessIndicator) {
+            console.log('[Admin WHM] SUCCESS: Found success indicator in HTML response');
             isSuccess = true;
             whmResult = { success: true, message: 'Account created successfully (HTML response)' };
           } else if (responseText.includes('failed') || responseText.includes('error')) {
+            console.log('[Admin WHM] FAILED: Found error indicator in HTML response');
             whmResult = { success: false, message: 'Account creation failed (HTML response)' };
           } else {
+            console.log('[Admin WHM] UNKNOWN: Could not determine status from HTML response');
+            console.log('[Admin WHM] Response text (first 1000 chars):', responseText.substring(0, 1000));
             whmResult = { success: false, message: 'Unknown response format' };
           }
         }
 
         if (!isSuccess) {
-          throw new Error(`WHM account creation failed: ${whmResult.metadata?.reason || whmResult.message || 'Unknown error'}`);
+          const errorMessage = whmResult.metadata?.reason || whmResult.message || 'Unknown error';
+          console.error('[Admin WHM] Account creation failed with error:', errorMessage);
+          console.error('[Admin WHM] Full response:', JSON.stringify(whmResult, null, 2));
+          throw new Error(`WHM account creation failed: ${errorMessage}`);
         }
 
         console.log('[Admin WHM] Account created successfully for:', fullDomain);
