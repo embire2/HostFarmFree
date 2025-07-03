@@ -175,45 +175,96 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Domain already exists" });
       }
 
+      // Get API settings for WHM credentials
+      const apiSettings = await storage.getApiSettings();
+      if (!apiSettings || !apiSettings.whmApiUrl || !apiSettings.whmApiToken) {
+        return res.status(500).json({ message: "WHM API configuration not found. Please configure API settings first." });
+      }
+
+      // Get default hosting package
+      const defaultPackage = await storage.getFreeHostingPackage();
+      const packageName = defaultPackage?.whmPackageName || 'default';
+
+      // Generate secure username and password
+      const username = `u${subdomain.toLowerCase().replace(/[^a-z0-9]/g, '').substring(0, 6)}${Date.now().toString().slice(-2)}`;
+      const password = Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-4).toUpperCase() + '1!';
+
+      console.log(`[WHM] Creating cPanel account for domain: ${domain}, username: ${username}, package: ${packageName}`);
+
       // Create cPanel account via WHM API
       try {
-        const whmResponse = await fetch('https://cpanel3.openweb.co.za:2087/json-api/createacct', {
+        const whmApiUrl = apiSettings.whmApiUrl.replace(/\/+$/, ''); // Remove trailing slashes
+        const createUrl = `${whmApiUrl}/json-api/createacct?api.version=1`;
+        
+        const whmResponse = await fetch(createUrl, {
           method: 'POST',
           headers: {
-            'Authorization': `whm root:10AV6VP7TZLIEREN78F4ZP62UP4JCEKXN`,
+            'Authorization': `whm root:${apiSettings.whmApiToken}`,
             'Content-Type': 'application/x-www-form-urlencoded',
           },
           body: new URLSearchParams({
-            username: subdomain.toLowerCase().replace(/[^a-z0-9]/g, '').substring(0, 8),
+            username: username,
             domain: domain,
-            plan: 'default',
-            password: Math.random().toString(36).slice(-12) + 'A1!',
+            plan: packageName,
+            password: password,
             email: `admin@${domain}`,
+            quota: '512',
+            hasshell: '0',
+            maxftp: '5',
+            maxsql: '5',
+            maxsub: '5',
+            maxpark: '2',
+            maxaddon: '2',
+            bwlimit: '1024',
+            ip: 'y',
+            cgi: '1',
+            frontpage: '0',
+            hasshell: '0',
+            cpmod: 'paper_lantern',
+            maxlst: '20',
+            savepkg: '0'
           }),
         });
 
         const whmResult = await whmResponse.json();
         
+        console.log(`[WHM] API Response:`, JSON.stringify(whmResult, null, 2));
+        
         if (!whmResult.metadata?.result || whmResult.metadata.result !== 1) {
-          console.error('WHM API Error:', whmResult);
-          throw new Error(whmResult.metadata?.reason || 'Failed to create cPanel account');
+          console.error('[WHM] Account creation failed:', whmResult);
+          return res.status(500).json({ 
+            message: "Failed to create hosting account on server", 
+            details: whmResult.metadata?.reason || 'Unknown WHM error'
+          });
         }
 
-        console.log('cPanel account created successfully:', whmResult);
+        console.log('[WHM] cPanel account created successfully for:', domain);
+        
+        // Create hosting account in database
+        const account = await storage.createHostingAccount({
+          userId,
+          domain,
+          subdomain,
+          status: "active",
+          packageId: defaultPackage?.id || null,
+        });
+
+        res.json({
+          ...account,
+          credentials: {
+            username,
+            password,
+            cpanelUrl: `https://${domain}:2083`,
+            loginUrl: `${apiSettings.cpanelBaseUrl}/login/?user=${username}&pass=${password}&goto_uri=/`
+          }
+        });
       } catch (whmError) {
-        console.error('WHM API Error:', whmError);
-        // Continue with database creation even if WHM fails for now
+        console.error('[WHM] API Error:', whmError);
+        return res.status(500).json({ 
+          message: "Failed to create hosting account on server", 
+          details: whmError.message
+        });
       }
-
-      // Create hosting account in database
-      const account = await storage.createHostingAccount({
-        userId,
-        domain,
-        subdomain,
-        status: "active",
-      });
-
-      res.json(account);
     } catch (error) {
       console.error("Error creating hosting account:", error);
       res.status(500).json({ message: "Failed to create hosting account" });
