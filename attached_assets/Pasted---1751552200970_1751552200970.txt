@@ -1,0 +1,149 @@
+
+      /////////////////////
+   ///////////////////////////
+  ////////@@@@@@@//////////////
+  ////////@@@@@@@//////////////
+  ////////@@@@@@@//////////////        Curious and driven?
+  ///////////////@@@@@@@///////        Work with us!
+  ///////////////@@@@@@@///////
+  ///////////////@@@@@@@///////        https://join.replit.com/hack.with.us
+  ////////@@@@@@@//////////////
+  ////////@@@@@@@//////////////
+  ////////@@@@@@#//////////////
+   ///////////////////////////
+      /////////////////////
+      
+_app-00df57c33daca3fc.js:38 [LaunchDarkly] LaunchDarkly client initialized
+36Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.Understand this error
+framework-862a1af8891026db.js:1 Unrecognized feature: 'ambient-light-sensor'.
+_ @ framework-862a1af8891026db.js:1Understand this warning
+framework-862a1af8891026db.js:1 Unrecognized feature: 'battery'.
+_ @ framework-862a1af8891026db.js:1Understand this warning
+framework-862a1af8891026db.js:1 Unrecognized feature: 'execution-while-not-rendered'.
+_ @ framework-862a1af8891026db.js:1Understand this warning
+framework-862a1af8891026db.js:1 Unrecognized feature: 'execution-while-out-of-viewport'.
+_ @ framework-862a1af8891026db.js:1Understand this warning
+framework-862a1af8891026db.js:1 Unrecognized feature: 'layout-animations'.
+_ @ framework-862a1af8891026db.js:1Understand this warning
+framework-862a1af8891026db.js:1 Unrecognized feature: 'legacy-image-formats'.
+_ @ framework-862a1af8891026db.js:1Understand this warning
+framework-862a1af8891026db.js:1 Unrecognized feature: 'navigation-override'.
+_ @ framework-862a1af8891026db.js:1Understand this warning
+framework-862a1af8891026db.js:1 Unrecognized feature: 'oversized-images'.
+_ @ framework-862a1af8891026db.js:1Understand this warning
+framework-862a1af8891026db.js:1 Unrecognized feature: 'publickey-credentials'.
+_ @ framework-862a1af8891026db.js:1Understand this warning
+framework-862a1af8891026db.js:1 Unrecognized feature: 'speaker-selection'.
+_ @ framework-862a1af8891026db.js:1Understand this warning
+framework-862a1af8891026db.js:1 Unrecognized feature: 'unoptimized-images'.
+_ @ framework-862a1af8891026db.js:1Understand this warning
+framework-862a1af8891026db.js:1 Unrecognized feature: 'unsized-media'.
+_ @ framework-862a1af8891026db.js:1Understand this warning
+framework-862a1af8891026db.js:1 Unrecognized feature: 'pointer-lock'.
+_ @ framework-862a1af8891026db.js:1Understand this warning
+framework-862a1af8891026db.js:1 Allow attribute will take precedence over 'allowfullscreen'.
+_ @ framework-862a1af8891026db.js:1Understand this warning
+framework-862a1af8891026db.js:1 Allow attribute will take precedence over 'allowpaymentrequest'.
+_ @ framework-862a1af8891026db.js:1Understand this warning
+4HostFarmFree:1 Uncaught (in promise) Error: A listener indicated an asynchronous response by returning true, but the message channel closed before a response was receivedUnderstand this error
+_app-00df57c33daca3fc.js:38 task queue exceeded allotted deadline by 58ms
+(anonymous) @ _app-00df57c33daca3fc.js:38Understand this warning
+_app-00df57c33daca3fc.js:38 Uncaught TypeError: Cannot read properties of undefined (reading 'dimensions')
+    at get dimensions (1c7fb644.5c8c7901c7fef14c.js:3:88240)
+    at t.Viewport.syncScrollArea (1c7fb644.5c8c7901c7fef14c.js:3:30815)
+    at 1c7fb644.5c8c7901c7fef14c.js:3:29461
+    at n (_app-00df57c33daca3fc.js:38:2959)Understand this error
+HostFarmFree:1 Access to fetch at 'https://sp.replit.com/v1/m' from origin 'https://replit.com' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.Understand this error
+sp.replit.com/v1/m:1 
+            
+            
+           Failed to load resource: net::ERR_FAILEDUnderstand this error
+_app-00df57c33daca3fc.js:38 Error sending segment performance metrics TypeError: Failed to fetch
+    at _app-00df57c33daca3fc.js:38:9046
+    at o (sdk.min.js:1:23763)
+    at t.<anonymous> (remote-metrics.ts:138:12)
+    at tslib.es6.js:103:23
+    at Object.next (tslib.es6.js:108:37)
+    at tslib.es6.js:80:8
+    at new Promise (<anonymous>)
+    at u (tslib.es6.js:72:27)
+    at i.148.t.send (sdk.min.js:1:22021)
+    at t.<anonymous> (remote-metrics.ts:125:16)
+    at tslib.es6.js:103:23
+    at Object.next (tslib.es6.js:108:37)
+    at tslib.es6.js:80:8
+    at new Promise (<anonymous>)
+    at u (tslib.es6.js:72:27)
+    at t.flush (sdk.min.js:1:21754)
+    at l (remote-metrics.ts:83:14)
+    at n (_app-00df57c33daca3fc.js:38:2959)
+(anonymous) @ _app-00df57c33daca3fc.js:38Understand this error
+Grammarly-check.js:1 [Violation] Permissions policy violation: unload is not allowed in this document.
+(anonymous) @ Grammarly-check.js:1Understand this error
+workspace_iframe.html:32 Unrecognized feature: 'ambient-light-sensor'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'battery'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'execution-while-not-rendered'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'execution-while-out-of-viewport'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'layout-animations'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'legacy-image-formats'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'navigation-override'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'oversized-images'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'publickey-credentials'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'speaker-selection'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'unoptimized-images'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'unsized-media'.Understand this warning
+workspace_iframe.html:32 Allow attribute will take precedence over 'allowfullscreen'.Understand this warning
+workspace_iframe.html:32 Allow attribute will take precedence over 'allowpaymentrequest'.Understand this warning
+ Warning: validateDOMNesting(...): %s cannot appear as a descendant of <%s>.%s <a> a 
+    at a
+    at a
+    at https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=0264e835:337:18
+    at https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-2K77HOHX.js?v=0264e835:79:13
+    at https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-2K77HOHX.js?v=0264e835:56:13
+    at https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-AXMZZQ2X.js?v=0264e835:42:13
+    at https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-2K77HOHX.js?v=0264e835:79:13
+    at https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-2K77HOHX.js?v=0264e835:56:13
+    at https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-AXMZZQ2X.js?v=0264e835:42:13
+    at https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-2K77HOHX.js?v=0264e835:79:13
+    at https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-2K77HOHX.js?v=0264e835:56:13
+    at https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-TPYHSINA.js?v=0264e835:51:15
+    at https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-QPFAMTZG.js?v=0264e835:147:7
+    at https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-2K77HOHX.js?v=0264e835:79:13
+    at https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-2K77HOHX.js?v=0264e835:56:13
+    at https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-TPYHSINA.js?v=0264e835:51:15
+    at https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-dropdown-menu.js?v=0264e835:469:13
+    at https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-dropdown-menu.js?v=0264e835:419:13
+    at https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-dropdown-menu.js?v=0264e835:1046:13
+    at _c7 (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/src/components/ui/dropdown-menu.tsx:117:12)
+    at div
+    at https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-AXMZZQ2X.js?v=0264e835:42:13
+    at Provider (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=0264e835:38:15)
+    at div
+    at https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-4XNOAIBL.js?v=0264e835:1946:7
+    at https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-2K77HOHX.js?v=0264e835:79:13
+    at https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-2K77HOHX.js?v=0264e835:56:13
+    at https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-AXMZZQ2X.js?v=0264e835:42:13
+    at Provider (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=0264e835:38:15)
+    at https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-QPFAMTZG.js?v=0264e835:56:5
+    at https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-2K77HOHX.js?v=0264e835:79:13
+    at https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-2K77HOHX.js?v=0264e835:56:13
+    at https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@f
+Mt.forEach.n.<computed> @ eruda.js:2Understand this error
+da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/api/user:1 
+            
+            
+           Failed to load resource: the server responded with a status of 401 (Unauthorized)Understand this error
+da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/api/user:1 
+            
+            
+           Failed to load resource: the server responded with a status of 401 (Unauthorized)Understand this error
+7_app-00df57c33daca3fc.js:38 If you do not provide children, you must specify an aria-label for accessibility
+(anonymous) @ _app-00df57c33daca3fc.js:38Understand this warning
+da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/api/hosting-accounts:1 
+            
+            
+           Failed to load resource: the server responded with a status of 500 (Internal Server Error)Understand this error
+Console.js:61 Error creating hosting account: Error: 500: {"message":"Failed to create hosting account on server","details":"Invalid value “paper_lantern” for the “cpmod” setting.\n"}
+    at throwIfResNotOk (queryClient.ts:6:11)
+    at async apiRequest (queryClient.ts:25:3)
+Mt.forEach.n.<computed> @ Console.js:61Understand this error

@@ -219,7 +219,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
             ip: 'y',
             cgi: '1',
             frontpage: '0',
-            cpmod: 'paper_lantern',
             maxlst: '20',
             savepkg: '0'
           }),
