@@ -48,13 +48,13 @@ export default function Landing() {
       items: ["2,000+ Premium Plugins", "Regular Updates", "One-Click Installation"]
     },
     {
-      title: "Anonymous Registration",
-      description: "Protect your privacy with anonymous registration. No personal information required.",
+      title: "100% Anonymous Registration",
+      description: "World's only completely anonymous hosting provider. Zero personal information required.",
       icon: Shield,
       color: "from-purple-50 to-pink-100",
       borderColor: "border-purple-200",
       iconBg: "bg-purple-600",
-      items: ["No Email Required", "Privacy Protected", "Instant Setup"]
+      items: ["No Email Required", "No Phone Number", "Complete Privacy"]
     },
     {
       title: "Powerful Dashboard",
@@ -137,6 +137,18 @@ export default function Landing() {
     <div className="min-h-screen bg-gray-50">
       <Navbar />
 
+      {/* Anonymous Hosting Banner */}
+      <div className="bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 py-4 px-4">
+        <div className="max-w-7xl mx-auto text-center">
+          <p className="text-white font-bold text-lg md:text-xl">
+            🌟 <span className="font-black">WORLD'S ONLY COMPLETELY ANONYMOUS HOSTING & VPS PROVIDER</span> 🌟
+          </p>
+          <p className="text-white/90 text-sm md:text-base mt-1">
+            <strong>No personal information required</strong> - Start hosting with complete privacy
+          </p>
+        </div>
+      </div>
+
       {/* Hero Section */}
       <section className="relative gradient-primary text-white py-20">
         <div className="absolute inset-0 bg-black opacity-10"></div>
@@ -151,16 +163,38 @@ export default function Landing() {
         
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-5xl md:text-6xl font-bold mb-6 leading-tight">
-            Free WordPress Hosting{" "}
+            100% Anonymous WordPress Hosting{" "}
             <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-green-300">
               + Premium Plugins
             </span>
           </h1>
-          <p className="text-xl md:text-2xl mb-8 max-w-3xl mx-auto opacity-90">
-            Join thousands of developers and agencies using our free hosting platform. 
+          <p className="text-xl md:text-2xl mb-4 max-w-3xl mx-auto opacity-90">
+            <strong>World's only completely anonymous hosting provider.</strong> No email, phone, or personal information required.
             Get instant access to premium WordPress plugins at no cost.
           </p>
+          
+          {/* Privacy Benefits */}
+          <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-6 mb-8 max-w-4xl mx-auto">
+            <div className="flex flex-wrap justify-center items-center gap-6 text-white">
+              <div className="flex items-center gap-2">
+                <Shield className="h-6 w-6 text-green-400" />
+                <span className="font-bold">No Email Required</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Shield className="h-6 w-6 text-green-400" />
+                <span className="font-bold">No Phone Number</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Shield className="h-6 w-6 text-green-400" />
+                <span className="font-bold">No Credit Card</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Shield className="h-6 w-6 text-green-400" />
+                <span className="font-bold">Complete Privacy</span>
+              </div>
+            </div>
+          </div>
 
           <DomainSearch />
 
@@ -174,9 +208,10 @@ export default function Landing() {
       <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-dark mb-4">Everything You Need to Succeed</h2>
+            <h2 className="text-4xl font-bold text-dark mb-4">World's Only Anonymous Hosting Platform</h2>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              From hosting to premium plugins, we provide all the tools necessary to build amazing WordPress websites.
+              <strong>Complete privacy protection</strong> - no personal information required. From anonymous hosting to premium plugins, 
+              we provide all the tools necessary to build amazing WordPress websites while protecting your identity.
             </p>
           </div>
 
