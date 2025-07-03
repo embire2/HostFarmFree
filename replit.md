@@ -159,6 +159,9 @@ Changelog:
 - July 3, 2025. NAVIGATION FIX: Replaced defunct /auth page links with proper login modal system
 - July 3, 2025. Created LoginModal component for better user experience instead of browser prompts
 - July 3, 2025. Updated WHM API to use shared IPs (ip: 'n') to resolve IP address allocation errors
+- July 3, 2025. AUTHENTICATION FIX: Updated login system to accept both username and email address
+- July 3, 2025. Modified passport LocalStrategy to check email if username lookup fails
+- July 3, 2025. Updated login modal interface to clearly indicate users can enter username OR email
 ```
 
 # User Preferences
