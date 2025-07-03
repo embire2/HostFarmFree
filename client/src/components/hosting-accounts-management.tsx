@@ -4,6 +4,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   AlertDialog, 
   AlertDialogAction, 
@@ -34,8 +38,13 @@ import {
   Clock,
   ExternalLink,
   Loader2,
-  RefreshCw
+  RefreshCw,
+  Plus,
+  UserPlus,
+  Package
 } from "lucide-react";
+
+import type { User, HostingPackage } from "@shared/schema";
 
 interface HostingAccount {
   id: number;
@@ -51,15 +60,6 @@ interface HostingAccount {
   updatedAt?: string;
 }
 
-interface User {
-  id: number;
-  username: string;
-  email: string;
-  firstName?: string;
-  lastName?: string;
-  role: string;
-}
-
 interface ClientWithAccounts {
   user: User;
   hostingAccounts: HostingAccount[];
@@ -68,11 +68,78 @@ interface ClientWithAccounts {
 export default function HostingAccountsManagement() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [newAccountData, setNewAccountData] = useState({
+    domain: "",
+    packageId: "",
+    userId: "",
+    createAnonymous: false
+  });
 
   // Fetch hosting accounts grouped by client
   const { data: clientAccounts = [], isLoading, refetch } = useQuery<ClientWithAccounts[]>({
     queryKey: ["/api/admin/hosting-accounts"],
     refetchInterval: 60000, // Refresh every minute
+  });
+
+  // Fetch all users for account creation
+  const { data: allUsers = [] } = useQuery<User[]>({
+    queryKey: ["/api/admin/users"],
+  });
+
+  // Fetch hosting packages for package selection
+  const { data: hostingPackages = [] } = useQuery<HostingPackage[]>({
+    queryKey: ["/api/admin/packages"],
+  });
+
+  // Create anonymous account mutation
+  const createAnonymousAccountMutation = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest("POST", "/api/admin/create-anonymous-account");
+      return await res.json();
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
+      toast({
+        title: "Anonymous Account Created",
+        description: `Username: ${data.username} | Password: ${data.password}`,
+      });
+      setNewAccountData(prev => ({ ...prev, userId: data.id.toString() }));
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Failed to Create Anonymous Account",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Create hosting account mutation with WHM integration
+  const createHostingAccountMutation = useMutation({
+    mutationFn: async (data: any) => {
+      const res = await apiRequest("POST", "/api/admin/create-hosting-account", data);
+      return await res.json();
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/hosting-accounts"] });
+      toast({
+        title: "Hosting Account Created Successfully",
+        description: `${data.domain} has been created with WHM integration`,
+      });
+      setNewAccountData({
+        domain: "",
+        packageId: "",
+        userId: "",
+        createAnonymous: false
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Failed to Create Hosting Account",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
   });
 
   // Delete hosting account mutation with WHM integration
@@ -99,6 +166,40 @@ export default function HostingAccountsManagement() {
 
   const handleDeleteAccount = (account: HostingAccount, clientName: string) => {
     console.log(`Deleting hosting account: ${account.domain} (ID: ${account.id}) for client: ${clientName}`);
+  };
+
+  const handleCreateAnonymousAccount = async () => {
+    createAnonymousAccountMutation.mutate();
+  };
+
+  const handleCreateHostingAccount = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!newAccountData.domain || !newAccountData.packageId) {
+      toast({
+        title: "Missing Information",
+        description: "Please provide domain name and select a package",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!newAccountData.userId && !newAccountData.createAnonymous) {
+      toast({
+        title: "Missing User",
+        description: "Please select a user or create an anonymous account first",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const accountData = {
+      domain: newAccountData.domain,
+      packageId: parseInt(newAccountData.packageId),
+      userId: newAccountData.userId ? parseInt(newAccountData.userId) : undefined,
+    };
+
+    createHostingAccountMutation.mutate(accountData);
   };
 
   const formatBytes = (bytes?: number) => {
@@ -162,6 +263,141 @@ export default function HostingAccountsManagement() {
           </Button>
         </div>
       </div>
+
+      {/* Account Creation Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            <Plus className="mr-2 h-5 w-5" />
+            Create New Account
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Tabs defaultValue="hosting" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="hosting" className="flex items-center">
+                <Globe className="mr-2 h-4 w-4" />
+                Hosting Account
+              </TabsTrigger>
+              <TabsTrigger value="anonymous" className="flex items-center">
+                <UserPlus className="mr-2 h-4 w-4" />
+                Anonymous User
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="hosting" className="space-y-4 mt-6">
+              <form onSubmit={handleCreateHostingAccount} className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="domain">Domain/Subdomain</Label>
+                    <Input
+                      id="domain"
+                      placeholder="e.g., mysite.hostme.today"
+                      value={newAccountData.domain}
+                      onChange={(e) => setNewAccountData(prev => ({ ...prev, domain: e.target.value }))}
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="package">Hosting Package</Label>
+                    <Select 
+                      value={newAccountData.packageId} 
+                      onValueChange={(value) => setNewAccountData(prev => ({ ...prev, packageId: value }))}
+                      required
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a package" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {hostingPackages.map((pkg: any) => (
+                          <SelectItem key={pkg.id} value={pkg.id.toString()}>
+                            {pkg.displayName} - {pkg.price === 0 ? "Free" : `$${pkg.price}/month`}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div>
+                  <Label htmlFor="user">Assign to User</Label>
+                  <Select 
+                    value={newAccountData.userId} 
+                    onValueChange={(value) => setNewAccountData(prev => ({ ...prev, userId: value }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select an existing user or create anonymous account" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {allUsers.map((user: any) => (
+                        <SelectItem key={user.id} value={user.id.toString()}>
+                          {user.username} ({user.email || "No email"})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Select a user to assign this hosting account to, or create an anonymous account first
+                  </p>
+                </div>
+
+                <Button 
+                  type="submit" 
+                  disabled={createHostingAccountMutation.isPending}
+                  className="w-full"
+                >
+                  {createHostingAccountMutation.isPending ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Creating Account...
+                    </>
+                  ) : (
+                    <>
+                      <Globe className="mr-2 h-4 w-4" />
+                      Create Hosting Account
+                    </>
+                  )}
+                </Button>
+              </form>
+            </TabsContent>
+
+            <TabsContent value="anonymous" className="space-y-4 mt-6">
+              <div className="text-center space-y-4">
+                <div className="p-6 border rounded-lg bg-muted/50">
+                  <UserPlus className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
+                  <h3 className="font-medium mb-2">Create Anonymous Account</h3>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Generate a new anonymous user account with auto-generated credentials.
+                    The username and password will be displayed after creation.
+                  </p>
+                  <Button 
+                    onClick={handleCreateAnonymousAccount}
+                    disabled={createAnonymousAccountMutation.isPending}
+                    className="w-full"
+                  >
+                    {createAnonymousAccountMutation.isPending ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Creating Anonymous Account...
+                      </>
+                    ) : (
+                      <>
+                        <UserPlus className="mr-2 h-4 w-4" />
+                        Create Anonymous Account
+                      </>
+                    )}
+                  </Button>
+                </div>
+                
+                <div className="text-sm text-muted-foreground">
+                  <p><strong>Note:</strong> After creating an anonymous account, you can use it to create a hosting account in the "Hosting Account" tab.</p>
+                </div>
+              </div>
+            </TabsContent>
+          </Tabs>
+        </CardContent>
+      </Card>
 
       {/* Client Accounts Grid */}
       {clientAccounts.length === 0 ? (

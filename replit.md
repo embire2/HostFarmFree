@@ -165,6 +165,10 @@ Changelog:
 - July 3, 2025. CRITICAL SUCCESS: WHM API integration now working - accounts successfully created on server
 - July 3, 2025. Fixed IP address allocation by using shared IPs instead of dedicated IPs
 - July 3, 2025. Updated admin user password in database for successful login access
+- July 3, 2025. MAJOR FEATURE: Added admin account creation functionality with dual-tab interface
+- July 3, 2025. Implemented anonymous account creation directly from admin dashboard
+- July 3, 2025. Added hosting account creation with WHM integration and package association
+- July 3, 2025. Enhanced admin dashboard with comprehensive account management capabilities
 ```
 
 # User Preferences

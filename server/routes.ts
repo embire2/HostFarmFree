@@ -697,6 +697,149 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Create anonymous account (admin only)
+  app.post("/api/admin/create-anonymous-account", isAuthenticated, requireAdmin, async (req, res) => {
+    try {
+      // Use the existing anonymous registration function from auth.ts
+      const { generateUsername, generatePassword, hashPassword } = require('./auth');
+      
+      const username = generateUsername();
+      const password = generatePassword();
+      const hashedPassword = await hashPassword(password);
+
+      const userData = {
+        username,
+        password: hashedPassword,
+        role: "client" as const
+      };
+
+      const user = await storage.createUser(userData);
+      
+      res.json({
+        id: user.id,
+        username: user.username,
+        password: password, // Return plaintext password for admin display
+        role: user.role
+      });
+    } catch (error) {
+      console.error("Error creating anonymous account:", error);
+      res.status(500).json({ message: "Failed to create anonymous account" });
+    }
+  });
+
+  // Create hosting account with WHM integration (admin only)
+  app.post("/api/admin/create-hosting-account", isAuthenticated, requireAdmin, async (req, res) => {
+    try {
+      const { domain, packageId, userId } = req.body;
+
+      if (!domain || !packageId) {
+        return res.status(400).json({ message: "Domain and package ID are required" });
+      }
+
+      if (!userId) {
+        return res.status(400).json({ message: "User ID is required" });
+      }
+
+      // Get user information
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Get package information
+      const hostingPackage = await storage.getHostingPackageById(packageId);
+      if (!hostingPackage) {
+        return res.status(404).json({ message: "Hosting package not found" });
+      }
+
+      // Generate subdomain for the hosting account
+      const subdomain = domain.replace('.hostme.today', '');
+      const fullDomain = `${subdomain}.hostme.today`;
+
+      // Check if domain already exists
+      const existingAccount = await storage.getHostingAccountByDomain(fullDomain);
+      if (existingAccount) {
+        return res.status(400).json({ message: "Domain already exists" });
+      }
+
+      // Create hosting account in database
+      const accountData = {
+        userId: user.id,
+        domain: fullDomain,
+        subdomain,
+        packageId: packageId,
+        status: "pending" as const
+      };
+
+      const account = await storage.createHostingAccount(accountData);
+
+      // Create WHM account
+      try {
+        const apiSettings = await storage.getApiSettings();
+        if (!apiSettings) {
+          return res.status(400).json({ message: "API settings not configured" });
+        }
+
+        const username = subdomain.toLowerCase().replace(/[^a-z0-9]/g, '');
+        const password = require('./auth').generatePassword();
+
+        const whmData = {
+          username,
+          password,
+          domain: fullDomain,
+          contactemail: user.email || "admin@hostfarm.org",
+          plan: hostingPackage.whmPackageName || "10GB Free",
+          ip: "n" // Use shared IP
+        };
+
+        const authHeader = `whm root:${apiSettings.whmApiToken}`;
+        const whmUrl = `${apiSettings.whmApiUrl}:2087/json-api/createacct`;
+
+        console.log('[Admin WHM] Creating account for:', fullDomain);
+
+        const whmResponse = await fetch(whmUrl, {
+          method: 'POST',
+          headers: {
+            'Authorization': authHeader,
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: new URLSearchParams(whmData).toString(),
+        });
+
+        if (!whmResponse.ok) {
+          throw new Error(`WHM API returned ${whmResponse.status}: ${whmResponse.statusText}`);
+        }
+
+        const whmResult = await whmResponse.json();
+        console.log('[Admin WHM] Account created successfully for:', fullDomain);
+
+        // Update account status
+        await storage.updateHostingAccount(account.id, { status: "active" });
+
+        res.json({
+          ...account,
+          status: "active",
+          credentials: {
+            username,
+            password,
+            domain: fullDomain
+          }
+        });
+      } catch (whmError) {
+        console.error('[Admin WHM] API Error:', whmError);
+        // Keep the account in database but mark as failed
+        await storage.updateHostingAccount(account.id, { status: "failed" });
+        return res.status(500).json({ 
+          message: "Failed to create hosting account on server", 
+          details: whmError instanceof Error ? whmError.message : 'Unknown error'
+        });
+      }
+    } catch (error) {
+      console.error("Error creating hosting account:", error);
+      res.status(500).json({ message: "Failed to create hosting account" });
+    }
+  });
+
   // Delete hosting account from both system and WHM (admin only)
   app.delete("/api/admin/hosting-accounts/:id", isAuthenticated, requireAdmin, async (req, res) => {
     try {
