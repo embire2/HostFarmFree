@@ -29,6 +29,39 @@ async function comparePasswords(supplied: string, stored: string) {
   return timingSafeEqual(hashedBuf, suppliedBuf);
 }
 
+// Anonymous registration utilities
+function generateUsername(): string {
+  const adjectives = ["brave", "swift", "clever", "bright", "quiet", "bold", "wise", "calm", "sharp", "free"];
+  const nouns = ["fox", "eagle", "wolf", "bear", "lion", "hawk", "owl", "deer", "tiger", "shark"];
+  const adjective = adjectives[Math.floor(Math.random() * adjectives.length)];
+  const noun = nouns[Math.floor(Math.random() * nouns.length)];
+  const number = Math.floor(Math.random() * 9999) + 1;
+  return `${adjective}${noun}${number}`;
+}
+
+function generatePassword(): string {
+  const chars = "ABCDEFGHJKMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789";
+  let password = "";
+  for (let i = 0; i < 12; i++) {
+    password += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return password;
+}
+
+function generateRecoveryPhrase(): string {
+  const words = [
+    "ocean", "mountain", "forest", "river", "sunset", "thunder", "crystal", "diamond", "silver", "golden",
+    "storm", "breeze", "shadow", "light", "dream", "magic", "wonder", "mystic", "cosmic", "stellar",
+    "phoenix", "dragon", "wizard", "knight", "castle", "tower", "bridge", "portal", "voyage", "quest"
+  ];
+  
+  const phrase = [];
+  for (let i = 0; i < 6; i++) {
+    phrase.push(words[Math.floor(Math.random() * words.length)]);
+  }
+  return phrase.join("-");
+}
+
 export function setupAuth(app: Express) {
   const PostgresSessionStore = connectPg(session);
   
@@ -78,6 +111,56 @@ export function setupAuth(app: Express) {
     }
   });
 
+  // Anonymous registration endpoint
+  app.post("/api/register-anonymous", async (req, res, next) => {
+    try {
+      let username: string;
+      let attempts = 0;
+      const maxAttempts = 10;
+
+      // Generate unique username
+      do {
+        username = generateUsername();
+        const existingUser = await storage.getUserByUsername(username);
+        if (!existingUser) break;
+        attempts++;
+      } while (attempts < maxAttempts);
+
+      if (attempts >= maxAttempts) {
+        return res.status(500).json({ message: "Unable to generate unique username. Please try again." });
+      }
+
+      const password = generatePassword();
+      const recoveryPhrase = generateRecoveryPhrase();
+
+      const user = await storage.createUser({
+        username,
+        password: await hashPassword(password),
+        recoveryPhrase,
+        isAnonymous: true,
+        role: "client",
+      });
+
+      req.login(user, (err) => {
+        if (err) return next(err);
+        res.status(201).json({
+          id: user.id,
+          username: user.username,
+          password: password, // Return plain password for user to save
+          recoveryPhrase: recoveryPhrase,
+          role: user.role,
+          isAnonymous: true,
+          message: "Anonymous account created! Please save your username, password, and recovery phrase."
+        });
+      });
+
+    } catch (error) {
+      console.error("Anonymous registration error:", error);
+      res.status(500).json({ message: "Failed to create anonymous account" });
+    }
+  });
+
+  // Traditional registration endpoint (keep for admin accounts)
   app.post("/api/register", async (req, res, next) => {
     try {
       const { username, email, password, firstName, lastName } = req.body;
@@ -101,6 +184,7 @@ export function setupAuth(app: Express) {
         password: await hashPassword(password),
         firstName,
         lastName,
+        isAnonymous: false,
         role: "client",
       });
 
@@ -118,6 +202,39 @@ export function setupAuth(app: Express) {
     } catch (error) {
       console.error("Registration error:", error);
       res.status(500).json({ message: "Registration failed" });
+    }
+  });
+
+  // Account recovery endpoint
+  app.post("/api/recover-account", async (req, res) => {
+    try {
+      const { recoveryPhrase } = req.body;
+
+      if (!recoveryPhrase) {
+        return res.status(400).json({ message: "Recovery phrase is required" });
+      }
+
+      const user = await storage.getUserByRecoveryPhrase(recoveryPhrase);
+      if (!user) {
+        return res.status(404).json({ message: "Invalid recovery phrase" });
+      }
+
+      // Return the username and generate a new password for security
+      const newPassword = generatePassword();
+      await storage.updateUser(user.id, {
+        password: await hashPassword(newPassword),
+      });
+
+      res.status(200).json({
+        username: user.username,
+        newPassword: newPassword,
+        recoveryPhrase: user.recoveryPhrase,
+        message: "Account recovered! A new password has been generated for security."
+      });
+
+    } catch (error) {
+      console.error("Account recovery error:", error);
+      res.status(500).json({ message: "Account recovery failed" });
     }
   });
 

@@ -17,6 +17,8 @@ type AuthContextType = {
   loginMutation: UseMutationResult<SelectUser, Error, LoginData>;
   logoutMutation: UseMutationResult<void, Error, void>;
   registerMutation: UseMutationResult<SelectUser, Error, RegisterData>;
+  anonymousRegisterMutation: UseMutationResult<any, Error, void>;
+  accountRecoveryMutation: UseMutationResult<any, Error, string>;
 };
 
 type LoginData = {
@@ -124,6 +126,68 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
     },
   });
 
+  const anonymousRegisterMutation = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest("POST", "/api/register-anonymous", {});
+      return await res.json();
+    },
+    onSuccess: (response) => {
+      // Set user data in cache
+      queryClient.setQueryData(["/api/user"], {
+        id: response.id,
+        username: response.username,
+        role: response.role,
+        isAnonymous: response.isAnonymous
+      });
+      
+      // Show credentials in a persistent toast with recovery phrase
+      toast({
+        title: "Anonymous Account Created!",
+        description: `Username: ${response.username}\nPassword: ${response.password}\nRecovery Phrase: ${response.recoveryPhrase}\n\nIMPORTANT: Save these credentials - they cannot be recovered without the recovery phrase!`,
+        duration: 0, // Never auto-dismiss
+      });
+      
+      // Force redirect after successful registration
+      setTimeout(() => {
+        const pendingDomain = localStorage.getItem('pendingDomain');
+        if (pendingDomain) {
+          localStorage.removeItem('pendingDomain');
+          window.location.href = '/?domain=' + pendingDomain;
+        } else {
+          window.location.href = '/';
+        }
+      }, 500);
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Anonymous registration failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const accountRecoveryMutation = useMutation({
+    mutationFn: async (recoveryPhrase: string) => {
+      const res = await apiRequest("POST", "/api/recover-account", { recoveryPhrase });
+      return await res.json();
+    },
+    onSuccess: (response) => {
+      toast({
+        title: "Account Recovered!",
+        description: `Username: ${response.username}\nNew Password: ${response.newPassword}\nRecovery Phrase: ${response.recoveryPhrase}\n\nYour password has been reset for security.`,
+        duration: 0, // Never auto-dismiss
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Account recovery failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
   const logoutMutation = useMutation({
     mutationFn: async () => {
       await apiRequest("POST", "/api/logout");
@@ -160,6 +224,8 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
         loginMutation,
         logoutMutation,
         registerMutation,
+        anonymousRegisterMutation,
+        accountRecoveryMutation,
       }}
     >
       {children}

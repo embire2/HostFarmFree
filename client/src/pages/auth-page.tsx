@@ -20,17 +20,25 @@ const loginSchema = z.object({
 
 const registerSchema = insertUserSchema.extend({
   confirmPassword: z.string().min(1, "Please confirm your password"),
+  email: z.string().optional(),
+  firstName: z.string().optional(),
+  lastName: z.string().optional(),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords don't match",
   path: ["confirmPassword"],
 })
 
+const recoverySchema = z.object({
+  recoveryPhrase: z.string().min(1, "Recovery phrase is required"),
+})
+
 type LoginFormData = z.infer<typeof loginSchema>
 type RegisterFormData = z.infer<typeof registerSchema>
+type RecoveryFormData = z.infer<typeof recoverySchema>
 
 export default function AuthPage() {
-  const { user, isLoading, loginMutation, registerMutation } = useAuth()
-  const [activeTab, setActiveTab] = useState("login")
+  const { user, isLoading, loginMutation, registerMutation, anonymousRegisterMutation, accountRecoveryMutation } = useAuth()
+  const [activeTab, setActiveTab] = useState("anonymous")
   const [, setLocation] = useLocation()
   
   const loginForm = useForm<LoginFormData>({
@@ -50,6 +58,13 @@ export default function AuthPage() {
       confirmPassword: "",
       firstName: "",
       lastName: "",
+    },
+  })
+
+  const recoveryForm = useForm<RecoveryFormData>({
+    resolver: zodResolver(recoverySchema),
+    defaultValues: {
+      recoveryPhrase: "",
     },
   })
 
@@ -90,6 +105,14 @@ export default function AuthPage() {
     registerMutation.mutate(userData)
   }
 
+  const onAnonymousRegister = () => {
+    anonymousRegisterMutation.mutate()
+  }
+
+  const onRecovery = (data: RecoveryFormData) => {
+    accountRecoveryMutation.mutate(data.recoveryPhrase)
+  }
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -112,10 +135,41 @@ export default function AuthPage() {
             </CardHeader>
             <CardContent>
               <Tabs value={activeTab} onValueChange={setActiveTab}>
-                <TabsList className="grid w-full grid-cols-2">
+                <TabsList className="grid w-full grid-cols-4">
+                  <TabsTrigger value="anonymous">Anonymous</TabsTrigger>
                   <TabsTrigger value="login">Login</TabsTrigger>
                   <TabsTrigger value="register">Register</TabsTrigger>
+                  <TabsTrigger value="recovery">Recover</TabsTrigger>
                 </TabsList>
+                
+                <TabsContent value="anonymous">
+                  <div className="space-y-4">
+                    <div className="text-center space-y-2">
+                      <h3 className="text-lg font-semibold">Completely Anonymous Hosting</h3>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        No personal information required. Get instant access with auto-generated credentials.
+                      </p>
+                    </div>
+                    <Button 
+                      onClick={onAnonymousRegister}
+                      className="w-full" 
+                      disabled={anonymousRegisterMutation.isPending}
+                      size="lg"
+                    >
+                      {anonymousRegisterMutation.isPending ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Creating anonymous account...
+                        </>
+                      ) : (
+                        "Create Anonymous Account"
+                      )}
+                    </Button>
+                    <div className="text-xs text-center text-gray-500 dark:text-gray-400">
+                      Your credentials will be displayed after creation. Save them securely!
+                    </div>
+                  </div>
+                </TabsContent>
                 
                 <TabsContent value="login">
                   <Form {...loginForm}>
@@ -175,7 +229,12 @@ export default function AuthPage() {
                             <FormItem>
                               <FormLabel>First Name</FormLabel>
                               <FormControl>
-                                <Input placeholder="John" {...field} />
+                                <Input 
+                                  placeholder="John" 
+                                  {...field}
+                                  value={field.value || ""}
+                                  onChange={(e) => field.onChange(e.target.value || undefined)}
+                                />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -188,7 +247,12 @@ export default function AuthPage() {
                             <FormItem>
                               <FormLabel>Last Name</FormLabel>
                               <FormControl>
-                                <Input placeholder="Doe" {...field} />
+                                <Input 
+                                  placeholder="Doe" 
+                                  {...field}
+                                  value={field.value || ""}
+                                  onChange={(e) => field.onChange(e.target.value || undefined)}
+                                />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -215,7 +279,13 @@ export default function AuthPage() {
                           <FormItem>
                             <FormLabel>Email (Optional)</FormLabel>
                             <FormControl>
-                              <Input type="email" placeholder="john@example.com" {...field} />
+                              <Input 
+                                type="email" 
+                                placeholder="john@example.com" 
+                                {...field}
+                                value={field.value || ""}
+                                onChange={(e) => field.onChange(e.target.value || undefined)}
+                              />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -264,6 +334,48 @@ export default function AuthPage() {
                     </form>
                   </Form>
                 </TabsContent>
+                
+                <TabsContent value="recovery">
+                  <div className="space-y-4">
+                    <div className="text-center space-y-2">
+                      <h3 className="text-lg font-semibold">Recover Anonymous Account</h3>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        Enter your recovery phrase to retrieve your account credentials.
+                      </p>
+                    </div>
+                    <Form {...recoveryForm}>
+                      <form onSubmit={recoveryForm.handleSubmit(onRecovery)} className="space-y-4">
+                        <FormField
+                          control={recoveryForm.control}
+                          name="recoveryPhrase"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Recovery Phrase</FormLabel>
+                              <FormControl>
+                                <Input placeholder="Enter your recovery phrase" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <Button 
+                          type="submit" 
+                          className="w-full" 
+                          disabled={accountRecoveryMutation.isPending}
+                        >
+                          {accountRecoveryMutation.isPending ? (
+                            <>
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                              Recovering account...
+                            </>
+                          ) : (
+                            "Recover Account"
+                          )}
+                        </Button>
+                      </form>
+                    </Form>
+                  </div>
+                </TabsContent>
               </Tabs>
             </CardContent>
           </Card>
@@ -273,17 +385,23 @@ export default function AuthPage() {
         <div className="order-1 lg:order-2 text-center lg:text-left">
           <div className="max-w-lg mx-auto lg:mx-0">
             <h1 className="text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white mb-6">
-              Free WordPress Hosting
+              World's Only <span className="text-blue-600 dark:text-blue-400">Anonymous</span> Hosting
             </h1>
             <p className="text-xl text-gray-600 dark:text-gray-300 mb-8">
-              Get your free *.hostme.today domain with one-click WordPress installation and access to premium plugins at no cost.
+              No personal information required! Get instant anonymous hosting with auto-generated credentials, free *.hostme.today domain, and premium plugins.
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 text-sm">
               <div className="flex items-center space-x-3">
-                <div className="w-8 h-8 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center">
-                  <span className="text-green-600 dark:text-green-400">✓</span>
+                <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
+                  <span className="text-blue-600 dark:text-blue-400">✓</span>
                 </div>
-                <span className="text-gray-700 dark:text-gray-300">Free SSL certificates</span>
+                <span className="text-gray-700 dark:text-gray-300">100% Anonymous</span>
+              </div>
+              <div className="flex items-center space-x-3">
+                <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
+                  <span className="text-blue-600 dark:text-blue-400">✓</span>
+                </div>
+                <span className="text-gray-700 dark:text-gray-300">No Personal Info</span>
               </div>
               <div className="flex items-center space-x-3">
                 <div className="w-8 h-8 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center">
@@ -296,12 +414,6 @@ export default function AuthPage() {
                   <span className="text-green-600 dark:text-green-400">✓</span>
                 </div>
                 <span className="text-gray-700 dark:text-gray-300">Premium plugins</span>
-              </div>
-              <div className="flex items-center space-x-3">
-                <div className="w-8 h-8 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center">
-                  <span className="text-green-600 dark:text-green-400">✓</span>
-                </div>
-                <span className="text-gray-700 dark:text-gray-300">24/7 support</span>
               </div>
             </div>
           </div>

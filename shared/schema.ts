@@ -25,15 +25,17 @@ export const sessions = pgTable(
   (table) => [index("IDX_session_expire").on(table.expire)],
 );
 
-// User storage table
+// User storage table - Anonymous registration support
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   username: varchar("username").notNull().unique(),
-  email: varchar("email").unique(),
+  email: varchar("email"), // Optional for anonymous users
   password: varchar("password").notNull(),
   firstName: varchar("first_name"),
   lastName: varchar("last_name"),
   profileImageUrl: varchar("profile_image_url"),
+  recoveryPhrase: varchar("recovery_phrase").unique(), // For anonymous account recovery
+  isAnonymous: boolean("is_anonymous").default(true), // Track if user is anonymous
   role: varchar("role").notNull().default("client"), // 'admin' | 'client'
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
