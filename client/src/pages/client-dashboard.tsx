@@ -471,20 +471,24 @@ export default function ClientDashboard() {
 
   const handleCpanelLogin = async (domain: string) => {
     try {
-      const res = await apiRequest("GET", `/api/cpanel-login/${domain}`);
+      const res = await apiRequest("POST", "/api/cpanel-login", { domain });
       const data = await res.json();
       
-      // Open cPanel in a new tab
-      window.open(data.loginUrl, '_blank');
-      
+      if (res.ok && data.loginUrl) {
+        // Open cPanel in a new tab with auto-login
+        window.open(data.loginUrl, '_blank');
+        toast({
+          title: "cPanel Access",
+          description: "Opening cPanel in a new tab...",
+        });
+      } else {
+        throw new Error(data.message || "Failed to generate cPanel login URL");
+      }
+    } catch (error) {
+      console.error("cPanel login error:", error);
       toast({
-        title: "Opening cPanel",
-        description: `Accessing cPanel for ${domain}`,
-      });
-    } catch (error: any) {
-      toast({
-        title: "cPanel access failed",
-        description: error.message || "Could not access cPanel for this domain",
+        title: "cPanel Login Failed",
+        description: error instanceof Error ? error.message : "Could not access cPanel",
         variant: "destructive",
       });
     }

@@ -1553,6 +1553,97 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // cPanel auto-login endpoint for hosting accounts
+  app.post("/api/cpanel-login", isAuthenticated, async (req, res) => {
+    try {
+      const { domain } = req.body;
+      if (!domain) {
+        return res.status(400).json({ message: "Domain is required" });
+      }
+
+      // Get API settings
+      const apiSettings = await storage.getApiSettings();
+      if (!apiSettings || !apiSettings.whmApiUrl || !apiSettings.whmApiToken) {
+        return res.status(400).json({ message: "WHM API settings not configured" });
+      }
+
+      // Get the hosting account details
+      const hostingAccount = await storage.getHostingAccountByDomain(domain);
+      if (!hostingAccount) {
+        return res.status(404).json({ message: "Hosting account not found" });
+      }
+
+      // Verify the user owns this hosting account (or is admin)
+      const user = req.user as any;
+      if (!user) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+
+      if (user.role !== 'admin' && hostingAccount.userId !== user.id) {
+        return res.status(403).json({ message: "Access denied to this hosting account" });
+      }
+
+      // Clean up the base URL
+      let baseUrl = apiSettings.whmApiUrl.replace(/\/+$/, '');
+      baseUrl = baseUrl.replace(/\/json-api.*$/, '');
+      baseUrl = baseUrl.replace(/:2087.*$/, '');
+
+      // Generate cPanel auto-login URL using create_user_session WHM API
+      const sessionParams = new URLSearchParams({
+        'api.version': '1',
+        'user': hostingAccount.cpanelUsername || hostingAccount.subdomain,
+        'service': 'cpaneld'
+      });
+
+      const sessionUrl = `${baseUrl}:2087/json-api/create_user_session?${sessionParams.toString()}`;
+      
+      console.log(`[cPanel Login] Creating session for user: ${hostingAccount.cpanelUsername || hostingAccount.subdomain}`);
+      
+      const sessionResponse = await fetch(sessionUrl, {
+        method: 'GET',
+        headers: {
+          'Authorization': `whm root:${apiSettings.whmApiToken}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!sessionResponse.ok) {
+        throw new Error(`WHM API returned ${sessionResponse.status}: ${sessionResponse.statusText}`);
+      }
+
+      const sessionResult = await sessionResponse.json();
+      console.log(`[cPanel Login] Session creation response:`, JSON.stringify(sessionResult, null, 2));
+
+      // Check if session was created successfully
+      if (sessionResult.metadata?.result === 1 && sessionResult.data?.url) {
+        // Use the session URL provided by WHM
+        const cpanelUrl = sessionResult.data.url;
+        
+        console.log(`[cPanel Login] Successfully created cPanel session for ${domain}`);
+        
+        res.json({ 
+          loginUrl: cpanelUrl,
+          message: "cPanel auto-login URL generated successfully"
+        });
+      } else {
+        // Fallback: Direct cPanel login with credentials
+        const cpanelUrl = `${baseUrl}:2083/login/?user=${hostingAccount.cpanelUsername || hostingAccount.subdomain}&pass=${hostingAccount.cpanelPassword || ''}&goto_uri=/`;
+        
+        console.log(`[cPanel Login] Using fallback direct login for ${domain}`);
+        
+        res.json({ 
+          loginUrl: cpanelUrl,
+          message: "cPanel direct login URL generated (fallback method)"
+        });
+      }
+    } catch (error) {
+      console.error("Error generating cPanel login:", error);
+      res.status(500).json({ 
+        message: error instanceof Error ? error.message : "Failed to generate cPanel login URL" 
+      });
+    }
+  });
+
   // Package Management endpoints
   app.get("/api/packages", async (req, res) => {
     try {
@@ -1600,8 +1691,76 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete("/api/admin/packages/:id", isAuthenticated, requireAdmin, async (req, res) => {
     try {
       const packageId = parseInt(req.params.id);
+      
+      // Get package details before deletion
+      const packageToDelete = await storage.getHostingPackageById(packageId);
+      if (!packageToDelete) {
+        return res.status(404).json({ message: "Package not found" });
+      }
+      
+      console.log(`[Package Delete] Attempting to delete package: ${packageToDelete.name} (WHM: ${packageToDelete.whmPackageName})`);
+      
+      // First, try to delete the package from WHM server
+      let whmDeletionSuccess = false;
+      try {
+        const apiSettings = await storage.getApiSettings();
+        const envToken = process.env.WHM_API_TOKEN;
+        const apiToken = envToken || apiSettings?.whmApiToken;
+        
+        if (apiSettings?.whmApiUrl && apiToken && packageToDelete.whmPackageName) {
+          const baseUrl = apiSettings.whmApiUrl.replace(/\/+$/, '').replace(/\/json-api.*$/, '').replace(/:2087.*$/, '');
+          
+          // Use WHM API deletepackage function
+          const deleteParams = new URLSearchParams({
+            'api.version': '1',
+            'name': packageToDelete.whmPackageName
+          });
+          
+          const whmDeleteUrl = `${baseUrl}:2087/json-api/deletepackage?${deleteParams.toString()}`;
+          
+          console.log(`[Package Delete] WHM deletepackage URL: ${whmDeleteUrl}`);
+          
+          const whmResponse = await fetch(whmDeleteUrl, {
+            method: 'GET',
+            headers: {
+              'Authorization': `whm root:${apiToken}`,
+              'Content-Type': 'application/json',
+            },
+          });
+          
+          if (whmResponse.ok) {
+            const whmResult = await whmResponse.json();
+            console.log(`[Package Delete] WHM response:`, JSON.stringify(whmResult, null, 2));
+            
+            // Check for success using multiple possible response formats
+            if (whmResult.metadata?.result === 1 ||
+                whmResult.status === 1 ||
+                (whmResult.result && Array.isArray(whmResult.result) && whmResult.result.some((item: any) => item.status === 1))) {
+              whmDeletionSuccess = true;
+              console.log(`[Package Delete] Successfully deleted package from WHM: ${packageToDelete.whmPackageName}`);
+            } else {
+              console.warn(`[Package Delete] WHM deletion may have failed: ${whmResult.metadata?.reason || 'Unknown error'}`);
+            }
+          } else {
+            console.warn(`[Package Delete] WHM API returned ${whmResponse.status}: ${whmResponse.statusText}`);
+          }
+        } else {
+          console.warn(`[Package Delete] Skipping WHM deletion - missing API settings or package name`);
+        }
+      } catch (whmError) {
+        console.error(`[Package Delete] WHM deletion error:`, whmError);
+        // Continue with local deletion even if WHM deletion fails
+      }
+      
+      // Delete from local database
       await storage.deleteHostingPackage(packageId);
-      res.status(204).send();
+      console.log(`[Package Delete] Successfully deleted package from local database: ${packageToDelete.name}`);
+      
+      res.json({ 
+        message: "Package deleted successfully",
+        whmDeleted: whmDeletionSuccess,
+        localDeleted: true
+      });
     } catch (error) {
       console.error("Error deleting package:", error);
       res.status(500).json({ message: "Failed to delete package" });
