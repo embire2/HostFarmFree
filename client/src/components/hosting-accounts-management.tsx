@@ -42,7 +42,8 @@ import {
   Plus,
   UserPlus,
   Package,
-  Settings
+  Settings,
+  Search
 } from "lucide-react";
 
 import type { User, HostingPackage } from "@shared/schema";
@@ -84,6 +85,12 @@ export default function HostingAccountsManagement() {
       recoveryPhrase: string;
     } | null
   });
+  
+  // State for subdomain search
+  const [subdomainInput, setSubdomainInput] = useState("");
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchResult, setSearchResult] = useState<{ available: boolean; message: string } | null>(null);
+  const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(null);
 
   // Fetch hosting accounts grouped by client
   const { data: clientAccounts = [], isLoading, refetch } = useQuery<ClientWithAccounts[]>({
@@ -147,6 +154,13 @@ export default function HostingAccountsManagement() {
         userId: "",
         createAnonymous: false
       });
+      // Clear search state
+      setSubdomainInput("");
+      setSearchResult(null);
+      if (searchTimeout) {
+        clearTimeout(searchTimeout);
+        setSearchTimeout(null);
+      }
     },
     onError: (error: Error) => {
       toast({
@@ -178,6 +192,55 @@ export default function HostingAccountsManagement() {
       });
     },
   });
+
+  // Search for subdomain availability with debouncing
+  const searchSubdomainAvailability = (subdomain: string) => {
+    // Clear previous timeout
+    if (searchTimeout) {
+      clearTimeout(searchTimeout);
+    }
+
+    if (!subdomain || subdomain.length < 3) {
+      setSearchResult(null);
+      setNewAccountData(prev => ({ ...prev, domain: "" }));
+      return;
+    }
+
+    setIsSearching(true);
+    
+    // Debounce the search by 500ms
+    const timeout = setTimeout(async () => {
+      try {
+        const fullDomain = `${subdomain}.hostme.today`;
+        const res = await apiRequest("POST", "/api/check-domain-availability", { domain: fullDomain });
+        const data = await res.json();
+        
+        setSearchResult({
+          available: data.available,
+          message: data.available 
+            ? `${fullDomain} is available!` 
+            : `${fullDomain} is already taken`
+        });
+        
+        // Update the domain in the form data if available
+        if (data.available) {
+          setNewAccountData(prev => ({ ...prev, domain: fullDomain }));
+        } else {
+          setNewAccountData(prev => ({ ...prev, domain: "" }));
+        }
+      } catch (error) {
+        setSearchResult({
+          available: false,
+          message: "Error checking availability"
+        });
+        setNewAccountData(prev => ({ ...prev, domain: "" }));
+      } finally {
+        setIsSearching(false);
+      }
+    }, 500);
+
+    setSearchTimeout(timeout);
+  };
 
   const handleDeleteAccount = (account: HostingAccount, clientName: string) => {
     console.log(`Deleting hosting account: ${account.domain} (ID: ${account.id}) for client: ${clientName}`);
@@ -211,10 +274,28 @@ export default function HostingAccountsManagement() {
   const handleCreateHostingAccount = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (!subdomainInput || subdomainInput.length < 3) {
+      toast({
+        title: "Invalid Subdomain",
+        description: "Please enter a subdomain (minimum 3 characters)",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (!newAccountData.domain || !newAccountData.packageId) {
       toast({
         title: "Missing Information",
-        description: "Please provide domain name and select a package",
+        description: "Please wait for domain availability check and select a package",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (searchResult && !searchResult.available) {
+      toast({
+        title: "Domain Not Available",
+        description: "The selected subdomain is already taken. Please choose a different one.",
         variant: "destructive",
       });
       return;
@@ -324,15 +405,47 @@ export default function HostingAccountsManagement() {
             <TabsContent value="hosting" className="space-y-4 mt-6">
               <form onSubmit={handleCreateHostingAccount} className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="domain">Domain/Subdomain</Label>
-                    <Input
-                      id="domain"
-                      placeholder="e.g., mysite.hostme.today"
-                      value={newAccountData.domain}
-                      onChange={(e) => setNewAccountData(prev => ({ ...prev, domain: e.target.value }))}
-                      required
-                    />
+                  <div className="space-y-2">
+                    <Label htmlFor="subdomain">Subdomain</Label>
+                    <div className="relative">
+                      <Input
+                        id="subdomain"
+                        placeholder="Enter subdomain (e.g., mysite)"
+                        value={subdomainInput}
+                        onChange={(e) => {
+                          const value = e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '');
+                          setSubdomainInput(value);
+                          searchSubdomainAvailability(value);
+                        }}
+                        className="pr-10"
+                        required
+                      />
+                      <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
+                        {isSearching ? (
+                          <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
+                        ) : (
+                          <Search className="h-4 w-4 text-gray-400" />
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex items-center text-sm">
+                      <span className="text-muted-foreground mr-1">Domain:</span>
+                      <code className="bg-muted px-2 py-1 rounded text-xs">
+                        {subdomainInput || 'subdomain'}.hostme.today
+                      </code>
+                    </div>
+                    {searchResult && (
+                      <div className={`flex items-center text-sm mt-2 ${
+                        searchResult.available ? 'text-green-600' : 'text-red-600'
+                      }`}>
+                        {searchResult.available ? (
+                          <CheckCircle className="h-4 w-4 mr-1" />
+                        ) : (
+                          <AlertTriangle className="h-4 w-4 mr-1" />
+                        )}
+                        {searchResult.message}
+                      </div>
+                    )}
                   </div>
 
                   <div>
@@ -380,13 +493,26 @@ export default function HostingAccountsManagement() {
 
                 <Button 
                   type="submit" 
-                  disabled={createHostingAccountMutation.isPending}
+                  disabled={
+                    createHostingAccountMutation.isPending || 
+                    isSearching || 
+                    !subdomainInput ||
+                    subdomainInput.length < 3 ||
+                    (searchResult && !searchResult.available) ||
+                    !newAccountData.packageId ||
+                    !newAccountData.userId
+                  }
                   className="w-full"
                 >
                   {createHostingAccountMutation.isPending ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       Creating Account...
+                    </>
+                  ) : isSearching ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Checking Availability...
                     </>
                   ) : (
                     <>
