@@ -952,17 +952,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         console.log(`[Account Stats] Subdomain: ${account.subdomain} -> Username: ${username}`);
         
-        // Get account summary from WHM API using proper username
-        const accountUrl = `${baseUrl}:2087/json-api/accountsummary?api.version=1&user=${username}`;
+        // Get account summary from WHM API using proper username and form data
+        const accountUrl = `${baseUrl}:2087/json-api/accountsummary`;
         
-        console.log(`[Account Stats] Fetching stats for user: ${username}`);
+        console.log(`[Account Stats] Fetching stats for user: ${username} via POST form data`);
+        
+        // Use form data instead of query parameters for WHM API
+        const formData = new URLSearchParams({
+          'api.version': '1',
+          'user': username
+        });
         
         const response = await fetch(accountUrl, {
-          method: 'GET',
+          method: 'POST',
           headers: {
             'Authorization': `whm root:${apiToken}`,
-            'Content-Type': 'application/json',
+            'Content-Type': 'application/x-www-form-urlencoded',
           },
+          body: formData
         });
 
         if (!response.ok) {
@@ -1965,21 +1972,144 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`[cPanel Login] Subdomain: ${hostingAccount.subdomain} -> Username: ${username}`);
 
       // Try multiple cPanel login methods
-      console.log(`[cPanel Login] ATTEMPT 1 - WHM create_user_session API (JSON API 1)`);
+      console.log(`[cPanel Login] ATTEMPT 1 - WHM create_user_session API (JSON API 1) with form data`);
       
       try {
-        // Method 1: Use WHM API 1 create_user_session for secure auto-login
-        const sessionParams = new URLSearchParams({
+        // Method 1: Use WHM API 1 create_user_session for secure auto-login with form data
+        const sessionUrl = `${baseUrl}:2087/json-api/create_user_session`;
+        console.log(`[cPanel Login] Session URL: ${sessionUrl}`);
+        
+        const formData = new URLSearchParams({
+          'api.version': '1',
+          'user': username,
+          'service': 'cpaneld'
+        });
+        
+        const sessionResponse = await fetch(sessionUrl, {
+          method: 'POST',
+          headers: {
+            'Authorization': `whm root:${apiToken}`,
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: formData
+        });
+
+        if (!sessionResponse.ok) {
+          throw new Error(`WHM create_user_session failed: ${sessionResponse.status} ${sessionResponse.statusText}`);
+        }
+
+        const sessionResult = await sessionResponse.json();
+        console.log(`[cPanel Login] Session creation result:`, sessionResult);
+
+        if (sessionResult.metadata?.result === 1 && sessionResult.data?.url) {
+          // Success - return the auto-login URL
+          res.json({ 
+            loginUrl: sessionResult.data.url,
+            domain: domain,
+            username: username,
+            message: "Auto-login session created successfully"
+          });
+          return;
+        } else {
+          console.log(`[cPanel Login] Session creation failed, trying fallback method`);
+          throw new Error('Session creation unsuccessful');
+        }
+      } catch (sessionError) {
+        console.error(`[cPanel Login] Session creation failed:`, sessionError);
+        
+        // Fallback: Try direct cPanel URL access
+        console.log(`[cPanel Login] ATTEMPT 2 - Direct cPanel URL`);
+        
+        try {
+          const directUrl = `${apiSettings.cpanelBaseUrl || baseUrl}:2083/login/?user=${username}`;
+          
+          const testResponse = await fetch(directUrl, {
+            method: 'GET',
+            redirect: 'manual' // Don't follow redirects to test availability
+          });
+          
+          if (testResponse.status === 200 || testResponse.status === 302) {
+            res.json({ 
+              loginUrl: directUrl,
+              domain: domain,
+              username: username,
+              message: "Opening cPanel - manual login required (auto-login failed)"
+            });
+            return;
+          }
+        } catch (directError) {
+          console.error(`[cPanel Login] Direct access test failed:`, directError);
+        }
+        
+        // Final fallback: Return basic cPanel URL
+        const fallbackUrl = `${apiSettings.cpanelBaseUrl || baseUrl}:2083/`;
+        res.json({ 
+          loginUrl: fallbackUrl,
+          domain: domain,
+          username: username,
+          message: "Opening cPanel - manual login required (auto-login failed)"
+        });
+      }
+    } catch (error) {
+      console.error("[cPanel Login] Error generating cPanel login:", error);
+      res.status(500).json({ error: "Failed to generate cPanel login" });
+    }
+  });
+
+  // Admin cPanel login with WHM integration  
+  app.post("/api/admin/cpanel-login", isAuthenticated, async (req, res) => {
+    try {
+      const { domain } = req.body;
+      
+      if (!domain) {
+        return res.status(400).json({ error: "Domain is required" });
+      }
+
+      const apiSettings = await storage.getApiSettings();
+      if (!apiSettings || !apiSettings.whmApiUrl || !apiSettings.whmApiToken) {
+        return res.status(500).json({ error: "WHM API settings not configured" });
+      }
+
+      // Find the hosting account by domain
+      const hostingAccount = await storage.getHostingAccountByDomain(domain);
+      if (!hostingAccount) {
+        return res.status(404).json({ error: "Hosting account not found" });
+      }
+
+      const apiToken = process.env.WHM_API_TOKEN || apiSettings.whmApiToken;
+      
+      // Clean base URL
+      let baseUrl = apiSettings.whmApiUrl.replace(/\/+$/, '');
+      baseUrl = baseUrl.replace(/\/json-api.*$/, '');
+      baseUrl = baseUrl.replace(/:2087.*$/, '');
+      
+      console.log(`[Admin cPanel Login] Using base URL: ${baseUrl}`);
+
+      try {
+        // Generate proper cPanel username
+        let username = hostingAccount.subdomain.toLowerCase().replace(/[^a-z0-9]/g, '');
+        
+        if (/^[0-9]/.test(username)) {
+          username = 'h' + username;
+        }
+        
+        if (!username || username.length > 16) {
+          username = hostingAccount.cpanelUsername || hostingAccount.subdomain;
+        }
+        
+        console.log(`[Admin cPanel Login] Using username: ${username}`);
+        
+        // Use WHM API to create user session
+        const sessionUrl = `${baseUrl}:2087/json-api/create_user_session`;
+        
+        const formData = new URLSearchParams({
           'api.version': '1',
           'user': username,
           'service': 'cpaneld'
         });
 
-        const sessionUrl = `${baseUrl}:2087/json-api/create_user_session?${sessionParams.toString()}`;
-        console.log(`[cPanel Login] Session URL: ${sessionUrl}`);
-        
-        const sessionResponse = await fetch(sessionUrl, {
-          method: 'GET',
+        const response = await fetch(sessionUrl, {
+          method: 'POST',
           headers: {
             'Authorization': `whm root:${apiToken}`,
           },
