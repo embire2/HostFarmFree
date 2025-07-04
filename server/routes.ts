@@ -7,6 +7,12 @@ import { insertHostingAccountSchema, insertPluginSchema, insertDonationSchema } 
 import multer from "multer";
 import path from "path";
 import fs from "fs";
+import Stripe from "stripe";
+
+if (!process.env.STRIPE_SECRET_KEY) {
+  throw new Error('Missing required Stripe secret: STRIPE_SECRET_KEY');
+}
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 // Ensure plugins directory exists
 const pluginsDir = path.join(process.cwd(), "plugins");
@@ -1242,32 +1248,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const account = await storage.createHostingAccount(accountData);
 
+      // Generate WHM-compliant username and password outside try-catch for scope access
+      let username = subdomain.toLowerCase().replace(/[^a-z0-9]/g, '');
+      
+      // If username starts with a number, prepend 'h' (for "host")
+      if (/^[0-9]/.test(username)) {
+        username = 'h' + username;
+      }
+      
+      // If username is still empty or too long, generate a safe alternative
+      if (!username || username.length > 16) {
+        // Generate a random username starting with 'h' followed by random letters/numbers
+        const randomSuffix = Math.random().toString(36).substring(2, 8);
+        username = 'h' + randomSuffix;
+      }
+      
+      console.log('[Admin WHM] Original subdomain:', subdomain);
+      console.log('[Admin WHM] Generated WHM-compliant username:', username);
+      const { generatePassword } = await import('./auth.js');
+      const password = generatePassword();
+
       // Create WHM account
       try {
         const apiSettings = await storage.getApiSettings();
         if (!apiSettings) {
           return res.status(400).json({ message: "API settings not configured" });
         }
-
-        // Generate WHM-compliant username (must start with letter, 1-16 chars, only letters/numbers/underscores)
-        let username = subdomain.toLowerCase().replace(/[^a-z0-9]/g, '');
-        
-        // If username starts with a number, prepend 'h' (for "host")
-        if (/^[0-9]/.test(username)) {
-          username = 'h' + username;
-        }
-        
-        // If username is still empty or too long, generate a safe alternative
-        if (!username || username.length > 16) {
-          // Generate a random username starting with 'h' followed by random letters/numbers
-          const randomSuffix = Math.random().toString(36).substring(2, 8);
-          username = 'h' + randomSuffix;
-        }
-        
-        console.log('[Admin WHM] Original subdomain:', subdomain);
-        console.log('[Admin WHM] Generated WHM-compliant username:', username);
-        const { generatePassword } = await import('./auth.js');
-        const password = generatePassword();
 
         const whmData = {
           username,
@@ -2900,6 +2906,150 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error: any) {
       console.error("Error creating payment intent:", error);
       res.status(500).json({ message: "Error creating payment intent: " + error.message });
+    }
+  });
+
+  // Stripe subscription routes for monthly donations with gifts
+  app.post("/api/create-subscription", async (req, res) => {
+    try {
+      const { amount, giftTier, giftType, giftDetails } = req.body;
+      
+      if (!amount || !giftTier || !giftType) {
+        return res.status(400).json({ message: "Missing required subscription data" });
+      }
+
+      // Create or get Stripe customer
+      let customer;
+      const userId = req.user?.id;
+      
+      if (userId) {
+        // Get existing user
+        const user = await storage.getUser(userId);
+        if (user?.email) {
+          customer = await stripe.customers.create({
+            email: user.email,
+            metadata: {
+              userId: userId.toString(),
+              giftTier,
+              giftType
+            }
+          });
+        }
+      }
+      
+      if (!customer) {
+        // Anonymous donation - create customer without email
+        customer = await stripe.customers.create({
+          metadata: {
+            giftTier,
+            giftType,
+            anonymous: 'true'
+          }
+        });
+      }
+
+      // First create a product and price for the subscription
+      const product = await stripe.products.create({
+        name: `HostFarm.org Monthly Donation - ${giftTier}`,
+        description: `Monthly donation with ${giftType} gift`,
+      });
+
+      const price = await stripe.prices.create({
+        unit_amount: amount, // amount is already in cents
+        currency: 'usd',
+        recurring: {
+          interval: 'month',
+        },
+        product: product.id,
+      });
+
+      // Create subscription with the created price
+      const subscription = await stripe.subscriptions.create({
+        customer: customer.id,
+        items: [{
+          price: price.id,
+        }],
+        payment_behavior: 'default_incomplete',
+        expand: ['latest_invoice.payment_intent'],
+        metadata: {
+          giftTier,
+          giftType,
+          giftDetails: giftDetails || '',
+          userId: userId?.toString() || 'anonymous'
+        }
+      });
+
+      // Store donation record
+      await storage.createDonation({
+        userId: userId || null,
+        amount: amount,
+        currency: 'USD',
+        status: 'pending',
+        paymentMethod: 'stripe',
+        stripeSubscriptionId: subscription.id,
+        stripeCustomerId: customer.id,
+        isRecurring: true,
+        subscriptionStatus: 'incomplete',
+        giftTier,
+        giftType,
+        giftDetails: giftDetails || null
+      });
+
+      const clientSecret = (subscription.latest_invoice as any)?.payment_intent?.client_secret;
+      
+      res.json({
+        subscriptionId: subscription.id,
+        clientSecret: clientSecret,
+        customerId: customer.id
+      });
+    } catch (error: any) {
+      console.error("Error creating subscription:", error);
+      res.status(500).json({ message: "Error creating subscription: " + error.message });
+    }
+  });
+
+  // Handle Stripe webhooks for subscription updates
+  app.post("/api/stripe-webhook", express.raw({type: 'application/json'}), async (req, res) => {
+    const sig = req.headers['stripe-signature'];
+    
+    if (!sig) {
+      return res.status(400).send('Missing stripe signature');
+    }
+
+    try {
+      // Skip webhook verification for now during development
+      const body = JSON.parse(req.body.toString());
+      const event = body;
+
+      console.log('Stripe webhook event:', event.type);
+
+      switch (event.type) {
+        case 'customer.subscription.created':
+        case 'customer.subscription.updated':
+          const subscription = event.data.object;
+          console.log('Subscription updated:', subscription.id, subscription.status);
+          // TODO: Update subscription status in database
+          break;
+        
+        case 'invoice.payment_succeeded':
+          const invoice = event.data.object;
+          if (invoice.subscription) {
+            console.log('Payment succeeded for subscription:', invoice.subscription);
+            // TODO: Implement gift activation logic
+          }
+          break;
+        
+        case 'customer.subscription.deleted':
+          const deletedSubscription = event.data.object;
+          console.log('Subscription canceled:', deletedSubscription.id);
+          // TODO: Implement cancellation logic
+          break;
+      }
+
+      res.json({received: true});
+    } catch (error: any) {
+      console.error('Webhook error:', error);
+      res.status(400).send(`Webhook Error: ${error.message}`);
     }
   });
 

@@ -99,6 +99,14 @@ export const donations = pgTable("donations", {
   paymentMethod: varchar("payment_method"),
   donorEmail: varchar("donor_email"),
   message: text("message"),
+  // Subscription fields
+  stripeSubscriptionId: varchar("stripe_subscription_id"),
+  stripeCustomerId: varchar("stripe_customer_id"),
+  isRecurring: boolean("is_recurring").notNull().default(false),
+  subscriptionStatus: varchar("subscription_status"), // 'active' | 'canceled' | 'past_due' | 'incomplete'
+  giftTier: varchar("gift_tier"), // '$5', '$10', '$15', '$20'
+  giftType: varchar("gift_type"), // 'vps' | 'hosting' | 'both'
+  giftDetails: text("gift_details"), // JSON string with gift specifications
   createdAt: timestamp("created_at").defaultNow(),
 });
 

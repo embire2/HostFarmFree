@@ -17,9 +17,13 @@ import {
 import Navbar from "@/components/navbar";
 import DomainSearch from "@/components/domain-search";
 import StatsGrid from "@/components/stats-grid";
+import DonationModal from "@/components/donation-modal";
 import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 
 export default function Landing() {
+  const [showDonationModal, setShowDonationModal] = useState(false);
+  
   const { data: featuredPlugins } = useQuery({
     queryKey: ["/api/plugins", { limit: 6 }],
   });
@@ -393,13 +397,13 @@ export default function Landing() {
               <p className="text-lg mb-6 opacity-90 text-white">
                 Your donations help us maintain servers, acquire new plugins, and keep everything running smoothly for the community.
               </p>
-              <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
-                <Button className="bg-accent hover:bg-green-600 text-white px-8 py-3 rounded-lg font-medium transition-colors">
-                  <Heart className="mr-2 w-5 h-5" />
+              <div className="flex justify-center items-center">
+                <Button 
+                  onClick={() => setShowDonationModal(true)}
+                  className="bg-accent hover:bg-green-600 text-white px-12 py-4 rounded-xl font-bold text-lg transition-all transform hover:scale-105 shadow-lg"
+                >
+                  <Heart className="mr-3 w-6 h-6" />
                   Donate Now
-                </Button>
-                <Button variant="outline" className="border-white/30 text-white hover:bg-white/10 px-8 py-3 rounded-lg font-medium transition-colors">
-                  Share Our Mission
                 </Button>
               </div>
             </CardContent>
@@ -524,6 +528,12 @@ export default function Landing() {
           </div>
         </div>
       </footer>
+
+      {/* Donation Modal */}
+      <DonationModal 
+        isOpen={showDonationModal} 
+        onClose={() => setShowDonationModal(false)} 
+      />
     </div>
   );
 }
