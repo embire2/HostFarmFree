@@ -219,7 +219,27 @@ export const insertApiSettingsSchema = createInsertSchema(apiSettings).omit({
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 export type InsertHostingAccount = z.infer<typeof insertHostingAccountSchema>;
-export type HostingAccount = typeof hostingAccounts.$inferSelect;
+export type HostingAccount = typeof hostingAccounts.$inferSelect & {
+  whmData?: {
+    email: string;
+    ip: string;
+    package: string;
+    suspended: boolean;
+    theme: string;
+    shell: string;
+    startdate: string;
+    unix_startdate: number;
+    limits: {
+      maxftp: string;
+      maxsql: string;
+      maxpop: string;
+      maxlst: string;
+      maxsub: string;
+      maxpark: string;
+      maxaddon: string;
+    };
+  };
+};
 export type InsertPlugin = z.infer<typeof insertPluginSchema>;
 export type Plugin = typeof plugins.$inferSelect;
 export type PluginDownload = typeof pluginDownloads.$inferSelect;

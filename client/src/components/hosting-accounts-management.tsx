@@ -61,6 +61,25 @@ interface HostingAccount {
   bandwidthLimit?: number;
   createdAt: string;
   updatedAt?: string;
+  whmData?: {
+    email: string;
+    ip: string;
+    package: string;
+    suspended: boolean;
+    theme: string;
+    shell: string;
+    startdate: string;
+    unix_startdate: number;
+    limits: {
+      maxftp: string;
+      maxsql: string;
+      maxpop: string;
+      maxlst: string;
+      maxsub: string;
+      maxpark: string;
+      maxaddon: string;
+    };
+  };
 }
 
 interface ClientWithAccounts {
@@ -731,14 +750,14 @@ export default function HostingAccountsManagement() {
                           <div className="flex items-center justify-between mb-1">
                             <span className="text-xs text-muted-foreground flex items-center">
                               <HardDrive className="mr-1 h-3 w-3" />
-                              Disk Usage
+                              Disk Usage {account.whmData ? "(Live)" : "(Local)"}
                             </span>
                             <span className="text-xs">
-                              {formatBytes(account.diskUsage)} / {formatBytes(account.diskLimit)}
+                              {formatBytes(account.diskUsage || 0)} / {formatBytes(account.diskLimit || 5368709120)}
                             </span>
                           </div>
                           <Progress 
-                            value={getUsagePercentage(account.diskUsage, account.diskLimit)} 
+                            value={getUsagePercentage(account.diskUsage || 0, account.diskLimit || 5368709120)} 
                             className="h-1"
                           />
                         </div>
@@ -747,17 +766,61 @@ export default function HostingAccountsManagement() {
                           <div className="flex items-center justify-between mb-1">
                             <span className="text-xs text-muted-foreground flex items-center">
                               <Wifi className="mr-1 h-3 w-3" />
-                              Bandwidth
+                              Bandwidth {account.whmData ? "(Live)" : "(Local)"}
                             </span>
                             <span className="text-xs">
-                              {formatBytes(account.bandwidthUsed)} / {formatBytes(account.bandwidthLimit)}
+                              {formatBytes(account.bandwidthUsed || 0)} / {formatBytes(account.bandwidthLimit || 10737418240)}
                             </span>
                           </div>
                           <Progress 
-                            value={getUsagePercentage(account.bandwidthUsed, account.bandwidthLimit)} 
+                            value={getUsagePercentage(account.bandwidthUsed || 0, account.bandwidthLimit || 10737418240)} 
                             className="h-1"
                           />
                         </div>
+
+                        {/* Additional WHM Information */}
+                        {account.whmData && (
+                          <div className="grid grid-cols-2 gap-2 pt-2 border-t text-xs">
+                            <div className="space-y-1">
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">Package:</span>
+                                <span className="font-medium">{account.whmData.package}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">IP:</span>
+                                <span className="font-mono">{account.whmData.ip}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">Theme:</span>
+                                <span>{account.whmData.theme}</span>
+                              </div>
+                              {account.whmData.startdate && (
+                                <div className="flex justify-between">
+                                  <span className="text-muted-foreground">Started:</span>
+                                  <span>{new Date(account.whmData.startdate).toLocaleDateString()}</span>
+                                </div>
+                              )}
+                            </div>
+                            <div className="space-y-1">
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">Email:</span>
+                                <span className="font-medium">{account.whmData.limits.maxpop}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">MySQL:</span>
+                                <span className="font-medium">{account.whmData.limits.maxsql}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">FTP:</span>
+                                <span className="font-medium">{account.whmData.limits.maxftp}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">Subdomains:</span>
+                                <span className="font-medium">{account.whmData.limits.maxsub}</span>
+                              </div>
+                            </div>
+                          </div>
+                        )}
                       </div>
 
                       {/* Action Buttons */}

@@ -336,7 +336,130 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.id;
       const accounts = await storage.getHostingAccountsByUserId(userId);
-      res.json(accounts);
+      
+      // Get API settings for WHM integration
+      const apiSettings = await storage.getApiSettings();
+      let whmData: { [key: string]: any } | null = null;
+      
+      if (apiSettings?.whmApiUrl && apiSettings?.whmApiToken) {
+        try {
+          console.log('[Client Hosting Accounts] Fetching live WHM data...');
+          const baseUrl = apiSettings.whmApiUrl.replace(/\/+$/, '').replace(/:2087$/, ''); // Remove any existing port
+          const apiToken = process.env.WHM_API_TOKEN || apiSettings.whmApiToken;
+          
+          // Fetch account list with disk usage from WHM
+          const listacctsUrl = `${baseUrl}:2087/json-api/listaccts?api.version=1`;
+          const listacctsResponse = await fetch(listacctsUrl, {
+            method: 'GET',
+            headers: {
+              'Authorization': `whm root:${apiToken}`,
+            },
+          });
+
+          if (listacctsResponse.ok) {
+            const listacctsResult = await listacctsResponse.json();
+            console.log('[Client Hosting Accounts] WHM listaccts response received');
+            
+            if (listacctsResult.data?.acct) {
+              whmData = {};
+              listacctsResult.data.acct.forEach((account: any) => {
+                whmData![account.user] = {
+                  diskUsed: parseFloat(account.diskused) || 0, // in MB
+                  diskLimit: parseFloat(account.disklimit) || 0, // in MB  
+                  email: account.email,
+                  domain: account.domain,
+                  ip: account.ip,
+                  package: account.plan,
+                  suspended: account.suspended === '1',
+                  theme: account.theme,
+                  shell: account.shell,
+                  maxftp: account.maxftp,
+                  maxsql: account.maxsql,
+                  maxpop: account.maxpop,
+                  maxlst: account.maxlst,
+                  maxsub: account.maxsub,
+                  maxpark: account.maxpark,
+                  maxaddon: account.maxaddon,
+                  startdate: account.startdate,
+                  unix_startdate: account.unix_startdate
+                };
+              });
+              console.log(`[Client Hosting Accounts] Processed ${Object.keys(whmData).length} WHM accounts`);
+            }
+          }
+
+          // Fetch bandwidth data for current month
+          const currentDate = new Date();
+          const currentMonth = currentDate.getMonth() + 1;
+          const currentYear = currentDate.getFullYear();
+          
+          const showbwUrl = `${baseUrl}:2087/json-api/showbw?api.version=1&month=${currentMonth}&year=${currentYear}`;
+          const showbwResponse = await fetch(showbwUrl, {
+            method: 'GET',
+            headers: {
+              'Authorization': `whm root:${apiToken}`,
+            },
+          });
+
+          if (showbwResponse.ok) {
+            const showbwResult = await showbwResponse.json();
+            console.log('[Client Hosting Accounts] WHM bandwidth response received');
+            
+            if (showbwResult.data?.bandwidth) {
+              showbwResult.data.bandwidth.forEach((bwData: any) => {
+                const username = bwData.acct;
+                if (whmData && whmData[username]) {
+                  whmData[username].bandwidthUsed = parseFloat(bwData.totalbytes) / (1024 * 1024) || 0; // Convert bytes to MB
+                  whmData[username].bandwidthLimit = whmData[username].bandwidthLimit || 10240; // Default 10GB if not specified
+                }
+              });
+              console.log(`[Client Hosting Accounts] Updated bandwidth data for ${Object.keys(whmData || {}).length} accounts`);
+            }
+          }
+
+        } catch (whmError) {
+          console.error('[Client Hosting Accounts] Error fetching WHM data:', whmError);
+        }
+      }
+      
+      // Enhance accounts with WHM live data
+      const enhancedAccounts = accounts.map((account: any) => {
+        const username = account.cpanelUsername || account.subdomain;
+        const whmAccountData = whmData?.[username];
+        
+        if (whmAccountData) {
+          return {
+            ...account,
+            // Override with live WHM data (keep in bytes for frontend compatibility)
+            diskUsage: Math.round(whmAccountData.diskUsed * 1024 * 1024), // Convert MB to bytes
+            diskLimit: Math.round(whmAccountData.diskLimit * 1024 * 1024), // Convert MB to bytes  
+            bandwidthUsed: Math.round(whmAccountData.bandwidthUsed * 1024 * 1024), // Convert MB to bytes
+            // Add additional WHM data
+            whmData: {
+              email: whmAccountData.email,
+              ip: whmAccountData.ip,
+              package: whmAccountData.package,
+              suspended: whmAccountData.suspended,
+              theme: whmAccountData.theme,
+              shell: whmAccountData.shell,
+              startdate: whmAccountData.startdate,
+              unix_startdate: whmAccountData.unix_startdate,
+              limits: {
+                maxftp: whmAccountData.maxftp,
+                maxsql: whmAccountData.maxsql,
+                maxpop: whmAccountData.maxpop,
+                maxlst: whmAccountData.maxlst,
+                maxsub: whmAccountData.maxsub,
+                maxpark: whmAccountData.maxpark,
+                maxaddon: whmAccountData.maxaddon
+              }
+            }
+          };
+        }
+        return account;
+      });
+
+      res.json(enhancedAccounts);
     } catch (error) {
       console.error("Error fetching hosting accounts:", error);
       res.status(500).json({ message: "Failed to fetch hosting accounts" });
@@ -887,19 +1010,146 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get all hosting accounts grouped by client (admin only)
+  // Get all hosting accounts grouped by client with WHM live data (admin only)
   app.get("/api/admin/hosting-accounts", isAuthenticated, requireAdmin, async (req, res) => {
     try {
       // Get all users
       const allUsers = await storage.getAllUsers();
       
+      // Get API settings for WHM integration
+      const apiSettings = await storage.getApiSettings();
+      let whmData: { [key: string]: any } | null = null;
+      
+      if (apiSettings?.whmApiUrl && apiSettings?.whmApiToken) {
+        try {
+          console.log('[Admin Hosting Accounts] Fetching live WHM data...');
+          const baseUrl = apiSettings.whmApiUrl.replace(/\/+$/, '').replace(/:2087$/, ''); // Remove any existing port
+          const apiToken = process.env.WHM_API_TOKEN || apiSettings.whmApiToken;
+          
+          // Fetch account list with disk usage from WHM
+          const listacctsUrl = `${baseUrl}:2087/json-api/listaccts?api.version=1`;
+          const listacctsResponse = await fetch(listacctsUrl, {
+            method: 'GET',
+            headers: {
+              'Authorization': `whm root:${apiToken}`,
+            },
+          });
+
+          if (listacctsResponse.ok) {
+            const listacctsResult = await listacctsResponse.json();
+            console.log('[Admin Hosting Accounts] WHM listaccts response received');
+            
+            if (listacctsResult.data?.acct) {
+              whmData = {};
+              listacctsResult.data.acct.forEach((account: any) => {
+                whmData![account.user] = {
+                  diskUsed: parseFloat(account.diskused) || 0, // in MB
+                  diskLimit: parseFloat(account.disklimit) || 0, // in MB  
+                  email: account.email,
+                  domain: account.domain,
+                  ip: account.ip,
+                  package: account.plan,
+                  suspended: account.suspended === '1',
+                  theme: account.theme,
+                  shell: account.shell,
+                  maxftp: account.maxftp,
+                  maxsql: account.maxsql,
+                  maxpop: account.maxpop,
+                  maxlst: account.maxlst,
+                  maxsub: account.maxsub,
+                  maxpark: account.maxpark,
+                  maxaddon: account.maxaddon,
+                  startdate: account.startdate,
+                  unix_startdate: account.unix_startdate
+                };
+              });
+              console.log(`[Admin Hosting Accounts] Processed ${Object.keys(whmData).length} WHM accounts`);
+            }
+          } else {
+            console.warn('[Admin Hosting Accounts] Failed to fetch WHM account data:', listacctsResponse.status);
+          }
+
+          // Fetch bandwidth data for current month
+          const currentDate = new Date();
+          const currentMonth = currentDate.getMonth() + 1;
+          const currentYear = currentDate.getFullYear();
+          
+          const showbwUrl = `${baseUrl}:2087/json-api/showbw?api.version=1&month=${currentMonth}&year=${currentYear}`;
+          const showbwResponse = await fetch(showbwUrl, {
+            method: 'GET',
+            headers: {
+              'Authorization': `whm root:${apiToken}`,
+            },
+          });
+
+          if (showbwResponse.ok) {
+            const showbwResult = await showbwResponse.json();
+            console.log('[Admin Hosting Accounts] WHM bandwidth response received');
+            
+            if (showbwResult.data?.bandwidth) {
+              showbwResult.data.bandwidth.forEach((bwData: any) => {
+                const username = bwData.acct;
+                if (whmData && whmData[username]) {
+                  whmData[username].bandwidthUsed = parseFloat(bwData.totalbytes) / (1024 * 1024) || 0; // Convert bytes to MB
+                  whmData[username].bandwidthLimit = whmData[username].bandwidthLimit || 10240; // Default 10GB if not specified
+                }
+              });
+              console.log(`[Admin Hosting Accounts] Updated bandwidth data for ${Object.keys(whmData || {}).length} accounts`);
+            }
+          } else {
+            console.warn('[Admin Hosting Accounts] Failed to fetch WHM bandwidth data:', showbwResponse.status);
+          }
+
+        } catch (whmError) {
+          console.error('[Admin Hosting Accounts] Error fetching WHM data:', whmError);
+        }
+      }
+      
       // Get hosting accounts for each user
       const clientAccounts = await Promise.all(
         allUsers.map(async (user) => {
           const hostingAccounts = await storage.getHostingAccountsByUserId(user.id);
+          
+          // Enhance accounts with WHM live data
+          const enhancedAccounts = hostingAccounts.map((account: any) => {
+            const username = account.cpanelUsername || account.subdomain;
+            const whmAccountData = whmData?.[username];
+            
+            if (whmAccountData) {
+              return {
+                ...account,
+                // Override with live WHM data (keep in bytes for frontend compatibility)
+                diskUsage: Math.round(whmAccountData.diskUsed * 1024 * 1024), // Convert MB to bytes
+                diskLimit: Math.round(whmAccountData.diskLimit * 1024 * 1024), // Convert MB to bytes  
+                bandwidthUsed: Math.round(whmAccountData.bandwidthUsed * 1024 * 1024), // Convert MB to bytes
+                // Add additional WHM data
+                whmData: {
+                  email: whmAccountData.email,
+                  ip: whmAccountData.ip,
+                  package: whmAccountData.package,
+                  suspended: whmAccountData.suspended,
+                  theme: whmAccountData.theme,
+                  shell: whmAccountData.shell,
+                  startdate: whmAccountData.startdate,
+                  unix_startdate: whmAccountData.unix_startdate,
+                  limits: {
+                    maxftp: whmAccountData.maxftp,
+                    maxsql: whmAccountData.maxsql,
+                    maxpop: whmAccountData.maxpop,
+                    maxlst: whmAccountData.maxlst,
+                    maxsub: whmAccountData.maxsub,
+                    maxpark: whmAccountData.maxpark,
+                    maxaddon: whmAccountData.maxaddon
+                  }
+                }
+              };
+            }
+            return account;
+          });
+          
           return {
             user,
-            hostingAccounts: hostingAccounts || []
+            hostingAccounts: enhancedAccounts || []
           };
         })
       );
