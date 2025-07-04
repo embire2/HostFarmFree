@@ -1,0 +1,302 @@
+
+      /////////////////////
+   ///////////////////////////
+  ////////@@@@@@@//////////////
+  ////////@@@@@@@//////////////
+  ////////@@@@@@@//////////////        Curious and driven?
+  ///////////////@@@@@@@///////        Work with us!
+  ///////////////@@@@@@@///////
+  ///////////////@@@@@@@///////        https://join.replit.com/hack.with.us
+  ////////@@@@@@@//////////////
+  ////////@@@@@@@//////////////
+  ////////@@@@@@#//////////////
+   ///////////////////////////
+      /////////////////////
+      
+_app-1dfc359d2d776d85.js:38 [LaunchDarkly] LaunchDarkly client initialized
+6Tube:1 Uncaught (in promise) Error: A listener indicated an asynchronous response by returning true, but the message channel closed before a response was receivedUnderstand this error
+11Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.Understand this error
+framework-c2be319115910dbc.js:1 Unrecognized feature: 'ambient-light-sensor'.
+_ @ framework-c2be319115910dbc.js:1Understand this warning
+framework-c2be319115910dbc.js:1 Unrecognized feature: 'battery'.
+_ @ framework-c2be319115910dbc.js:1Understand this warning
+framework-c2be319115910dbc.js:1 Unrecognized feature: 'execution-while-not-rendered'.
+_ @ framework-c2be319115910dbc.js:1Understand this warning
+framework-c2be319115910dbc.js:1 Unrecognized feature: 'execution-while-out-of-viewport'.
+_ @ framework-c2be319115910dbc.js:1Understand this warning
+framework-c2be319115910dbc.js:1 Unrecognized feature: 'layout-animations'.
+_ @ framework-c2be319115910dbc.js:1Understand this warning
+framework-c2be319115910dbc.js:1 Unrecognized feature: 'legacy-image-formats'.
+_ @ framework-c2be319115910dbc.js:1Understand this warning
+framework-c2be319115910dbc.js:1 Unrecognized feature: 'navigation-override'.
+_ @ framework-c2be319115910dbc.js:1Understand this warning
+framework-c2be319115910dbc.js:1 Unrecognized feature: 'oversized-images'.
+_ @ framework-c2be319115910dbc.js:1Understand this warning
+framework-c2be319115910dbc.js:1 Unrecognized feature: 'publickey-credentials'.
+_ @ framework-c2be319115910dbc.js:1Understand this warning
+framework-c2be319115910dbc.js:1 Unrecognized feature: 'speaker-selection'.
+_ @ framework-c2be319115910dbc.js:1Understand this warning
+framework-c2be319115910dbc.js:1 Unrecognized feature: 'unoptimized-images'.
+_ @ framework-c2be319115910dbc.js:1Understand this warning
+framework-c2be319115910dbc.js:1 Unrecognized feature: 'unsized-media'.
+_ @ framework-c2be319115910dbc.js:1Understand this warning
+framework-c2be319115910dbc.js:1 Unrecognized feature: 'pointer-lock'.
+_ @ framework-c2be319115910dbc.js:1Understand this warning
+framework-c2be319115910dbc.js:1 Allow attribute will take precedence over 'allowfullscreen'.
+_ @ framework-c2be319115910dbc.js:1Understand this warning
+framework-c2be319115910dbc.js:1 Allow attribute will take precedence over 'allowpaymentrequest'.
+_ @ framework-c2be319115910dbc.js:1Understand this warning
+6[Violation] Permissions policy violation: unload is not allowed in this document.Understand this error
+/t/openweb:1 Blocked aria-hidden on an element because its descendant retained focus. The focus must not be hidden from assistive technology users. Avoid using aria-hidden on a focused element or its ancestor. Consider using the inert attribute instead, which will also prevent focus. For more details, see the aria-hidden section of the WAI-ARIA specification at https://w3c.github.io/aria/#aria-hidden.
+Element with focus: <div.cm-content cm-lineWrapping>
+Ancestor with aria-hidden: <div. useView_view__C2mnv css-17qdd0f Surface_surfaceRoot__TeA2u> <div class=​" useView_view__C2mnv css-17qdd0f Surface_surfaceRoot__TeA2u" aria-hidden=​"true" style=​"--useView--gap:​ 4px;​ border-color:​ var(--outline-dimmer)​;​ --focusedBorderColor:​ var(--accent-primary-default)​;​ --hoverBorderColor:​ var(--accent-primary-default)​;​">​…​</div>​Understand this warning
+/t/openweb:1 Blocked aria-hidden on an element because its descendant retained focus. The focus must not be hidden from assistive technology users. Avoid using aria-hidden on a focused element or its ancestor. Consider using the inert attribute instead, which will also prevent focus. For more details, see the aria-hidden section of the WAI-ARIA specification at https://w3c.github.io/aria/#aria-hidden.
+Element with focus: <a.NavItem_root__DZrwo css-w3oj38>
+Ancestor with aria-hidden: <div> nullUnderstand this warning
+3HostFarmFree:1 Uncaught (in promise) Error: A listener indicated an asynchronous response by returning true, but the message channel closed before a response was receivedUnderstand this error
+_app-1dfc359d2d776d85.js:38 task queue exceeded allotted deadline by 79ms
+(anonymous) @ _app-1dfc359d2d776d85.js:38Understand this warning
+HostFarmFree:1 Access to fetch at 'https://sp.replit.com/v1/t' from origin 'https://replit.com' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.Understand this error
+sp.replit.com/v1/t:1 
+            
+            
+           Failed to load resource: net::ERR_FAILEDUnderstand this error
+workspace_iframe.html:32 Unrecognized feature: 'ambient-light-sensor'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'battery'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'execution-while-not-rendered'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'execution-while-out-of-viewport'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'layout-animations'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'legacy-image-formats'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'navigation-override'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'oversized-images'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'publickey-credentials'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'speaker-selection'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'unoptimized-images'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'unsized-media'.Understand this warning
+workspace_iframe.html:32 Allow attribute will take precedence over 'allowfullscreen'.Understand this warning
+workspace_iframe.html:32 Allow attribute will take precedence over 'allowpaymentrequest'.Understand this warning
+Console.js:61 Warning: validateDOMNesting(...): <p> cannot appear as a descendant of <p>.
+    at p
+    at p
+    at https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-AXMZZQ2X.js?v=0264e835:42:13
+    at https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-U2QDPMTG.js?v=0264e835:281:13
+    at https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-alert-dialog.js?v=0264e835:132:11
+    at _c9 (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/src/components/ui/alert-dialog.tsx:158:12)
+    at div
+    at AlertDialogHeader (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/src/components/ui/alert-dialog.tsx:86:3)
+    at Slottable2 (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-2K77HOHX.js?v=0264e835:95:25)
+    at div
+    at https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-AXMZZQ2X.js?v=0264e835:42:13
+    at https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-LLLTVKM7.js?v=0264e835:61:7
+    at https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-2K77HOHX.js?v=0264e835:79:13
+    at https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-2K77HOHX.js?v=0264e835:56:13
+    at https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-AXMZZQ2X.js?v=0264e835:42:13
+    at https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-HG7P5XMB.js?v=0264e835:29:5
+    at https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-U2QDPMTG.js?v=0264e835:233:13
+    at https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-U2QDPMTG.js?v=0264e835:156:58
+    at Presence (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-LUE5KDWX.js?v=0264e835:24:11)
+    at https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-U2QDPMTG.js?v=0264e835:147:64
+    at Provider (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=0264e835:38:15)
+    at Provider (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=0264e835:17:13)
+    at https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-alert-dialog.js?v=0264e835:85:13
+    at https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-2K77HOHX.js?v=0264e835:79:13
+    at https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-2K77HOHX.js?v=0264e835:56:13
+    at https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-AXMZZQ2X.js?v=0264e835:42:13
+    at https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-LLLTVKM7.js?v=0264e835:260:22
+    at Presence (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-LUE5KDWX.js?v=0264e835:24:11)
+    at Provider (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=0264e835:38:15)
+    at DialogPortal (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-U2QDPMTG.js?v=0264e835:109:11)
+    at AlertDialogPortal (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-alert-dialog.js?v=0264e835:66:11)
+    at _c3 (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/src/components/ui/alert-dialog.tsx:50:12)
+    at Provider (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=0264e835:38:15)
+    at Dialog (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-U2QDPMTG.js?v=0264e835:50:5)
+    at AlertDialog (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-alert-dialog.js?v=0264e835:50:11)
+    at div
+    at div
+    at div
+    at div
+    at div
+    at _c9 (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/src/components/ui/card.tsx:114:12)
+    at div
+    at _c (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/src/components/ui/card.tsx:20:11)
+    at div
+    at div
+    at HostingAccountsManagement (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/src/components/hosting-accounts-management.tsx:63:21)
+    at div
+    at https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-AXMZZQ2X.js?v=0264e835:42:13
+    at Presence (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-LUE5KDWX.js?v=0264e835:24:11)
+    at https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tabs.js?v=0264e835:174:13
+    at _c5 (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/src/components/ui/tabs.tsx:72:12)
+    at div
+    at https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-AXMZZQ2X.js?v=0264e835:42:13
+    at Provider (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=0264e835:38:15)
+    at https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tabs.js?v=0264e835:52:7
+    at div
+    at div
+    at AdminDashboard (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/src/pages/admin-dashboard.tsx:55:48)
+    at Route (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=0264e835:323:16)
+    at Switch (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=0264e835:379:17)
+    at Router (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/src/App.tsx?v=IUvvUwuHes4FdyzAToz2S:34:48)
+    at Provider (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=0264e835:38:15)
+    at TooltipProvider (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=0264e835:62:5)
+    at AuthProvider (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/src/hooks/use-auth.tsx:26:32)
+    at QueryClientProvider (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=0264e835:2805:3)
+    at App
+Mt.forEach.n.<computed> @ Console.js:61Understand this error
+Console.js:61 Warning: validateDOMNesting(...): <ul> cannot appear as a descendant of <p>.
+    at ul
+    at div
+    at p
+    at https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-AXMZZQ2X.js?v=0264e835:42:13
+    at https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-U2QDPMTG.js?v=0264e835:281:13
+    at https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-alert-dialog.js?v=0264e835:132:11
+    at _c9 (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/src/components/ui/alert-dialog.tsx:158:12)
+    at div
+    at AlertDialogHeader (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/src/components/ui/alert-dialog.tsx:86:3)
+    at Slottable2 (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-2K77HOHX.js?v=0264e835:95:25)
+    at div
+    at https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-AXMZZQ2X.js?v=0264e835:42:13
+    at https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-LLLTVKM7.js?v=0264e835:61:7
+    at https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-2K77HOHX.js?v=0264e835:79:13
+    at https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-2K77HOHX.js?v=0264e835:56:13
+    at https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-AXMZZQ2X.js?v=0264e835:42:13
+    at https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-HG7P5XMB.js?v=0264e835:29:5
+    at https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-U2QDPMTG.js?v=0264e835:233:13
+    at https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-U2QDPMTG.js?v=0264e835:156:58
+    at Presence (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-LUE5KDWX.js?v=0264e835:24:11)
+    at https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-U2QDPMTG.js?v=0264e835:147:64
+    at Provider (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=0264e835:38:15)
+    at Provider (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=0264e835:17:13)
+    at https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-alert-dialog.js?v=0264e835:85:13
+    at https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-2K77HOHX.js?v=0264e835:79:13
+    at https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-2K77HOHX.js?v=0264e835:56:13
+    at https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-AXMZZQ2X.js?v=0264e835:42:13
+    at https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-LLLTVKM7.js?v=0264e835:260:22
+    at Presence (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-LUE5KDWX.js?v=0264e835:24:11)
+    at Provider (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=0264e835:38:15)
+    at DialogPortal (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-U2QDPMTG.js?v=0264e835:109:11)
+    at AlertDialogPortal (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-alert-dialog.js?v=0264e835:66:11)
+    at _c3 (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/src/components/ui/alert-dialog.tsx:50:12)
+    at Provider (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=0264e835:38:15)
+    at Dialog (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-U2QDPMTG.js?v=0264e835:50:5)
+    at AlertDialog (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-alert-dialog.js?v=0264e835:50:11)
+    at div
+    at div
+    at div
+    at div
+    at div
+    at _c9 (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/src/components/ui/card.tsx:114:12)
+    at div
+    at _c (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/src/components/ui/card.tsx:20:11)
+    at div
+    at div
+    at HostingAccountsManagement (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/src/components/hosting-accounts-management.tsx:63:21)
+    at div
+    at https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-AXMZZQ2X.js?v=0264e835:42:13
+    at Presence (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-LUE5KDWX.js?v=0264e835:24:11)
+    at https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tabs.js?v=0264e835:174:13
+    at _c5 (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/src/components/ui/tabs.tsx:72:12)
+    at div
+    at https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-AXMZZQ2X.js?v=0264e835:42:13
+    at Provider (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=0264e835:38:15)
+    at https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tabs.js?v=0264e835:52:7
+    at div
+    at div
+    at AdminDashboard (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/src/pages/admin-dashboard.tsx:55:48)
+    at Route (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=0264e835:323:16)
+    at Switch (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=0264e835:379:17)
+    at Router (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/src/App.tsx?v=IUvvUwuHes4FdyzAToz2S:34:48)
+    at Provider (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=0264e835:38:15)
+    at TooltipProvider (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=0264e835:62:5)
+    at AuthProvider (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/src/hooks/use-auth.tsx:26:32)
+    at QueryClientProvider (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=0264e835:2805:3)
+    at App
+Mt.forEach.n.<computed> @ Console.js:61Understand this error
+Console.js:61 Warning: validateDOMNesting(...): <div> cannot appear as a descendant of <p>.
+    at div
+    at p
+    at https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-AXMZZQ2X.js?v=0264e835:42:13
+    at https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-U2QDPMTG.js?v=0264e835:281:13
+    at https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-alert-dialog.js?v=0264e835:132:11
+    at _c9 (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/src/components/ui/alert-dialog.tsx:158:12)
+    at div
+    at AlertDialogHeader (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/src/components/ui/alert-dialog.tsx:86:3)
+    at Slottable2 (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-2K77HOHX.js?v=0264e835:95:25)
+    at div
+    at https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-AXMZZQ2X.js?v=0264e835:42:13
+    at https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-LLLTVKM7.js?v=0264e835:61:7
+    at https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-2K77HOHX.js?v=0264e835:79:13
+    at https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-2K77HOHX.js?v=0264e835:56:13
+    at https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-AXMZZQ2X.js?v=0264e835:42:13
+    at https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-HG7P5XMB.js?v=0264e835:29:5
+    at https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-U2QDPMTG.js?v=0264e835:233:13
+    at https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-U2QDPMTG.js?v=0264e835:156:58
+    at Presence (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-LUE5KDWX.js?v=0264e835:24:11)
+    at https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-U2QDPMTG.js?v=0264e835:147:64
+    at Provider (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=0264e835:38:15)
+    at Provider (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=0264e835:17:13)
+    at https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-alert-dialog.js?v=0264e835:85:13
+    at https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-2K77HOHX.js?v=0264e835:79:13
+    at https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-2K77HOHX.js?v=0264e835:56:13
+    at https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-AXMZZQ2X.js?v=0264e835:42:13
+    at https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-LLLTVKM7.js?v=0264e835:260:22
+    at Presence (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-LUE5KDWX.js?v=0264e835:24:11)
+    at Provider (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=0264e835:38:15)
+    at DialogPortal (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-U2QDPMTG.js?v=0264e835:109:11)
+    at AlertDialogPortal (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-alert-dialog.js?v=0264e835:66:11)
+    at _c3 (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/src/components/ui/alert-dialog.tsx:50:12)
+    at Provider (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=0264e835:38:15)
+    at Dialog (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-U2QDPMTG.js?v=0264e835:50:5)
+    at AlertDialog (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-alert-dialog.js?v=0264e835:50:11)
+    at div
+    at div
+    at div
+    at div
+    at div
+    at _c9 (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/src/components/ui/card.tsx:114:12)
+    at div
+    at _c (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/src/components/ui/card.tsx:20:11)
+    at div
+    at div
+    at HostingAccountsManagement (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/src/components/hosting-accounts-management.tsx:63:21)
+    at div
+    at https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-AXMZZQ2X.js?v=0264e835:42:13
+    at Presence (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-LUE5KDWX.js?v=0264e835:24:11)
+    at https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tabs.js?v=0264e835:174:13
+    at _c5 (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/src/components/ui/tabs.tsx:72:12)
+    at div
+    at https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-AXMZZQ2X.js?v=0264e835:42:13
+    at Provider (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=0264e835:38:15)
+    at https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tabs.js?v=0264e835:52:7
+    at div
+    at div
+    at AdminDashboard (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/src/pages/admin-dashboard.tsx:55:48)
+    at Route (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=0264e835:323:16)
+    at Switch (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=0264e835:379:17)
+    at Router (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/src/App.tsx?v=IUvvUwuHes4FdyzAToz2S:34:48)
+    at Provider (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=0264e835:38:15)
+    at TooltipProvider (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=0264e835:62:5)
+    at AuthProvider (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/src/hooks/use-auth.tsx:26:32)
+    at QueryClientProvider (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=0264e835:2805:3)
+    at App
+Mt.forEach.n.<computed> @ Console.js:61Understand this error
+Console.js:61 Deleting hosting account: hello.hostme.today (ID: 13) for client: sharpowl7516
+Console.js:61 Deleting hosting account: 1541214.hostme.today (ID: 12) for client: sharpowl7516
+da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/api/cpanel-login:1 
+            
+            
+           Failed to load resource: the server responded with a status of 500 (Internal Server Error)Understand this error
+Console.js:61 cPanel login error: Error: 500: {"message":"WHM API returned 400: Bad Request"}
+    at throwIfResNotOk (queryClient.ts:6:11)
+    at async apiRequest (queryClient.ts:25:3)
+    at async handleCpanelLogin (hosting-accounts-management.tsx:295:19)
+Mt.forEach.n.<computed> @ Console.js:61Understand this error
+da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/api/cpanel-login:1 
+            
+            
+           Failed to load resource: the server responded with a status of 500 (Internal Server Error)Understand this error
+Console.js:61 cPanel login error: Error: 500: {"message":"WHM API returned 400: Bad Request"}
+    at throwIfResNotOk (queryClient.ts:6:11)
+    at async apiRequest (queryClient.ts:25:3)
+    at async handleCpanelLogin (hosting-accounts-management.tsx:295:19)
+Mt.forEach.n.<computed> @ Console.js:61Understand this error

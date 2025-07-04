@@ -471,24 +471,67 @@ export default function ClientDashboard() {
 
   const handleCpanelLogin = async (domain: string) => {
     try {
+      console.log(`[Client Dashboard] Starting cPanel login for domain: ${domain}`);
+      
       const res = await apiRequest("POST", "/api/cpanel-login", { domain });
       const data = await res.json();
       
+      console.log(`[Client Dashboard] cPanel login response:`, {
+        status: res.status,
+        ok: res.ok,
+        hasLoginUrl: !!data.loginUrl,
+        message: data.message,
+        data: data
+      });
+      
       if (res.ok && data.loginUrl) {
         // Open cPanel in a new tab with auto-login
+        console.log(`[Client Dashboard] Opening cPanel URL: ${data.loginUrl}`);
         window.open(data.loginUrl, '_blank');
+        
         toast({
           title: "cPanel Access",
-          description: "Opening cPanel in a new tab...",
+          description: data.message || "Opening cPanel in a new tab...",
         });
       } else {
-        throw new Error(data.message || "Failed to generate cPanel login URL");
+        const errorMessage = data.message || data.debug || "Failed to generate cPanel login URL";
+        console.error(`[Client Dashboard] cPanel login failed:`, {
+          status: res.status,
+          message: data.message,
+          debug: data.debug,
+          fullResponse: data
+        });
+        
+        // If we have a username, show it to help with manual login
+        if (data.username) {
+          toast({
+            title: "cPanel Login",
+            description: `Opening cPanel for manual login. Username: ${data.username}`,
+            variant: "default",
+          });
+          
+          // Still open the URL even if auto-login failed
+          if (data.loginUrl) {
+            window.open(data.loginUrl, '_blank');
+          }
+        } else {
+          throw new Error(errorMessage);
+        }
       }
     } catch (error) {
-      console.error("cPanel login error:", error);
+      console.error("[Client Dashboard] cPanel login error:", error);
+      
+      // Extract detailed error information
+      let errorMessage = "Could not access cPanel";
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (typeof error === 'object' && error !== null) {
+        errorMessage = JSON.stringify(error);
+      }
+      
       toast({
         title: "cPanel Login Failed",
-        description: error instanceof Error ? error.message : "Could not access cPanel",
+        description: errorMessage,
         variant: "destructive",
       });
     }
