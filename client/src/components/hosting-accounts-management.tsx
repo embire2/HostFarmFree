@@ -200,9 +200,27 @@ export default function HostingAccountsManagement() {
       clearTimeout(searchTimeout);
     }
 
+    // Reset search state
+    setSearchResult(null);
+    setNewAccountData(prev => ({ ...prev, domain: "" }));
+
+    // Validate subdomain input
     if (!subdomain || subdomain.length < 3) {
-      setSearchResult(null);
-      setNewAccountData(prev => ({ ...prev, domain: "" }));
+      if (subdomain.length > 0 && subdomain.length < 3) {
+        setSearchResult({
+          available: false,
+          message: "Subdomain must be at least 3 characters long"
+        });
+      }
+      return;
+    }
+
+    // Additional validation for subdomain format
+    if (!/^[a-z0-9-]+$/.test(subdomain) || subdomain.startsWith('-') || subdomain.endsWith('-')) {
+      setSearchResult({
+        available: false,
+        message: "Subdomain can only contain letters, numbers, and hyphens (not at start or end)"
+      });
       return;
     }
 
@@ -213,13 +231,22 @@ export default function HostingAccountsManagement() {
       try {
         const fullDomain = `${subdomain}.hostme.today`;
         const res = await apiRequest("POST", "/api/check-domain-availability", { domain: fullDomain });
+        
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+        }
+        
         const data = await res.json();
+        
+        if (typeof data.available !== 'boolean') {
+          throw new Error('Invalid response format from server');
+        }
         
         setSearchResult({
           available: data.available,
-          message: data.available 
+          message: data.message || (data.available 
             ? `${fullDomain} is available!` 
-            : `${fullDomain} is already taken`
+            : `${fullDomain} is already taken`)
         });
         
         // Update the domain in the form data if available
@@ -229,9 +256,25 @@ export default function HostingAccountsManagement() {
           setNewAccountData(prev => ({ ...prev, domain: "" }));
         }
       } catch (error) {
+        console.error('Domain availability check failed:', error);
+        
+        // Provide more specific error messages
+        let errorMessage = "Error checking availability";
+        if (error instanceof Error) {
+          if (error.message.includes('Failed to fetch')) {
+            errorMessage = "Network error - please check your connection";
+          } else if (error.message.includes('500')) {
+            errorMessage = "Server error - please try again";
+          } else if (error.message.includes('404')) {
+            errorMessage = "Service temporarily unavailable";
+          } else {
+            errorMessage = `Error: ${error.message}`;
+          }
+        }
+        
         setSearchResult({
           available: false,
-          message: "Error checking availability"
+          message: errorMessage
         });
         setNewAccountData(prev => ({ ...prev, domain: "" }));
       } finally {

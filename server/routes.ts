@@ -343,6 +343,83 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Check domain availability endpoint
+  app.post("/api/check-domain-availability", async (req, res) => {
+    try {
+      const { domain } = req.body;
+      
+      if (!domain || typeof domain !== 'string') {
+        return res.status(400).json({ 
+          available: false, 
+          message: "Invalid domain provided" 
+        });
+      }
+
+      // Check if domain exists in our database
+      const existingAccount = await storage.getHostingAccountByDomain(domain);
+      
+      if (existingAccount) {
+        return res.json({
+          available: false,
+          message: `${domain} is already taken`,
+          domain: domain
+        });
+      }
+
+      // Optional: Check with WHM API for additional validation
+      try {
+        const apiSettings = await storage.getApiSettings();
+        if (apiSettings && apiSettings.whmApiUrl && apiSettings.whmApiToken) {
+          const whmApiUrl = apiSettings.whmApiUrl.replace(/\/+$/, '');
+          const checkUrl = `${whmApiUrl}/json-api/listaccts?api.version=1&searchtype=domain&search=${domain}`;
+          
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 5000);
+          
+          const whmResponse = await fetch(checkUrl, {
+            method: 'GET',
+            headers: {
+              'Authorization': `whm root:${apiSettings.whmApiToken}`,
+            },
+            signal: controller.signal
+          });
+          
+          clearTimeout(timeoutId);
+
+          if (whmResponse.ok) {
+            const whmResult = await whmResponse.json();
+            
+            // Check if domain exists on the server
+            if (whmResult.data && Array.isArray(whmResult.data) && whmResult.data.length > 0) {
+              return res.json({
+                available: false,
+                message: `${domain} is already taken on the server`,
+                domain: domain
+              });
+            }
+          }
+        }
+      } catch (whmError) {
+        console.log('WHM availability check failed, proceeding with database check only:', whmError);
+        // Continue with database check only if WHM check fails
+      }
+
+      // Domain is available
+      res.json({
+        available: true,
+        message: `${domain} is available`,
+        domain: domain
+      });
+
+    } catch (error) {
+      console.error("Error checking domain availability:", error);
+      res.status(500).json({ 
+        available: false, 
+        message: "Error checking domain availability" 
+      });
+    }
+  });
+
   app.get("/api/hosting-accounts/search/:domain", async (req, res) => {
     try {
       const { domain } = req.params;
