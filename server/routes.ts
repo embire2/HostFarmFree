@@ -1184,11 +1184,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         console.log('[Admin WHM] Account created successfully for:', fullDomain);
 
-        // Update account status
-        await storage.updateHostingAccount(account.id, { status: "active" });
+        // Update account status and store credentials
+        const updatedAccount = await storage.updateHostingAccount(account.id, { 
+          status: "active",
+          cpanelUsername: username,  // Store the WHM-compliant username
+          cpanelPassword: password   // Store password for auto-login (unencrypted as requested)
+        });
+
+        console.log('[Admin WHM] Stored credentials for account:', { 
+          accountId: account.id, 
+          username: username,
+          passwordLength: password.length 
+        });
 
         res.json({
-          ...account,
+          ...updatedAccount,
           status: "active",
           credentials: {
             username,
@@ -1198,11 +1208,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       } catch (whmError) {
         console.error('[Admin WHM] API Error:', whmError);
-        // Keep the account in database but mark as failed
-        await storage.updateHostingAccount(account.id, { status: "failed" });
+        
+        // CRITICAL: Store credentials even if WHM creation fails 
+        // This allows manual cPanel access and future auto-login functionality
+        console.log('[Admin WHM] WHM creation failed, but storing credentials for manual access');
+        
+        const updatedAccount = await storage.updateHostingAccount(account.id, { 
+          status: "failed",
+          cpanelUsername: username,  // Store the generated username
+          cpanelPassword: password   // Store password for manual/future auto-login
+        });
+        
+        console.log('[Admin WHM] Stored credentials despite WHM failure:', { 
+          accountId: account.id, 
+          username: username,
+          passwordLength: password.length,
+          status: 'failed'
+        });
+        
         return res.status(500).json({ 
           message: "Failed to create hosting account on server", 
-          details: whmError instanceof Error ? whmError.message : 'Unknown error'
+          details: whmError instanceof Error ? whmError.message : 'Unknown error',
+          credentials: {
+            username,
+            password,
+            domain: fullDomain,
+            note: "Credentials stored for manual login"
+          }
         });
       }
     } catch (error) {
@@ -1631,10 +1663,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`[cPanel Login] Using username: ${username}`);
 
       // Try multiple cPanel login methods
-      console.log(`[cPanel Login] ATTEMPT 1 - WHM create_user_session API`);
+      console.log(`[cPanel Login] ATTEMPT 1 - WHM create_user_session API (JSON API 1)`);
       
       try {
-        // Method 1: Use WHM create_user_session API for secure auto-login
+        // Method 1: Use WHM API 1 create_user_session for secure auto-login
         const sessionParams = new URLSearchParams({
           'api.version': '1',
           'user': username,
@@ -1648,7 +1680,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           method: 'GET',
           headers: {
             'Authorization': `whm root:${apiToken}`,
-            'Content-Type': 'application/json',
           },
         });
 
@@ -1680,6 +1711,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       } catch (sessionError) {
         console.log(`[cPanel Login] Session method failed with error:`, sessionError);
+      }
+
+      // Try alternative session creation method (XML API)
+      console.log(`[cPanel Login] ATTEMPT 1B - WHM create_user_session API (XML API)`);
+      
+      try {
+        const xmlSessionUrl = `${baseUrl}:2087/xml-api/create_user_session?user=${encodeURIComponent(username)}&service=cpaneld`;
+        console.log(`[cPanel Login] XML Session URL: ${xmlSessionUrl}`);
+        
+        const xmlSessionResponse = await fetch(xmlSessionUrl, {
+          method: 'GET',
+          headers: {
+            'Authorization': `whm root:${apiToken}`,
+          },
+        });
+
+        console.log(`[cPanel Login] XML Session response status: ${xmlSessionResponse.status} ${xmlSessionResponse.statusText}`);
+        
+        if (xmlSessionResponse.ok) {
+          const xmlResult = await xmlSessionResponse.text();
+          console.log(`[cPanel Login] XML Session API response:`, xmlResult.substring(0, 500));
+
+          // Parse XML for success and URL
+          if (xmlResult.includes('<result>1</result>') && xmlResult.includes('<url>')) {
+            const urlMatch = xmlResult.match(/<url>(.*?)<\/url>/);
+            if (urlMatch && urlMatch[1]) {
+              console.log(`[cPanel Login] SUCCESS - XML Session URL method worked`);
+              return res.json({ 
+                loginUrl: urlMatch[1],
+                message: "cPanel auto-login URL generated successfully (XML session method)"
+              });
+            }
+          }
+        }
+      } catch (xmlSessionError) {
+        console.log(`[cPanel Login] XML Session method failed with error:`, xmlSessionError);
       }
 
       // Method 2: Direct cPanel login with credentials (fallback)
