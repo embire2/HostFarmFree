@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle, Server, Globe, Database, Mail, Zap, Star, Crown, Gift } from "lucide-react";
+import { CheckCircle, Server, Globe, Database, Mail, Zap, Star, Crown, Gift, ArrowLeft } from "lucide-react";
 import { loadStripe } from '@stripe/stripe-js';
+import { Elements, useStripe, useElements, PaymentElement } from '@stripe/react-stripe-js';
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
@@ -50,141 +51,247 @@ const giftTiers: GiftTier[] = [
     gifts: [{
       type: 'vps',
       details: {
-        cpu: 1,
-        ram: 1,
-        storage: 40,
-        ipv4: 1,
-        os: ['Ubuntu 22.04', 'Debian 12']
+        cpu: "1 vCPU",
+        ram: "1GB",
+        storage: "40GB SSD",
+        ipv4: "1 IPv4",
+        os: "Ubuntu 22.04 LTS / Debian 12 / Windows 2025",
+        traffic: "Unlimited",
+        extras: ["Premium Forum Badge"]
       }
     }]
   },
   {
     amount: 10,
-    title: "Enhanced Package",
-    description: "Choose between hosting with domain OR enhanced VPS",
-    icon: Globe,
+    title: "Growth Package",
+    description: "Choose between hosting or enhanced VPS",
+    icon: Zap,
     color: "from-green-500 to-emerald-500",
     popular: true,
     features: [
-      "Option A: 50GB Hosting + .im Domain",
-      "Option B: Enhanced VPS (2vCPU, 2GB RAM)",
-      "cPanel Access (hosting)",
-      "10 SQL Databases (hosting)",
-      "Unlimited Email (hosting)",
-      "Premium Forum Badge"
+      "50GB Web Hosting + .im Domain",
+      "OR 2 vCPU + 2GB RAM VPS",
+      "Premium Support",
+      "Discord Forum Access",
+      "Priority Queue"
     ],
     gifts: [
       {
         type: 'hosting',
         details: {
-          storage: 50,
-          domain: '.im domain included',
-          databases: 10,
-          email: 'unlimited',
-          subdomains: 10
+          storage: "50GB",
+          domain: ".im Domain Included",
+          bandwidth: "Unlimited",
+          databases: "Unlimited MySQL",
+          emails: "Unlimited Email Accounts",
+          support: "Premium Support"
         }
       },
       {
         type: 'vps',
         details: {
-          cpu: 2,
-          ram: 2,
-          storage: 50,
-          ipv4: 1,
-          os: ['Ubuntu 22.04', 'Debian 12', 'Windows 2025']
+          cpu: "2 vCPU",
+          ram: "2GB",
+          storage: "80GB SSD",
+          ipv4: "1 IPv4",
+          os: "Ubuntu 22.04 LTS / Debian 12 / Windows 2025",
+          traffic: "Unlimited",
+          extras: ["Premium Support", "Discord Access"]
         }
       }
     ]
   },
   {
     amount: 15,
-    title: "Premium Package",
-    description: "Choose between premium hosting OR premium VPS with Discord perks",
+    title: "Professional",
+    description: "Enhanced resources with premium features",
     icon: Crown,
     color: "from-purple-500 to-pink-500",
     features: [
-      "Option A: 100GB Hosting + .im Domain",
-      "Option B: Premium VPS (2vCPU, 3GB RAM)",
-      "20 SQL Databases (hosting)",
-      "Premium + VIP Discord Badges",
+      "100GB Web Hosting + .im Domain",
+      "OR Premium VPS (4 vCPU + 4GB RAM)",
+      "Discord Server Badges",
       "Priority Support",
-      "Enhanced Resources"
+      "Custom Configurations"
     ],
     gifts: [
       {
         type: 'hosting',
         details: {
-          storage: 100,
-          domain: '.im domain included',
-          databases: 20,
-          email: 'unlimited',
-          subdomains: 20
+          storage: "100GB",
+          domain: ".im Domain Included",
+          bandwidth: "Unlimited",
+          databases: "Unlimited MySQL",
+          emails: "Unlimited Email Accounts",
+          support: "Priority Support",
+          extras: ["Discord Badges", "Custom Configurations"]
         }
       },
       {
         type: 'vps',
         details: {
-          cpu: 2,
-          ram: 3,
-          storage: 100,
-          ipv4: 1,
-          os: ['Ubuntu 22.04', 'Debian 12', 'Windows 2025']
+          cpu: "4 vCPU",
+          ram: "4GB",
+          storage: "120GB SSD",
+          ipv4: "1 IPv4",
+          os: "Ubuntu 22.04 LTS / Debian 12 / Windows 2025",
+          traffic: "Unlimited",
+          extras: ["Discord Badges", "Priority Support", "Custom Configurations"]
         }
       }
     ]
   },
   {
     amount: 20,
-    title: "Ultimate Package",
-    description: "Get BOTH hosting AND VPS plus Discord Nitro",
+    title: "Ultimate Combo",
+    description: "Get both hosting AND VPS with premium perks",
     icon: Gift,
     color: "from-orange-500 to-red-500",
     features: [
-      "100GB Hosting + .im Domain",
-      "AND Premium VPS (2vCPU, 3GB RAM, 1TB)",
-      "Premium + VIP Discord Badges",
-      "Discord Nitro Basic Subscription",
-      "Priority Support",
-      "Everything Included"
+      "100GB Web Hosting + .im Domain",
+      "PLUS 4 vCPU + 4GB RAM VPS",
+      "Discord Nitro Basic (1 Month)",
+      "VIP Support Channel",
+      "Custom Server Configurations"
     ],
-    gifts: [
-      {
-        type: 'both',
-        details: {
-          hosting: {
-            storage: 100,
-            domain: '.im domain included',
-            databases: 20,
-            email: 'unlimited',
-            subdomains: 20
-          },
-          vps: {
-            cpu: 2,
-            ram: 3,
-            storage: 1000,
-            ipv4: 1,
-            os: ['Ubuntu 22.04', 'Debian 12', 'Windows 2025']
-          },
-          extras: ['Discord Nitro Basic']
-        }
+    gifts: [{
+      type: 'both',
+      details: {
+        hosting: {
+          storage: "100GB",
+          domain: ".im Domain Included",
+          bandwidth: "Unlimited",
+          databases: "Unlimited MySQL",
+          emails: "Unlimited Email Accounts"
+        },
+        vps: {
+          cpu: "4 vCPU",
+          ram: "4GB",
+          storage: "120GB SSD",
+          ipv4: "1 IPv4",
+          os: "Ubuntu 22.04 LTS / Debian 12 / Windows 2025",
+          traffic: "Unlimited"
+        },
+        extras: ["Discord Nitro Basic", "VIP Support", "Custom Configurations"]
       }
-    ]
+    }]
   }
 ];
+
+// Payment form component that uses Stripe Elements
+const PaymentForm = ({ selectedTier, selectedGift, onBack, onClose }: {
+  selectedTier: GiftTier;
+  selectedGift: any;
+  onBack: () => void;
+  onClose: () => void;
+}) => {
+  const stripe = useStripe();
+  const elements = useElements();
+  const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
+
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+
+    if (!stripe || !elements) {
+      console.error('Stripe or elements not loaded');
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const { error } = await stripe.confirmPayment({
+        elements,
+        confirmParams: {
+          return_url: `${window.location.origin}/donation-success`,
+        },
+      });
+
+      if (error) {
+        console.error('Payment error:', error);
+        toast({
+          title: "Payment Failed",
+          description: error.message || "Unknown payment error",
+          variant: "destructive",
+        });
+      } else {
+        // Payment succeeded - user will be redirected to success page
+        onClose();
+      }
+    } catch (error) {
+      console.error('Payment processing error:', error);
+      toast({
+        title: "Payment Error",
+        description: "There was an issue processing your payment. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center gap-4">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={onBack}
+          className="flex items-center gap-2"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Back
+        </Button>
+        <h3 className="text-xl font-bold">Complete Your Subscription</h3>
+      </div>
+
+      <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-4 rounded-lg">
+        <h4 className="font-bold text-lg mb-2">
+          ${selectedTier.amount}/month - {selectedTier.title}
+        </h4>
+        <p className="text-sm text-muted-foreground mb-2">
+          Gift: {selectedGift.type === 'both' ? 'Hosting + VPS Combo' : 
+                selectedGift.type === 'hosting' ? 'Web Hosting Package' : 'VPS Server'}
+        </p>
+        <p className="text-xs text-muted-foreground">
+          Your gift will be activated within 24 hours after successful payment.
+        </p>
+      </div>
+
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="p-4 border rounded-lg">
+          <PaymentElement />
+        </div>
+
+        <Button
+          type="submit"
+          disabled={!stripe || isLoading}
+          className="w-full bg-gradient-to-r from-primary to-secondary text-white py-3 text-lg font-bold hover:scale-105 transition-all"
+        >
+          {isLoading ? "Processing..." : `Subscribe for $${selectedTier.amount}/month`}
+        </Button>
+
+        <p className="text-xs text-center text-muted-foreground">
+          Secure payment powered by Stripe. You can cancel anytime.
+        </p>
+      </form>
+    </div>
+  );
+};
 
 export default function DonationModal({ isOpen, onClose }: DonationModalProps) {
   const [selectedTier, setSelectedTier] = useState<GiftTier | null>(null);
   const [selectedGift, setSelectedGift] = useState<any>(null);
+  const [paymentStep, setPaymentStep] = useState(false);
+  const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
   const handleTierSelect = (tier: GiftTier) => {
     setSelectedTier(tier);
-    if (tier.gifts.length === 1) {
-      setSelectedGift(tier.gifts[0]);
-    } else {
-      setSelectedGift(null);
-    }
+    setSelectedGift(null);
+    setPaymentStep(false);
   };
 
   const handleGiftSelect = (gift: any) => {
@@ -194,7 +301,8 @@ export default function DonationModal({ isOpen, onClose }: DonationModalProps) {
   const handleSubscribe = async () => {
     if (!selectedTier || !selectedGift) {
       toast({
-        title: "Please select a donation tier and gift option",
+        title: "Selection Required",
+        description: "Please select a gift option first",
         variant: "destructive",
       });
       return;
@@ -202,39 +310,34 @@ export default function DonationModal({ isOpen, onClose }: DonationModalProps) {
 
     setLoading(true);
     try {
-      const response = await apiRequest("POST", "/api/create-subscription", {
-        amount: selectedTier.amount * 100, // Convert to cents
+      console.log('Creating subscription with:', {
+        amount: selectedTier.amount * 100,
         giftTier: `$${selectedTier.amount}`,
         giftType: selectedGift.type,
         giftDetails: JSON.stringify(selectedGift.details)
       });
 
-      const { clientSecret } = await response.json();
-      
-      const stripe = await stripePromise;
-      if (!stripe) {
-        throw new Error('Stripe failed to load');
-      }
-
-      const { error } = await stripe.confirmPayment({
-        clientSecret,
-        confirmParams: {
-          return_url: `${window.location.origin}/donation-success`,
-        },
+      const response = await apiRequest("POST", "/api/create-subscription", {
+        amount: selectedTier.amount * 100,
+        giftTier: `$${selectedTier.amount}`,
+        giftType: selectedGift.type,
+        giftDetails: JSON.stringify(selectedGift.details)
       });
 
-      if (error) {
-        toast({
-          title: "Payment Failed",
-          description: error.message,
-          variant: "destructive",
-        });
+      const data = await response.json();
+      console.log('Subscription response:', data);
+
+      if (data.clientSecret) {
+        setClientSecret(data.clientSecret);
+        setPaymentStep(true);
+      } else {
+        throw new Error('No client secret received');
       }
     } catch (error) {
-      console.error('Subscription error:', error);
+      console.error('Subscription creation error:', error);
       toast({
         title: "Subscription Failed",
-        description: "Please try again later",
+        description: error instanceof Error ? error.message : "Please try again later",
         variant: "destructive",
       });
     } finally {
@@ -242,101 +345,175 @@ export default function DonationModal({ isOpen, onClose }: DonationModalProps) {
     }
   };
 
+  const handleBack = () => {
+    setPaymentStep(false);
+    setClientSecret(null);
+  };
+
+  const handleClose = () => {
+    setSelectedTier(null);
+    setSelectedGift(null);
+    setPaymentStep(false);
+    setClientSecret(null);
+    onClose();
+  };
+
+  if (paymentStep && clientSecret) {
+    return (
+      <Dialog open={isOpen} onOpenChange={handleClose}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Complete Your Subscription</DialogTitle>
+          </DialogHeader>
+          <Elements stripe={stripePromise} options={{ clientSecret }}>
+            <PaymentForm
+              selectedTier={selectedTier!}
+              selectedGift={selectedGift}
+              onBack={handleBack}
+              onClose={handleClose}
+            />
+          </Elements>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-3xl font-bold text-center bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
             Support HostFarm.org & Get Amazing Gifts
           </DialogTitle>
-          <p className="text-center text-muted-foreground text-lg">
-            Monthly donations help us provide free hosting to everyone. Choose your gift tier below:
-          </p>
         </DialogHeader>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-6">
-          {giftTiers.map((tier) => {
-            const IconComponent = tier.icon;
-            return (
-              <Card 
-                key={tier.amount} 
-                className={`relative cursor-pointer transition-all hover:scale-105 ${
-                  selectedTier?.amount === tier.amount 
-                    ? 'ring-2 ring-primary shadow-lg' 
-                    : 'hover:shadow-md'
-                } ${tier.popular ? 'border-primary' : ''}`}
-                onClick={() => handleTierSelect(tier)}
-              >
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
+          {giftTiers.map((tier) => (
+            <Card 
+              key={tier.amount}
+              className={`cursor-pointer transition-all hover:scale-105 ${
+                selectedTier?.amount === tier.amount 
+                  ? 'ring-2 ring-primary shadow-lg' 
+                  : 'hover:shadow-md'
+              } ${tier.popular ? 'ring-2 ring-yellow-400' : ''}`}
+              onClick={() => handleTierSelect(tier)}
+            >
+              <CardContent className="p-6">
                 {tier.popular && (
-                  <Badge className="absolute -top-2 left-1/2 transform -translate-x-1/2 bg-primary">
+                  <Badge className="bg-yellow-500 text-white mb-2">
                     Most Popular
                   </Badge>
                 )}
-                <CardContent className="p-6">
-                  <div className={`w-12 h-12 rounded-lg bg-gradient-to-r ${tier.color} flex items-center justify-center mb-4`}>
-                    <IconComponent className="w-6 h-6 text-white" />
-                  </div>
-                  <h3 className="text-xl font-bold mb-2">{tier.title}</h3>
-                  <div className="text-3xl font-bold text-primary mb-2">
-                    ${tier.amount}<span className="text-sm text-muted-foreground">/month</span>
-                  </div>
-                  <p className="text-sm text-muted-foreground mb-4">{tier.description}</p>
-                  <ul className="space-y-2">
-                    {tier.features.map((feature, index) => (
-                      <li key={index} className="flex items-center text-sm">
-                        <CheckCircle className="w-4 h-4 text-green-500 mr-2 flex-shrink-0" />
-                        {feature}
-                      </li>
-                    ))}
-                  </ul>
-                </CardContent>
-              </Card>
-            );
-          })}
+                
+                <div className={`w-12 h-12 rounded-full bg-gradient-to-r ${tier.color} flex items-center justify-center mb-4`}>
+                  <tier.icon className="w-6 h-6 text-white" />
+                </div>
+                
+                <div className="text-3xl font-bold text-primary mb-2">
+                  ${tier.amount}
+                  <span className="text-sm font-normal text-muted-foreground">/month</span>
+                </div>
+                
+                <h3 className="text-xl font-bold mb-2">{tier.title}</h3>
+                <p className="text-sm text-muted-foreground mb-4">{tier.description}</p>
+                
+                <ul className="space-y-2">
+                  {tier.features.map((feature, idx) => (
+                    <li key={idx} className="flex items-start gap-2 text-sm">
+                      <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                      {feature}
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
+          ))}
         </div>
 
         {selectedTier && selectedTier.gifts.length > 1 && (
           <div className="mt-8">
-            <h3 className="text-xl font-bold mb-4 text-center">Choose Your Gift Option:</h3>
+            <h3 className="text-2xl font-bold mb-4 text-center">
+              Choose Your Gift for ${selectedTier.amount}/month
+            </h3>
+            
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {selectedTier.gifts.map((gift, index) => (
+              {selectedTier.gifts.map((gift, idx) => (
                 <Card 
-                  key={index}
-                  className={`cursor-pointer transition-all hover:scale-105 ${
-                    selectedGift === gift ? 'ring-2 ring-primary' : ''
+                  key={idx}
+                  className={`cursor-pointer transition-all hover:scale-102 ${
+                    selectedGift === gift ? 'ring-2 ring-secondary shadow-lg' : 'hover:shadow-md'
                   }`}
                   onClick={() => handleGiftSelect(gift)}
                 >
-                  <CardContent className="p-4">
-                    <h4 className="font-bold mb-2 capitalize">
-                      {gift.type === 'vps' ? 'VPS Server' : 
-                       gift.type === 'hosting' ? 'Web Hosting' : 'Both Options'}
-                    </h4>
-                    <div className="text-sm space-y-1">
-                      {gift.type === 'vps' && (
-                        <>
-                          <div>CPU: {gift.details.cpu} vCPU</div>
-                          <div>RAM: {gift.details.ram}GB</div>
-                          <div>Storage: {gift.details.storage}GB SSD</div>
-                          <div>OS: {gift.details.os.join(', ')}</div>
-                        </>
-                      )}
+                  <CardContent className="p-6">
+                    <div className="flex items-center gap-3 mb-4">
+                      {gift.type === 'hosting' && <Globe className="w-8 h-8 text-blue-500" />}
+                      {gift.type === 'vps' && <Server className="w-8 h-8 text-green-500" />}
+                      {gift.type === 'both' && <Gift className="w-8 h-8 text-purple-500" />}
+                      
+                      <h4 className="text-xl font-bold">
+                        {gift.type === 'hosting' ? 'Web Hosting Package' : 
+                         gift.type === 'vps' ? 'VPS Server' : 'Hosting + VPS Combo'}
+                      </h4>
+                    </div>
+                    
+                    <div className="space-y-2 text-sm">
                       {gift.type === 'hosting' && (
                         <>
-                          <div>Storage: {gift.details.storage}GB</div>
-                          <div>Domain: {gift.details.domain}</div>
-                          <div>Databases: {gift.details.databases}</div>
-                          <div>Email: {gift.details.email}</div>
+                          <div className="flex justify-between">
+                            <span>Storage:</span>
+                            <span className="font-semibold">{gift.details.storage}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Domain:</span>
+                            <span className="font-semibold">{gift.details.domain}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Bandwidth:</span>
+                            <span className="font-semibold">{gift.details.bandwidth}</span>
+                          </div>
                         </>
                       )}
-                      {gift.type === 'both' && (
+                      
+                      {gift.type === 'vps' && (
                         <>
-                          <div className="font-semibold">Hosting + VPS Combo</div>
-                          <div>Everything from both options above</div>
-                          {gift.details.extras && (
-                            <div>Bonus: {gift.details.extras.join(', ')}</div>
-                          )}
+                          <div className="flex justify-between">
+                            <span>CPU:</span>
+                            <span className="font-semibold">{gift.details.cpu}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>RAM:</span>
+                            <span className="font-semibold">{gift.details.ram}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Storage:</span>
+                            <span className="font-semibold">{gift.details.storage}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Operating System:</span>
+                            <span className="font-semibold text-xs">{gift.details.os}</span>
+                          </div>
                         </>
+                      )}
+                      
+                      {gift.type === 'both' && (
+                        <div className="space-y-3">
+                          <div className="bg-blue-50 p-3 rounded">
+                            <h5 className="font-bold text-blue-700 mb-1">Hosting Package</h5>
+                            <div className="text-xs space-y-1">
+                              <div>Storage: {gift.details.hosting.storage}</div>
+                              <div>Domain: {gift.details.hosting.domain}</div>
+                            </div>
+                          </div>
+                          <div className="bg-green-50 p-3 rounded">
+                            <h5 className="font-bold text-green-700 mb-1">VPS Server</h5>
+                            <div className="text-xs space-y-1">
+                              <div>CPU: {gift.details.vps.cpu}</div>
+                              <div>RAM: {gift.details.vps.ram}</div>
+                              <div>Storage: {gift.details.vps.storage}</div>
+                            </div>
+                          </div>
+                        </div>
                       )}
                     </div>
                   </CardContent>

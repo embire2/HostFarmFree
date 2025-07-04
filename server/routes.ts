@@ -2914,18 +2914,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { amount, giftTier, giftType, giftDetails } = req.body;
       
+      console.log('=== SUBSCRIPTION CREATE START ===');
+      console.log('Request body:', { amount, giftTier, giftType, giftDetails });
+      
       if (!amount || !giftTier || !giftType) {
+        console.error('Missing required data:', { amount, giftTier, giftType });
         return res.status(400).json({ message: "Missing required subscription data" });
       }
 
       // Create or get Stripe customer
       let customer;
       const userId = req.user?.id;
+      console.log('User ID:', userId);
       
       if (userId) {
         // Get existing user
         const user = await storage.getUser(userId);
+        console.log('User data:', user);
+        
         if (user?.email) {
+          console.log('Creating Stripe customer for authenticated user');
           customer = await stripe.customers.create({
             email: user.email,
             metadata: {
@@ -2934,11 +2942,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
               giftType
             }
           });
+          console.log('Created customer:', customer.id);
         }
       }
       
       if (!customer) {
         // Anonymous donation - create customer without email
+        console.log('Creating anonymous Stripe customer');
         customer = await stripe.customers.create({
           metadata: {
             giftTier,
@@ -2946,6 +2956,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             anonymous: 'true'
           }
         });
+        console.log('Created anonymous customer:', customer.id);
       }
 
       // First create a product and price for the subscription
@@ -2996,14 +3007,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       const clientSecret = (subscription.latest_invoice as any)?.payment_intent?.client_secret;
+      console.log('Client secret extracted:', clientSecret ? 'SUCCESS' : 'FAILED');
       
-      res.json({
+      if (!clientSecret) {
+        console.error('No client secret found in subscription response');
+        console.log('Latest invoice:', JSON.stringify(subscription.latest_invoice, null, 2));
+      }
+      
+      const responseData = {
         subscriptionId: subscription.id,
         clientSecret: clientSecret,
         customerId: customer.id
-      });
+      };
+      console.log('Sending response:', responseData);
+      console.log('=== SUBSCRIPTION CREATE END ===');
+      
+      res.json(responseData);
     } catch (error: any) {
-      console.error("Error creating subscription:", error);
+      console.error("=== SUBSCRIPTION CREATE ERROR ===");
+      console.error("Error details:", error);
+      console.error("Error message:", error.message);
+      console.error("Error stack:", error.stack);
+      console.error("=== END ERROR ===");
       res.status(500).json({ message: "Error creating subscription: " + error.message });
     }
   });
