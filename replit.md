@@ -169,6 +169,10 @@ Changelog:
 - July 3, 2025. Implemented anonymous account creation directly from admin dashboard
 - July 3, 2025. Added hosting account creation with WHM integration and package association
 - July 3, 2025. Enhanced admin dashboard with comprehensive account management capabilities
+- July 4, 2025. CRITICAL FIX: Fixed WHM username validation errors by implementing proper username generation
+- July 4, 2025. Fixed hosting account creation for both admin and client endpoints - usernames now start with letters as required by WHM
+- July 4, 2025. Added comprehensive error logging and debugging for WHM API integration
+- July 4, 2025. Enhanced domain availability checking with proper timeout handling and error messages
 ```
 
 # User Preferences

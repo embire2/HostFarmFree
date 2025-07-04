@@ -999,7 +999,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(400).json({ message: "API settings not configured" });
         }
 
-        const username = subdomain.toLowerCase().replace(/[^a-z0-9]/g, '');
+        // Generate WHM-compliant username (must start with letter, 1-16 chars, only letters/numbers/underscores)
+        let username = subdomain.toLowerCase().replace(/[^a-z0-9]/g, '');
+        
+        // If username starts with a number, prepend 'h' (for "host")
+        if (/^[0-9]/.test(username)) {
+          username = 'h' + username;
+        }
+        
+        // If username is still empty or too long, generate a safe alternative
+        if (!username || username.length > 16) {
+          // Generate a random username starting with 'h' followed by random letters/numbers
+          const randomSuffix = Math.random().toString(36).substring(2, 8);
+          username = 'h' + randomSuffix;
+        }
+        
+        console.log('[Admin WHM] Original subdomain:', subdomain);
+        console.log('[Admin WHM] Generated WHM-compliant username:', username);
         const { generatePassword } = await import('./auth.js');
         const password = generatePassword();
 
@@ -1130,8 +1146,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         if (!isSuccess) {
           const errorMessage = whmResult.metadata?.reason || whmResult.message || 'Unknown error';
-          console.error('[Admin WHM] Account creation failed with error:', errorMessage);
-          console.error('[Admin WHM] Full response:', JSON.stringify(whmResult, null, 2));
+          console.error('[Admin WHM] DETAILED ERROR REPORT:');
+          console.error('[Admin WHM] - Error:', errorMessage);
+          console.error('[Admin WHM] - WHM API URL:', whmUrl);
+          console.error('[Admin WHM] - Username used:', username);
+          console.error('[Admin WHM] - Domain:', fullDomain);
+          console.error('[Admin WHM] - Package:', hostingPackage.whmPackageName);
+          console.error('[Admin WHM] - Full response:', JSON.stringify(whmResult, null, 2));
+          console.error('[Admin WHM] - Original subdomain:', subdomain);
+          
+          // Check for specific WHM error messages
+          if (whmResult.result && whmResult.result[0] && whmResult.result[0].statusmsg) {
+            const statusMsg = whmResult.result[0].statusmsg;
+            console.error('[Admin WHM] - WHM Status Message:', statusMsg);
+            
+            if (statusMsg.includes('not a valid username')) {
+              console.error('[Admin WHM] - USERNAME VALIDATION ERROR: WHM rejected the username');
+              console.error('[Admin WHM] - Username requirements: 1-16 chars, start with letter, only letters/numbers/underscores');
+              console.error('[Admin WHM] - Generated username:', username);
+              console.error('[Admin WHM] - Username length:', username.length);
+              console.error('[Admin WHM] - Starts with letter:', /^[a-zA-Z]/.test(username));
+              console.error('[Admin WHM] - Contains only valid chars:', /^[a-zA-Z0-9_]+$/.test(username));
+            }
+          }
+          
           throw new Error(`WHM account creation failed: ${errorMessage}`);
         }
 
@@ -1877,10 +1915,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Generate a random password for the WHM account
           const randomPassword = Math.random().toString(36).slice(-12) + Math.random().toString(36).slice(-12).toUpperCase() + '123!';
           
+          // Generate WHM-compliant username (must start with letter, 1-16 chars, only letters/numbers/underscores)
+          let username = subdomain.toLowerCase().replace(/[^a-z0-9]/g, '');
+          
+          // If username starts with a number, prepend 'h' (for "host")
+          if (/^[0-9]/.test(username)) {
+            username = 'h' + username;
+          }
+          
+          // If username is still empty or too long, generate a safe alternative
+          if (!username || username.length > 16) {
+            // Generate a random username starting with 'h' followed by random letters/numbers
+            const randomSuffix = Math.random().toString(36).substring(2, 8);
+            username = 'h' + randomSuffix;
+          }
+          
+          console.log(`[Account Creation] Original subdomain: ${subdomain.toLowerCase()}`);
+          console.log(`[Account Creation] Generated WHM-compliant username: ${username}`);
+          
           // Build WHM createacct API URL with parameters
           const createAccountParams = new URLSearchParams({
             'api.version': '1',
-            'username': subdomain.toLowerCase(),
+            'username': username,
             'domain': fullDomain,
             'plan': selectedPackage.whmPackageName,
             'password': randomPassword,
