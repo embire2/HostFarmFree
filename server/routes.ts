@@ -430,7 +430,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Enhance accounts with WHM live data
       const enhancedAccounts = accounts.map((account: any) => {
-        const username = account.cpanelUsername || account.subdomain;
+        // Generate proper cPanel username using same logic as account creation
+        let username = account.subdomain.toLowerCase().replace(/[^a-z0-9]/g, '');
+        
+        // If username starts with a number, prepend 'h' (for "host")
+        if (/^[0-9]/.test(username)) {
+          username = 'h' + username;
+        }
+        
+        // If username is still empty or too long, use fallback
+        if (!username || username.length > 16) {
+          username = account.cpanelUsername || account.subdomain;
+        }
+        
         const whmAccountData = whmData?.[username];
         
         if (whmAccountData) {
@@ -924,10 +936,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const baseUrl = apiSettings.whmApiUrl.replace(/\/+$/, '').replace(/\/json-api.*$/, '').replace(/:2087.*$/, '');
       
       try {
-        // Get account summary from WHM API
-        const accountUrl = `${baseUrl}:2087/json-api/accountsummary?api.version=1&user=${account.subdomain}`;
+        // Generate proper cPanel username using the same logic as account creation
+        let username = account.subdomain.toLowerCase().replace(/[^a-z0-9]/g, '');
         
-        console.log(`[Account Stats] Fetching stats for user: ${account.subdomain}`);
+        // If username starts with a number, prepend 'h' (for "host")
+        if (/^[0-9]/.test(username)) {
+          username = 'h' + username;
+        }
+        
+        // If username is still empty or too long, generate a safe alternative
+        if (!username || username.length > 16) {
+          // Try to use stored cpanelUsername if available
+          username = account.cpanelUsername || account.subdomain;
+        }
+        
+        console.log(`[Account Stats] Subdomain: ${account.subdomain} -> Username: ${username}`);
+        
+        // Get account summary from WHM API using proper username
+        const accountUrl = `${baseUrl}:2087/json-api/accountsummary?api.version=1&user=${username}`;
+        
+        console.log(`[Account Stats] Fetching stats for user: ${username}`);
         
         const response = await fetch(accountUrl, {
           method: 'GET',
@@ -938,11 +966,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
 
         if (!response.ok) {
-          throw new Error(`WHM API returned ${response.status}: ${response.statusText}`);
+          const responseText = await response.text();
+          console.error(`[Account Stats] WHM API Error Response:`, {
+            status: response.status,
+            statusText: response.statusText,
+            responseBody: responseText,
+            url: accountUrl
+          });
+          throw new Error(`WHM API returned ${response.status}: ${response.statusText}. Response: ${responseText}`);
         }
 
         const result = await response.json();
-        console.log(`[Account Stats] WHM API Response for ${account.subdomain}:`, JSON.stringify(result, null, 2));
+        console.log(`[Account Stats] WHM API Response for ${username}:`, JSON.stringify(result, null, 2));
 
         if (result.metadata?.result === 1 && result.data?.acct) {
           const accountData = result.data.acct[0] || result.data.acct;
@@ -1914,9 +1949,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log(`[cPanel Login] Using base URL: ${baseUrl}`);
 
-      // Determine the username to use for cPanel login
-      const username = hostingAccount.cpanelUsername || hostingAccount.subdomain;
-      console.log(`[cPanel Login] Using username: ${username}`);
+      // Generate proper cPanel username using the same logic as account creation
+      let username = hostingAccount.subdomain.toLowerCase().replace(/[^a-z0-9]/g, '');
+      
+      // If username starts with a number, prepend 'h' (for "host")
+      if (/^[0-9]/.test(username)) {
+        username = 'h' + username;
+      }
+      
+      // If username is still empty or too long, try stored cpanelUsername as fallback
+      if (!username || username.length > 16) {
+        username = hostingAccount.cpanelUsername || hostingAccount.subdomain;
+      }
+      
+      console.log(`[cPanel Login] Subdomain: ${hostingAccount.subdomain} -> Username: ${username}`);
 
       // Try multiple cPanel login methods
       console.log(`[cPanel Login] ATTEMPT 1 - WHM create_user_session API (JSON API 1)`);
