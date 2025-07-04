@@ -1071,7 +1071,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           if (whmResult.metadata?.result === 1 || 
               whmResult.cpanelresult?.event?.result === 1 ||
               (whmResult.data && whmResult.data.length > 0 && whmResult.data[0].statusmsg === "Account Creation Ok") ||
-              (Array.isArray(whmResult) && whmResult.some(item => item.statusmsg === "Account Creation Ok"))) {
+              (Array.isArray(whmResult) && whmResult.some((item: any) => item.statusmsg === "Account Creation Ok")) ||
+              (whmResult.result && Array.isArray(whmResult.result) && whmResult.result.some((item: any) => 
+                item.status === 1 || item.statusmsg === "Account Creation Ok" || 
+                (typeof item.statusmsg === 'string' && item.statusmsg.includes("Account Creation Ok")))) ||
+              (whmResult.status === 1) ||
+              (Array.isArray(whmResult.result) && whmResult.result.length > 0 && whmResult.result[0].status === 1)) {
             console.log('[Admin WHM] SUCCESS: JSON response indicates success');
             isSuccess = true;
           } else {
@@ -1114,7 +1119,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
               'wwwacct creation finished',
               'Account Creation Complete!!!',
               'creation finished',
-              'statusmsg":"Account Creation Ok"'
+              'statusmsg":"Account Creation Ok"',
+              '"status": 1',
+              '"status":1',
+              'status": 1',
+              'status":1'
             ];
             
             console.log('[Admin WHM] Checking HTML for success indicators...');
@@ -1970,21 +1979,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const whmResult = await whmResponse.json();
           console.log('[Account Creation] WHM account creation result:', JSON.stringify(whmResult, null, 2));
           
-          if (whmResult.metadata?.result === 1) {
+          // Check for success using multiple possible response formats
+          let isSuccess = false;
+          if (whmResult.metadata?.result === 1 || 
+              whmResult.cpanelresult?.event?.result === 1 ||
+              (whmResult.data && whmResult.data.length > 0 && whmResult.data[0].statusmsg === "Account Creation Ok") ||
+              (Array.isArray(whmResult) && whmResult.some((item: any) => item.statusmsg === "Account Creation Ok")) ||
+              (whmResult.result && Array.isArray(whmResult.result) && whmResult.result.some((item: any) => 
+                item.status === 1 || item.statusmsg === "Account Creation Ok" || 
+                (typeof item.statusmsg === 'string' && item.statusmsg.includes("Account Creation Ok")))) ||
+              (whmResult.status === 1) ||
+              (Array.isArray(whmResult.result) && whmResult.result.length > 0 && whmResult.result[0].status === 1)) {
+            isSuccess = true;
+          }
+
+          if (isSuccess) {
             // WHM account created successfully
             console.log(`[Account Creation] Successfully created WHM account for ${subdomain.toLowerCase()}`);
             
             // Update the hosting account status to active
             await storage.updateHostingAccount(hostingAccount.id, { 
               status: 'active',
-              cpanelUsername: subdomain.toLowerCase(),
+              cpanelUsername: username, // Use the WHM-compliant username, not the original subdomain
               cpanelPassword: randomPassword // Store for cPanel access
             });
             
             console.log(`[Account Creation] Updated local account status to active`);
             
           } else {
-            throw new Error(`WHM account creation failed: ${whmResult.metadata?.reason || 'Unknown error'}`);
+            const errorMessage = whmResult.metadata?.reason || whmResult.message || 'Unknown error';
+            console.error('[Account Creation] DETAILED ERROR REPORT:');
+            console.error('[Account Creation] - Error:', errorMessage);
+            console.error('[Account Creation] - WHM Response:', JSON.stringify(whmResult, null, 2));
+            console.error('[Account Creation] - Username used:', username);
+            console.error('[Account Creation] - Domain:', fullDomain);
+            console.error('[Account Creation] - Package:', selectedPackage.whmPackageName);
+            throw new Error(`WHM account creation failed: ${errorMessage}`);
           }
         } catch (whmError: any) {
           console.error('[Account Creation] Error creating WHM account:', whmError);

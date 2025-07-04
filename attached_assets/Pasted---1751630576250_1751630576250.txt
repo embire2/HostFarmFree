@@ -1,0 +1,76 @@
+
+      /////////////////////
+   ///////////////////////////
+  ////////@@@@@@@//////////////
+  ////////@@@@@@@//////////////
+  ////////@@@@@@@//////////////        Curious and driven?
+  ///////////////@@@@@@@///////        Work with us!
+  ///////////////@@@@@@@///////
+  ///////////////@@@@@@@///////        https://join.replit.com/hack.with.us
+  ////////@@@@@@@//////////////
+  ////////@@@@@@@//////////////
+  ////////@@@@@@#//////////////
+   ///////////////////////////
+      /////////////////////
+      
+_app-1dfc359d2d776d85.js:38 [LaunchDarkly] LaunchDarkly client initialized
+6Tube:1 Uncaught (in promise) Error: A listener indicated an asynchronous response by returning true, but the message channel closed before a response was receivedUnderstand this error
+8Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.Understand this error
+framework-c2be319115910dbc.js:1 Unrecognized feature: 'ambient-light-sensor'.
+_ @ framework-c2be319115910dbc.js:1Understand this warning
+framework-c2be319115910dbc.js:1 Unrecognized feature: 'battery'.
+_ @ framework-c2be319115910dbc.js:1Understand this warning
+framework-c2be319115910dbc.js:1 Unrecognized feature: 'execution-while-not-rendered'.
+_ @ framework-c2be319115910dbc.js:1Understand this warning
+framework-c2be319115910dbc.js:1 Unrecognized feature: 'execution-while-out-of-viewport'.
+_ @ framework-c2be319115910dbc.js:1Understand this warning
+framework-c2be319115910dbc.js:1 Unrecognized feature: 'layout-animations'.
+_ @ framework-c2be319115910dbc.js:1Understand this warning
+framework-c2be319115910dbc.js:1 Unrecognized feature: 'legacy-image-formats'.
+_ @ framework-c2be319115910dbc.js:1Understand this warning
+framework-c2be319115910dbc.js:1 Unrecognized feature: 'navigation-override'.
+_ @ framework-c2be319115910dbc.js:1Understand this warning
+framework-c2be319115910dbc.js:1 Unrecognized feature: 'oversized-images'.
+_ @ framework-c2be319115910dbc.js:1Understand this warning
+framework-c2be319115910dbc.js:1 Unrecognized feature: 'publickey-credentials'.
+_ @ framework-c2be319115910dbc.js:1Understand this warning
+framework-c2be319115910dbc.js:1 Unrecognized feature: 'speaker-selection'.
+_ @ framework-c2be319115910dbc.js:1Understand this warning
+framework-c2be319115910dbc.js:1 Unrecognized feature: 'unoptimized-images'.
+_ @ framework-c2be319115910dbc.js:1Understand this warning
+framework-c2be319115910dbc.js:1 Unrecognized feature: 'unsized-media'.
+_ @ framework-c2be319115910dbc.js:1Understand this warning
+framework-c2be319115910dbc.js:1 Unrecognized feature: 'pointer-lock'.
+_ @ framework-c2be319115910dbc.js:1Understand this warning
+framework-c2be319115910dbc.js:1 Allow attribute will take precedence over 'allowfullscreen'.
+_ @ framework-c2be319115910dbc.js:1Understand this warning
+framework-c2be319115910dbc.js:1 Allow attribute will take precedence over 'allowpaymentrequest'.
+_ @ framework-c2be319115910dbc.js:1Understand this warning
+6[Violation] Permissions policy violation: unload is not allowed in this document.Understand this error
+/t/openweb:1 Blocked aria-hidden on an element because its descendant retained focus. The focus must not be hidden from assistive technology users. Avoid using aria-hidden on a focused element or its ancestor. Consider using the inert attribute instead, which will also prevent focus. For more details, see the aria-hidden section of the WAI-ARIA specification at https://w3c.github.io/aria/#aria-hidden.
+Element with focus: <div.cm-content cm-lineWrapping>
+Ancestor with aria-hidden: <div. useView_view__C2mnv css-17qdd0f Surface_surfaceRoot__TeA2u> <div class=​" useView_view__C2mnv css-17qdd0f Surface_surfaceRoot__TeA2u" aria-hidden=​"true" style=​"--useView--gap:​ 4px;​ border-color:​ var(--outline-dimmer)​;​ --focusedBorderColor:​ var(--accent-primary-default)​;​ --hoverBorderColor:​ var(--accent-primary-default)​;​">​…​</div>​Understand this warning
+/t/openweb:1 Blocked aria-hidden on an element because its descendant retained focus. The focus must not be hidden from assistive technology users. Avoid using aria-hidden on a focused element or its ancestor. Consider using the inert attribute instead, which will also prevent focus. For more details, see the aria-hidden section of the WAI-ARIA specification at https://w3c.github.io/aria/#aria-hidden.
+Element with focus: <a.NavItem_root__DZrwo css-w3oj38>
+Ancestor with aria-hidden: <div> <div aria-hidden=​"true" data-popper-reference-hidden=​"false" data-popper-escaped=​"true" data-popper-placement=​"right-start" style=​"position:​ absolute;​ inset:​ 0px auto auto 0px;​ transform:​ translate3d(244.167px, 205.833px, 0px)​;​">​…​</div>​Understand this warning
+3HostFarmFree:1 Uncaught (in promise) Error: A listener indicated an asynchronous response by returning true, but the message channel closed before a response was receivedUnderstand this error
+_app-1dfc359d2d776d85.js:38 task queue exceeded allotted deadline by 79ms
+(anonymous) @ _app-1dfc359d2d776d85.js:38Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'ambient-light-sensor'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'battery'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'execution-while-not-rendered'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'execution-while-out-of-viewport'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'layout-animations'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'legacy-image-formats'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'navigation-override'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'oversized-images'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'publickey-credentials'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'speaker-selection'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'unoptimized-images'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'unsized-media'.Understand this warning
+workspace_iframe.html:32 Allow attribute will take precedence over 'allowfullscreen'.Understand this warning
+workspace_iframe.html:32 Allow attribute will take precedence over 'allowpaymentrequest'.Understand this warning
+da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/api/admin/create-hosting-account:1 
+            
+            
+           Failed to load resource: the server responded with a status of 500 (Internal Server Error)Understand this error
