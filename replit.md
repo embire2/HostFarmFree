@@ -182,6 +182,10 @@ Changelog:
 - July 4, 2025. MAJOR FEATURE: Implemented cPanel auto-login functionality using WHM create_user_session API
 - July 4, 2025. Added secure cPanel access for both admin dashboard and client dashboard with automatic authentication
 - July 4, 2025. Fixed frontend cPanel login integration with proper error handling and user feedback
+- July 4, 2025. CRITICAL ISSUE IDENTIFIED: WHM account creation failing - accounts created locally with 'error' status, no cpanel_username/password
+- July 4, 2025. Fixed WHM API format issues - converted from GET with query params to POST with form data (application/x-www-form-urlencoded)
+- July 4, 2025. Updated account statistics API to use proper form data format, resolved "WHM API 0 does not support JSON input" errors
+- July 4, 2025. ROOT CAUSE: Accounts show "Account does not exist" because WHM creation fails, leaving local db with error status and no WHM account
 ```
 
 # User Preferences
