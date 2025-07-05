@@ -84,18 +84,11 @@ export default function Navbar() {
 
           <div className="flex items-center space-x-4">
             {!isAuthenticated ? (
-              <>
-                <LoginModal>
-                  <Button variant="ghost">
-                    Sign In
-                  </Button>
-                </LoginModal>
-                <Link href="/">
-                  <Button className="bg-primary text-white hover:bg-secondary">
-                    Get Started Free
-                  </Button>
-                </Link>
-              </>
+              <LoginModal>
+                <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold px-6 py-2 rounded-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 border-0">
+                  Sign In
+                </Button>
+              </LoginModal>
             ) : (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
