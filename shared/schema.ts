@@ -63,6 +63,7 @@ export const users = pgTable("users", {
   username: varchar("username").notNull().unique(),
   email: varchar("email"), // Optional for anonymous users
   password: varchar("password").notNull(),
+  displayPassword: varchar("display_password"), // Plain text password for display (anonymous users only)
   firstName: varchar("first_name"),
   lastName: varchar("last_name"),
   profileImageUrl: varchar("profile_image_url"),

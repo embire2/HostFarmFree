@@ -212,6 +212,11 @@ Changelog:
 - July 5, 2025. Added facebook_pixel_settings database table with configuration options (pixel ID, access token, tracking preferences)
 - July 5, 2025. Built comprehensive admin interface for Facebook Pixel management with test mode and live mode support
 - July 5, 2025. Enhanced marketing analytics capabilities with Facebook conversion campaigns support
+- July 5, 2025. CRITICAL UX IMPROVEMENT: Username and password now ALWAYS display prominently in client dashboard
+- July 5, 2025. Added displayPassword field to users table for permanent password storage and visibility
+- July 5, 2025. Created always-visible credentials section at top of dashboard with enhanced styling and copy functionality
+- July 5, 2025. Updated domain registration to store plain text password permanently for user access
+- July 5, 2025. Enhanced navbar with redesigned Sign In button and removed Get Started Free button for better UX
 ```
 
 # User Preferences

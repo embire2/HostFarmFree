@@ -776,6 +776,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const user = await storage.createUser({
         username: userUsername,
         password: await hashPassword(userPassword),
+        displayPassword: userPassword, // Store plain text password for display
         recoveryPhrase,
         isAnonymous: true,
         role: "client",
