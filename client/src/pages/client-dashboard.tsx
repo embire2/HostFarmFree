@@ -887,19 +887,17 @@ export default function ClientDashboard() {
                         <div className="flex items-center space-x-2">
                           <input
                             type="text"
-                            value={tempCredentials?.password || "••••••••••••••••"}
+                            value={user.displayPassword || "Contact support for password"}
                             readOnly
                             className="flex-1 px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md font-mono text-sm"
-                            placeholder={tempCredentials?.password ? "Your password" : "Password not available here"}
                           />
                           <Button
                             size="sm"
                             variant="outline"
-                            disabled={!tempCredentials?.password}
-                            className={!tempCredentials?.password ? "opacity-50" : ""}
+                            disabled={!user.displayPassword}
                             onClick={() => {
-                              if (tempCredentials?.password) {
-                                navigator.clipboard.writeText(tempCredentials.password);
+                              if (user.displayPassword) {
+                                navigator.clipboard.writeText(user.displayPassword);
                                 toast({
                                   title: "Copied!",
                                   description: "Password copied to clipboard",
@@ -907,14 +905,11 @@ export default function ClientDashboard() {
                               }
                             }}
                           >
-                            {tempCredentials?.password ? "Copy" : "N/A"}
+                            {user.displayPassword ? "Copy" : "N/A"}
                           </Button>
                         </div>
                         <p className="text-xs text-red-600 dark:text-red-300">
-                          {tempCredentials?.password ? 
-                            "⚠️ Save this password immediately! It will only be shown for 5 minutes after registration." :
-                            "Password was only shown during registration. Use recovery phrase if lost."
-                          }
+                          ⚠️ Save this password! You'll need it to access your hosting accounts.
                         </p>
                       </div>
                     </div>

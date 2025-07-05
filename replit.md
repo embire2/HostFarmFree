@@ -225,6 +225,8 @@ Changelog:
 - July 5, 2025. FINAL FIX: Updated /api/user and /api/login endpoints to return displayPassword field to frontend
 - July 5, 2025. Added automatic user data refresh mechanism to client dashboard for immediate password visibility
 - July 5, 2025. Completed comprehensive password display system - passwords now ALWAYS visible without refresh needed
+- July 5, 2025. CRITICAL PASSWORD DISPLAY FIX: Updated credentials section to show user.displayPassword instead of tempCredentials
+- July 5, 2025. Fixed password showing as dots - now displays actual password from displayPassword field permanently
 ```
 
 # User Preferences
