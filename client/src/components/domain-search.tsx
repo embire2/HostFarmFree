@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { useLocation } from "wouter";
 import { useDeviceFingerprint } from "@/lib/device-fingerprint";
+import { trackPurchaseEvent } from "@/components/facebook-pixel";
 
 interface DomainSearchProps {
   onSuccess?: () => void;
@@ -66,8 +67,16 @@ export default function DomainSearch({ onSuccess }: DomainSearchProps) {
       });
       return response.json();
     },
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       console.log("[Domain Registration] Success:", data);
+      
+      // Track Facebook Pixel purchase event for new account creation
+      try {
+        await trackPurchaseEvent();
+        console.log("[Domain Registration] Facebook Pixel purchase event tracked successfully");
+      } catch (error) {
+        console.warn("[Domain Registration] Failed to track Facebook Pixel purchase event:", error);
+      }
       
       // Store credentials temporarily for display
       sessionStorage.setItem('newCredentials', JSON.stringify({

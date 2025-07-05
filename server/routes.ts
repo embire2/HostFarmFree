@@ -960,6 +960,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Facebook Pixel Settings endpoints (admin only)
+  app.get("/api/facebook-pixel-settings", isAuthenticated, requireAdmin, async (req: any, res) => {
+    try {
+      const settings = await storage.getFacebookPixelSettings();
+      res.json(settings);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch Facebook Pixel settings" });
+    }
+  });
+
+  app.post("/api/facebook-pixel-settings", isAuthenticated, requireAdmin, async (req: any, res) => {
+    try {
+      const settings = await storage.upsertFacebookPixelSettings(req.body);
+      res.json(settings);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to save Facebook Pixel settings" });
+    }
+  });
+
+  app.delete("/api/facebook-pixel-settings", isAuthenticated, requireAdmin, async (req: any, res) => {
+    try {
+      const success = await storage.deleteFacebookPixelSettings();
+      res.json({ success });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to delete Facebook Pixel settings" });
+    }
+  });
+
   // Admin cPanel auto-login endpoint using WHM API (allows admin to access any account)
   app.get("/api/admin/cpanel-login/:domain", isAuthenticated, requireAdmin, async (req: any, res) => {
     try {

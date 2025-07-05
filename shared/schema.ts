@@ -189,6 +189,20 @@ export const packageUsage = pgTable("package_usage", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Facebook Pixel Settings table for conversion tracking
+export const facebookPixelSettings = pgTable("facebook_pixel_settings", {
+  id: serial("id").primaryKey(),
+  pixelId: text("pixel_id").notNull(),
+  accessToken: text("access_token"), // For advanced features
+  isActive: boolean("is_active").default(true),
+  trackPageViews: boolean("track_page_views").default(true),
+  trackPurchases: boolean("track_purchases").default(true),
+  purchaseEventValue: decimal("purchase_event_value", { precision: 10, scale: 2 }).default('5.00'), // Default $5 purchase value
+  testMode: boolean("test_mode").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Relations
 export const userGroupsRelations = relations(userGroups, ({ many }) => ({
   users: many(users),
@@ -333,3 +347,13 @@ export type InsertHostingPackage = z.infer<typeof insertHostingPackageSchema>;
 export type HostingPackage = typeof hostingPackages.$inferSelect;
 export type InsertPackageUsage = z.infer<typeof insertPackageUsageSchema>;
 export type PackageUsage = typeof packageUsage.$inferSelect;
+
+// Facebook Pixel Settings schema
+export const insertFacebookPixelSettingsSchema = createInsertSchema(facebookPixelSettings).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertFacebookPixelSettings = z.infer<typeof insertFacebookPixelSettingsSchema>;
+export type FacebookPixelSettings = typeof facebookPixelSettings.$inferSelect;

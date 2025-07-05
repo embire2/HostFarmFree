@@ -14,6 +14,7 @@ import DonationSuccess from "@/pages/donation-success";
 
 import NotFound from "@/pages/not-found";
 import ApiSettingsPage from "@/pages/api-settings-page";
+import FacebookPixel from "@/components/facebook-pixel";
 
 function Router() {
   const { user, isAuthenticated, isLoading } = useAuth();
@@ -78,6 +79,7 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <TooltipProvider>
+          <FacebookPixel />
           <Toaster />
           <Router />
         </TooltipProvider>

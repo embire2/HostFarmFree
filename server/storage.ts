@@ -9,6 +9,7 @@ import {
   packageUsage,
   userGroups,
   deviceFingerprints,
+  facebookPixelSettings,
   type User,
   type InsertUser,
   type HostingAccount,
@@ -28,6 +29,8 @@ import {
   type InsertUserGroup,
   type DeviceFingerprint,
   type InsertDeviceFingerprint,
+  type FacebookPixelSettings,
+  type InsertFacebookPixelSettings,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, ilike, and, sql } from "drizzle-orm";
@@ -111,6 +114,11 @@ export interface IStorage {
     currentHostingAccounts: number;
     currentDevices: number;
   }>;
+  
+  // Facebook Pixel Settings operations
+  getFacebookPixelSettings(): Promise<FacebookPixelSettings | undefined>;
+  upsertFacebookPixelSettings(settings: InsertFacebookPixelSettings): Promise<FacebookPixelSettings>;
+  deleteFacebookPixelSettings(): Promise<boolean>;
   
   // Statistics
   getStats(): Promise<{
@@ -617,6 +625,59 @@ export class DatabaseStorage implements IStorage {
       currentHostingAccounts: currentHostingAccounts?.count ?? 0,
       currentDevices: currentDevices?.count ?? 0,
     };
+  }
+
+  // Facebook Pixel Settings operations
+  async getFacebookPixelSettings(): Promise<FacebookPixelSettings | undefined> {
+    try {
+      const settings = await db.select()
+        .from(facebookPixelSettings)
+        .limit(1);
+      return settings[0];
+    } catch (error) {
+      console.error('Error fetching Facebook Pixel settings:', error);
+      return undefined;
+    }
+  }
+
+  async upsertFacebookPixelSettings(settingsData: InsertFacebookPixelSettings): Promise<FacebookPixelSettings> {
+    try {
+      // First, try to update existing settings
+      const existingSettings = await this.getFacebookPixelSettings();
+      
+      if (existingSettings) {
+        // Update existing settings
+        const [updatedSettings] = await db.update(facebookPixelSettings)
+          .set({
+            ...settingsData,
+            updatedAt: new Date(),
+          })
+          .where(eq(facebookPixelSettings.id, existingSettings.id))
+          .returning();
+        
+        return updatedSettings;
+      } else {
+        // Create new settings
+        const [newSettings] = await db.insert(facebookPixelSettings)
+          .values(settingsData)
+          .returning();
+        
+        return newSettings;
+      }
+    } catch (error) {
+      console.error('Error upserting Facebook Pixel settings:', error);
+      throw error;
+    }
+  }
+
+  async deleteFacebookPixelSettings(): Promise<boolean> {
+    try {
+      const result = await db.delete(facebookPixelSettings);
+      return (result.rowCount || 0) > 0;
+    } catch (error) {
+      console.error('Error deleting Facebook Pixel settings:', error);
+      return false;
+    }
   }
 }
 

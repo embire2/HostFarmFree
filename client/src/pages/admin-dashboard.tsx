@@ -34,6 +34,7 @@ import ApiSettings from "@/components/api-settings";
 import PackageManagement from "@/components/package-management";
 import HostingAccountsManagement from "@/components/hosting-accounts-management";
 import UserGroupsManagement from "@/components/user-groups-management";
+import { FacebookPixelSettings } from "@/components/facebook-pixel-settings";
 
 export default function AdminDashboard() {
   const { user, isAuthenticated, isLoading } = useAuth();
@@ -411,7 +412,7 @@ export default function AdminDashboard() {
 
         {/* Admin Tabs */}
         <Tabs defaultValue="hosting" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-8">
+          <TabsList className="grid w-full grid-cols-9">
             <TabsTrigger value="hosting" className="flex items-center">
               <Globe className="mr-2 h-4 w-4" />
               Hosting Accounts
@@ -435,6 +436,10 @@ export default function AdminDashboard() {
             <TabsTrigger value="donations" className="flex items-center">
               <Heart className="mr-2 h-4 w-4" />
               Donations
+            </TabsTrigger>
+            <TabsTrigger value="facebook-pixel" className="flex items-center">
+              <BarChart3 className="mr-2 h-4 w-4" />
+              Facebook Pixel
             </TabsTrigger>
             <TabsTrigger value="api-settings" className="flex items-center">
               <Settings className="mr-2 h-4 w-4" />
@@ -779,6 +784,10 @@ export default function AdminDashboard() {
                 )}
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="facebook-pixel" className="space-y-6">
+            <FacebookPixelSettings />
           </TabsContent>
 
           <TabsContent value="api-settings" className="space-y-6">
