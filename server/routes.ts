@@ -936,18 +936,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const baseUrl = apiSettings.whmApiUrl.replace(/\/+$/, '').replace(/\/json-api.*$/, '').replace(/:2087.*$/, '');
       
       try {
-        // Generate proper cPanel username using the same logic as account creation
-        let username = account.subdomain.toLowerCase().replace(/[^a-z0-9]/g, '');
+        // Use the stored cpanelUsername if available, otherwise use subdomain
+        let username = account.cpanelUsername || account.subdomain;
         
-        // If username starts with a number, prepend 'h' (for "host")
-        if (/^[0-9]/.test(username)) {
-          username = 'h' + username;
-        }
-        
-        // If username is still empty or too long, generate a safe alternative
-        if (!username || username.length > 16) {
-          // Try to use stored cpanelUsername if available
-          username = account.cpanelUsername || account.subdomain;
+        // If no cpanelUsername is stored, generate it using the same logic as account creation
+        if (!account.cpanelUsername) {
+          username = account.subdomain.toLowerCase().replace(/[^a-z0-9]/g, '');
+          
+          // If username starts with a number, prepend 'h' (for "host")
+          if (/^[0-9]/.test(username)) {
+            username = 'h' + username;
+          }
+          
+          // Ensure username is valid
+          if (!username || username.length > 16) {
+            username = account.subdomain;
+          }
         }
         
         console.log(`[Account Stats] Subdomain: ${account.subdomain} -> Username: ${username}`);
@@ -2085,17 +2089,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log(`[Admin cPanel Login] Using base URL: ${baseUrl}`);
 
+      // Generate proper cPanel username
+      let username = hostingAccount.subdomain.toLowerCase().replace(/[^a-z0-9]/g, '');
+      
+      if (/^[0-9]/.test(username)) {
+        username = 'h' + username;
+      }
+      
+      if (!username || username.length > 16) {
+        username = hostingAccount.cpanelUsername || hostingAccount.subdomain;
+      }
+
       try {
-        // Generate proper cPanel username
-        let username = hostingAccount.subdomain.toLowerCase().replace(/[^a-z0-9]/g, '');
-        
-        if (/^[0-9]/.test(username)) {
-          username = 'h' + username;
-        }
-        
-        if (!username || username.length > 16) {
-          username = hostingAccount.cpanelUsername || hostingAccount.subdomain;
-        }
         
         console.log(`[Admin cPanel Login] Using username: ${username}`);
         

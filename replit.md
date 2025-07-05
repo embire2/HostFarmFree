@@ -186,6 +186,10 @@ Changelog:
 - July 4, 2025. Fixed WHM API format issues - converted from GET with query params to POST with form data (application/x-www-form-urlencoded)
 - July 4, 2025. Updated account statistics API to use proper form data format, resolved "WHM API 0 does not support JSON input" errors
 - July 4, 2025. ROOT CAUSE: Accounts show "Account does not exist" because WHM creation fails, leaving local db with error status and no WHM account
+- July 5, 2025. CRITICAL FIX: Repaired broken hosting accounts (hello7, hello8) by recreating them on WHM server with proper usernames
+- July 5, 2025. Fixed client dashboard hosting statistics to use proper username generation matching account creation logic
+- July 5, 2025. Ensured client cPanel auto-login uses correct username format for WHM API create_user_session calls
+- July 5, 2025. Client dashboard now has full parity with admin panel - live WHM stats and working cPanel auto-login
 ```
 
 # User Preferences
