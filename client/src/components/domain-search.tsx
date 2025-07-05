@@ -1,13 +1,15 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
-import { Search, CheckCircle, XCircle, UserPlus, LogIn } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Search, CheckCircle, XCircle, UserPlus, LogIn, AlertTriangle, Shield } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { useLocation } from "wouter";
+import { useDeviceFingerprint } from "@/lib/device-fingerprint";
 
 interface DomainSearchProps {
   onSuccess?: () => void;
@@ -16,10 +18,33 @@ interface DomainSearchProps {
 export default function DomainSearch({ onSuccess }: DomainSearchProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [lastSearched, setLastSearched] = useState("");
+  const [deviceLimits, setDeviceLimits] = useState<{
+    canRegister: boolean;
+    currentDevices: number;
+    maxDevices: number;
+  } | null>(null);
   const { toast } = useToast();
   const { isAuthenticated, anonymousRegisterMutation } = useAuth();
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
+  const { canRegisterAccount, recordFingerprint } = useDeviceFingerprint();
+
+  // Check device limits on component mount (only once)
+  useEffect(() => {
+    const checkDeviceLimits = async () => {
+      try {
+        const limits = await canRegisterAccount();
+        setDeviceLimits(limits);
+      } catch (error) {
+        console.error("Failed to check device limits:", error);
+      }
+    };
+
+    // Only check once when component mounts
+    if (!deviceLimits) {
+      checkDeviceLimits();
+    }
+  }, []); // Remove canRegisterAccount dependency to prevent frequent calls
 
   const { data: searchResult, isLoading: isSearching } = useQuery({
     queryKey: ["/api/check-subdomain", lastSearched],
@@ -128,13 +153,33 @@ export default function DomainSearch({ onSuccess }: DomainSearchProps) {
     hostingAccountMutation.mutate(subdomain);
   };
 
-  const handleSignUp = () => {
+  const handleSignUp = async () => {
+    // Check device limits before allowing registration
+    if (deviceLimits && !deviceLimits.canRegister) {
+      toast({
+        title: "Device Limit Reached",
+        description: `You can only register accounts from ${deviceLimits.maxDevices} devices. Currently registered on ${deviceLimits.currentDevices} devices.`,
+        variant: "destructive",
+      });
+      return;
+    }
+
     // Use new integrated domain registration that creates everything at once
     const subdomain = lastSearched.replace('.hostme.today', '');
     domainRegistrationMutation.mutate(subdomain);
   };
 
-  const handleSignIn = () => {
+  const handleSignIn = async () => {
+    // Check device limits before allowing registration
+    if (deviceLimits && !deviceLimits.canRegister) {
+      toast({
+        title: "Device Limit Reached",
+        description: `You can only register accounts from ${deviceLimits.maxDevices} devices. Currently registered on ${deviceLimits.currentDevices} devices.`,
+        variant: "destructive",
+      });
+      return;
+    }
+
     // For new domain registration, create everything at once
     const subdomain = lastSearched.replace('.hostme.today', '');
     domainRegistrationMutation.mutate(subdomain);
@@ -149,6 +194,28 @@ export default function DomainSearch({ onSuccess }: DomainSearchProps) {
         <h3 className="text-lg font-semibold mb-4 text-white">
           Search Your Free Domain
         </h3>
+
+        {/* Device Limit Warning */}
+        {deviceLimits && !deviceLimits.canRegister && (
+          <Alert className="mb-4 border-red-500 bg-red-500/10">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription className="text-red-200">
+              <strong>Device Limit Reached:</strong> You can only register accounts from {deviceLimits.maxDevices} devices. 
+              Currently registered on {deviceLimits.currentDevices} devices. Please use an existing account or contact support.
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {/* Group Limits Info */}
+        {deviceLimits && deviceLimits.canRegister && (
+          <Alert className="mb-4 border-blue-500 bg-blue-500/10">
+            <Shield className="h-4 w-4" />
+            <AlertDescription className="text-blue-200">
+              <strong>Account Limits:</strong> You can register accounts from {deviceLimits.maxDevices} devices. 
+              Currently using {deviceLimits.currentDevices} of {deviceLimits.maxDevices} devices.
+            </AlertDescription>
+          </Alert>
+        )}
         
         <div className="flex flex-col sm:flex-row gap-3 mb-4">
           <div className="flex-1 relative">

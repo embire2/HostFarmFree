@@ -3486,6 +3486,191 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // User Groups Management API
+  app.get("/api/admin/user-groups", isAuthenticated, requireAdmin, async (req, res) => {
+    try {
+      const userGroups = await storage.getUserGroups();
+      res.json(userGroups);
+    } catch (error) {
+      console.error("Error fetching user groups:", error);
+      res.status(500).json({ message: "Failed to fetch user groups" });
+    }
+  });
+
+  app.post("/api/admin/user-groups", isAuthenticated, requireAdmin, async (req, res) => {
+    try {
+      const { name, displayName, description, maxHostingAccounts, maxDevices } = req.body;
+      const userGroup = await storage.createUserGroup({
+        name,
+        displayName,
+        description,
+        maxHostingAccounts,
+        maxDevices,
+      });
+      res.json(userGroup);
+    } catch (error) {
+      console.error("Error creating user group:", error);
+      res.status(500).json({ message: "Failed to create user group" });
+    }
+  });
+
+  app.put("/api/admin/user-groups/:id", isAuthenticated, requireAdmin, async (req, res) => {
+    try {
+      const groupId = parseInt(req.params.id);
+      const { name, displayName, description, maxHostingAccounts, maxDevices, isActive } = req.body;
+      
+      const userGroup = await storage.updateUserGroup(groupId, {
+        name,
+        displayName,
+        description,
+        maxHostingAccounts,
+        maxDevices,
+        isActive,
+      });
+      
+      if (!userGroup) {
+        return res.status(404).json({ message: "User group not found" });
+      }
+      
+      res.json(userGroup);
+    } catch (error) {
+      console.error("Error updating user group:", error);
+      res.status(500).json({ message: "Failed to update user group" });
+    }
+  });
+
+  app.delete("/api/admin/user-groups/:id", isAuthenticated, requireAdmin, async (req, res) => {
+    try {
+      const groupId = parseInt(req.params.id);
+      const success = await storage.deleteUserGroup(groupId);
+      
+      if (!success) {
+        return res.status(404).json({ message: "User group not found" });
+      }
+      
+      res.json({ message: "User group deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting user group:", error);
+      res.status(500).json({ message: "Failed to delete user group" });
+    }
+  });
+
+  // Assign user to group
+  app.post("/api/admin/users/:userId/assign-group", isAuthenticated, requireAdmin, async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const { userGroupId } = req.body;
+      
+      const user = await storage.updateUser(userId, { userGroupId });
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      res.json(user);
+    } catch (error) {
+      console.error("Error assigning user to group:", error);
+      res.status(500).json({ message: "Failed to assign user to group" });
+    }
+  });
+
+  // Device Fingerprint API
+  app.post("/api/device-fingerprint", isAuthenticated, async (req, res) => {
+    try {
+      const userId = (req as any).user.id;
+      const { 
+        fingerprintHash, 
+        macAddress, 
+        userAgent, 
+        screenResolution, 
+        timezone, 
+        language, 
+        platformInfo,
+        ipAddress 
+      } = req.body;
+
+      // Check if fingerprint already exists for this user
+      const existingFingerprint = await storage.getDeviceFingerprintByHash(fingerprintHash);
+      
+      if (existingFingerprint) {
+        // Update last seen timestamp
+        await storage.updateDeviceFingerprint(existingFingerprint.id, {});
+        return res.json(existingFingerprint);
+      }
+
+      // Create new fingerprint
+      const fingerprint = await storage.createDeviceFingerprint({
+        userId,
+        fingerprintHash,
+        macAddress,
+        userAgent,
+        screenResolution,
+        timezone,
+        language,
+        platformInfo,
+        ipAddress,
+      });
+
+      res.json(fingerprint);
+    } catch (error) {
+      console.error("Error recording device fingerprint:", error);
+      res.status(500).json({ message: "Failed to record device fingerprint" });
+    }
+  });
+
+  // Get user's group limits
+  app.get("/api/user/group-limits", isAuthenticated, async (req, res) => {
+    try {
+      const userId = (req as any).user.id;
+      const limits = await storage.getUserGroupLimits(userId);
+      res.json(limits);
+    } catch (error) {
+      console.error("Error fetching user group limits:", error);
+      res.status(500).json({ message: "Failed to fetch user group limits" });
+    }
+  });
+
+  // Check if user can create new hosting account
+  app.get("/api/user/can-create-hosting-account", isAuthenticated, async (req, res) => {
+    try {
+      const userId = (req as any).user.id;
+      const limits = await storage.getUserGroupLimits(userId);
+      const canCreate = limits.currentHostingAccounts < limits.maxHostingAccounts;
+      
+      res.json({ 
+        canCreate, 
+        currentAccounts: limits.currentHostingAccounts, 
+        maxAccounts: limits.maxHostingAccounts 
+      });
+    } catch (error) {
+      console.error("Error checking hosting account limits:", error);
+      res.status(500).json({ message: "Failed to check hosting account limits" });
+    }
+  });
+
+  // Check if user can register new account based on device fingerprint
+  app.post("/api/check-device-limits", async (req, res) => {
+    try {
+      const { fingerprintHash } = req.body;
+      const deviceCount = await storage.getDeviceCountByFingerprint(fingerprintHash);
+      
+      // Get default limits for Free group
+      const freeGroup = await storage.getUserGroupByName("Free");
+      const maxDevices = freeGroup?.maxDevices || 2;
+      
+      const canRegister = deviceCount < maxDevices;
+      
+      res.json({ 
+        canRegister, 
+        currentDevices: deviceCount, 
+        maxDevices 
+      });
+    } catch (error) {
+      console.error("Error checking device limits:", error);
+      res.status(500).json({ message: "Failed to check device limits" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

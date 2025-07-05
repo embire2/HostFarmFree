@@ -33,6 +33,7 @@ import { apiRequest } from "@/lib/queryClient";
 import ApiSettings from "@/components/api-settings";
 import PackageManagement from "@/components/package-management";
 import HostingAccountsManagement from "@/components/hosting-accounts-management";
+import UserGroupsManagement from "@/components/user-groups-management";
 
 export default function AdminDashboard() {
   const { user, isAuthenticated, isLoading } = useAuth();
@@ -410,7 +411,7 @@ export default function AdminDashboard() {
 
         {/* Admin Tabs */}
         <Tabs defaultValue="hosting" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-7">
+          <TabsList className="grid w-full grid-cols-8">
             <TabsTrigger value="hosting" className="flex items-center">
               <Globe className="mr-2 h-4 w-4" />
               Hosting Accounts
@@ -426,6 +427,10 @@ export default function AdminDashboard() {
             <TabsTrigger value="users" className="flex items-center">
               <Users className="mr-2 h-4 w-4" />
               User Management
+            </TabsTrigger>
+            <TabsTrigger value="user-groups" className="flex items-center">
+              <Users className="mr-2 h-4 w-4" />
+              User Groups
             </TabsTrigger>
             <TabsTrigger value="donations" className="flex items-center">
               <Heart className="mr-2 h-4 w-4" />
@@ -725,6 +730,10 @@ export default function AdminDashboard() {
                 )}
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="user-groups" className="space-y-6">
+            <UserGroupsManagement />
           </TabsContent>
 
           <TabsContent value="donations" className="space-y-6">

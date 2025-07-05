@@ -25,6 +25,38 @@ export const sessions = pgTable(
   (table) => [index("IDX_session_expire").on(table.expire)],
 );
 
+// User groups table
+export const userGroups = pgTable("user_groups", {
+  id: serial("id").primaryKey(),
+  name: varchar("name").notNull().unique(), // 'Free' | 'Donor'
+  displayName: varchar("display_name").notNull(),
+  description: text("description"),
+  maxHostingAccounts: integer("max_hosting_accounts").notNull().default(2),
+  maxDevices: integer("max_devices").notNull().default(2),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Device fingerprints table
+export const deviceFingerprints = pgTable("device_fingerprints", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id, { onDelete: "cascade" }),
+  fingerprintHash: varchar("fingerprint_hash").notNull(), // Hash of device fingerprint
+  macAddress: varchar("mac_address"), // MAC address if available
+  userAgent: text("user_agent"),
+  screenResolution: varchar("screen_resolution"),
+  timezone: varchar("timezone"),
+  language: varchar("language"),
+  platformInfo: text("platform_info"), // JSON string with additional device info
+  ipAddress: varchar("ip_address"),
+  lastSeen: timestamp("last_seen").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("IDX_device_fingerprint_hash").on(table.fingerprintHash),
+  index("IDX_device_user_id").on(table.userId),
+]);
+
 // User storage table - Anonymous registration support
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
@@ -37,6 +69,7 @@ export const users = pgTable("users", {
   recoveryPhrase: varchar("recovery_phrase").unique(), // For anonymous account recovery
   isAnonymous: boolean("is_anonymous").default(true), // Track if user is anonymous
   role: varchar("role").notNull().default("client"), // 'admin' | 'client'
+  userGroupId: integer("user_group_id").references(() => userGroups.id), // Link to user group
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -157,11 +190,21 @@ export const packageUsage = pgTable("package_usage", {
 });
 
 // Relations
-export const usersRelations = relations(users, ({ many }) => ({
+export const userGroupsRelations = relations(userGroups, ({ many }) => ({
+  users: many(users),
+}));
+
+export const deviceFingerprintsRelations = relations(deviceFingerprints, ({ one }) => ({
+  user: one(users, { fields: [deviceFingerprints.userId], references: [users.id] }),
+}));
+
+export const usersRelations = relations(users, ({ many, one }) => ({
   hostingAccounts: many(hostingAccounts),
   pluginDownloads: many(pluginDownloads),
   uploadedPlugins: many(plugins),
   donations: many(donations),
+  deviceFingerprints: many(deviceFingerprints),
+  userGroup: one(userGroups, { fields: [users.userGroupId], references: [userGroups.id] }),
 }));
 
 export const hostingAccountsRelations = relations(hostingAccounts, ({ one }) => ({
@@ -197,6 +240,8 @@ export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
+}).extend({
+  userGroupId: z.number().optional(), // Make userGroupId optional for backward compatibility
 });
 
 export const insertHostingAccountSchema = createInsertSchema(hostingAccounts).omit({
@@ -221,6 +266,18 @@ export const insertApiSettingsSchema = createInsertSchema(apiSettings).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
+});
+
+export const insertUserGroupSchema = createInsertSchema(userGroups).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertDeviceFingerprintSchema = createInsertSchema(deviceFingerprints).omit({
+  id: true,
+  createdAt: true,
+  lastSeen: true,
 });
 
 // Types
@@ -255,6 +312,10 @@ export type InsertDonation = z.infer<typeof insertDonationSchema>;
 export type Donation = typeof donations.$inferSelect;
 export type InsertApiSettings = z.infer<typeof insertApiSettingsSchema>;
 export type ApiSettings = typeof apiSettings.$inferSelect;
+export type InsertUserGroup = z.infer<typeof insertUserGroupSchema>;
+export type UserGroup = typeof userGroups.$inferSelect;
+export type InsertDeviceFingerprint = z.infer<typeof insertDeviceFingerprintSchema>;
+export type DeviceFingerprint = typeof deviceFingerprints.$inferSelect;
 
 // Package management schemas
 export const insertHostingPackageSchema = createInsertSchema(hostingPackages).omit({

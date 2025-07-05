@@ -7,6 +7,8 @@ import {
   apiSettings,
   hostingPackages,
   packageUsage,
+  userGroups,
+  deviceFingerprints,
   type User,
   type InsertUser,
   type HostingAccount,
@@ -22,6 +24,10 @@ import {
   type InsertHostingPackage,
   type PackageUsage,
   type InsertPackageUsage,
+  type UserGroup,
+  type InsertUserGroup,
+  type DeviceFingerprint,
+  type InsertDeviceFingerprint,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, ilike, and, sql } from "drizzle-orm";
@@ -81,6 +87,30 @@ export interface IStorage {
   
   // WHM Package operations
   getWHMPackages(): Promise<any[]>; // Will fetch from WHM API
+  
+  // User Groups operations
+  createUserGroup(group: InsertUserGroup): Promise<UserGroup>;
+  getUserGroups(): Promise<UserGroup[]>;
+  getUserGroupById(id: number): Promise<UserGroup | undefined>;
+  getUserGroupByName(name: string): Promise<UserGroup | undefined>;
+  updateUserGroup(id: number, updates: Partial<InsertUserGroup>): Promise<UserGroup | undefined>;
+  deleteUserGroup(id: number): Promise<boolean>;
+  
+  // Device Fingerprint operations  
+  createDeviceFingerprint(fingerprint: InsertDeviceFingerprint): Promise<DeviceFingerprint>;
+  getDeviceFingerprintsByUserId(userId: number): Promise<DeviceFingerprint[]>;
+  getDeviceFingerprintByHash(hash: string): Promise<DeviceFingerprint | undefined>;
+  updateDeviceFingerprint(id: number, updates: Partial<InsertDeviceFingerprint>): Promise<DeviceFingerprint | undefined>;
+  deleteDeviceFingerprint(id: number): Promise<boolean>;
+  getDeviceCountByFingerprint(fingerprintHash: string): Promise<number>;
+  
+  // Group Policy operations
+  getUserGroupLimits(userId: number): Promise<{
+    maxHostingAccounts: number;
+    maxDevices: number;
+    currentHostingAccounts: number;
+    currentDevices: number;
+  }>;
   
   // Statistics
   getStats(): Promise<{
@@ -465,6 +495,127 @@ export class DatabaseStorage implements IStorage {
       totalPlugins: pluginsCount.count,
       totalWebsites: websitesCount.count,
       totalDonations: donationsSum.sum,
+    };
+  }
+
+  // User Groups operations
+  async createUserGroup(groupData: InsertUserGroup): Promise<UserGroup> {
+    const [group] = await db.insert(userGroups).values(groupData).returning();
+    return group;
+  }
+
+  async getUserGroups(): Promise<UserGroup[]> {
+    return await db.select().from(userGroups).orderBy(userGroups.name);
+  }
+
+  async getUserGroupById(id: number): Promise<UserGroup | undefined> {
+    const [group] = await db.select().from(userGroups).where(eq(userGroups.id, id));
+    return group;
+  }
+
+  async getUserGroupByName(name: string): Promise<UserGroup | undefined> {
+    const [group] = await db.select().from(userGroups).where(eq(userGroups.name, name));
+    return group;
+  }
+
+  async updateUserGroup(id: number, updates: Partial<InsertUserGroup>): Promise<UserGroup | undefined> {
+    const [group] = await db.update(userGroups)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(userGroups.id, id))
+      .returning();
+    return group;
+  }
+
+  async deleteUserGroup(id: number): Promise<boolean> {
+    const result = await db.delete(userGroups).where(eq(userGroups.id, id));
+    return (result.rowCount || 0) > 0;
+  }
+
+  // Device Fingerprint operations
+  async createDeviceFingerprint(fingerprintData: InsertDeviceFingerprint): Promise<DeviceFingerprint> {
+    const [fingerprint] = await db.insert(deviceFingerprints).values(fingerprintData).returning();
+    return fingerprint;
+  }
+
+  async getDeviceFingerprintsByUserId(userId: number): Promise<DeviceFingerprint[]> {
+    return await db.select().from(deviceFingerprints).where(eq(deviceFingerprints.userId, userId));
+  }
+
+  async getDeviceFingerprintByHash(hash: string): Promise<DeviceFingerprint | undefined> {
+    const [fingerprint] = await db.select().from(deviceFingerprints)
+      .where(eq(deviceFingerprints.fingerprintHash, hash));
+    return fingerprint;
+  }
+
+  async updateDeviceFingerprint(id: number, updates: Partial<InsertDeviceFingerprint>): Promise<DeviceFingerprint | undefined> {
+    const [fingerprint] = await db.update(deviceFingerprints)
+      .set({ ...updates, lastSeen: new Date() })
+      .where(eq(deviceFingerprints.id, id))
+      .returning();
+    return fingerprint;
+  }
+
+  async deleteDeviceFingerprint(id: number): Promise<boolean> {
+    const result = await db.delete(deviceFingerprints).where(eq(deviceFingerprints.id, id));
+    return (result.rowCount || 0) > 0;
+  }
+
+  async getDeviceCountByFingerprint(fingerprintHash: string): Promise<number> {
+    const [result] = await db.select({ count: sql<number>`count(distinct ${deviceFingerprints.userId})` })
+      .from(deviceFingerprints)
+      .where(eq(deviceFingerprints.fingerprintHash, fingerprintHash));
+    return result?.count ?? 0;
+  }
+
+  // Group Policy operations
+  async getUserGroupLimits(userId: number): Promise<{
+    maxHostingAccounts: number;
+    maxDevices: number;
+    currentHostingAccounts: number;
+    currentDevices: number;
+  }> {
+    const user = await this.getUser(userId);
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    // Get user's group or default to Free group
+    let group: UserGroup | undefined;
+    if (user.userGroupId) {
+      group = await this.getUserGroupById(user.userGroupId);
+    } else {
+      group = await this.getUserGroupByName("Free");
+    }
+
+    if (!group) {
+      // Default limits if no group is found
+      group = {
+        id: 0,
+        name: "Free",
+        displayName: "Free",
+        description: null,
+        maxHostingAccounts: 2,
+        maxDevices: 2,
+        isActive: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+    }
+
+    // Get current counts
+    const [currentHostingAccounts] = await db.select({ count: sql<number>`count(*)` })
+      .from(hostingAccounts)
+      .where(eq(hostingAccounts.userId, userId));
+
+    const [currentDevices] = await db.select({ count: sql<number>`count(*)` })
+      .from(deviceFingerprints)
+      .where(eq(deviceFingerprints.userId, userId));
+
+    return {
+      maxHostingAccounts: group.maxHostingAccounts,
+      maxDevices: group.maxDevices,
+      currentHostingAccounts: currentHostingAccounts?.count ?? 0,
+      currentDevices: currentDevices?.count ?? 0,
     };
   }
 }
