@@ -567,7 +567,7 @@ export default function ClientDashboard() {
         {/* Welcome Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-dark mb-2">
-            Welcome back, {user?.firstName || "Developer"}!
+            Welcome Back Farmer!
           </h1>
           <p className="text-gray-600">
             Manage your hosting accounts, download plugins, and monitor your websites.

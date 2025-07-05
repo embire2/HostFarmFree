@@ -1223,13 +1223,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (result.metadata?.result === 1 && result.data?.acct) {
           const accountData = result.data.acct[0] || result.data.acct;
           
+          // Get email account count via separate API call
+          let emailAccountCount = 0;
+          try {
+            const emailFormData = new URLSearchParams({
+              'api.version': '1',
+              'user': username
+            });
+            
+            const emailUrl = `${apiSettings.whmApiUrl.replace(/\/json-api.*$/, '')}:2087/json-api/list_pops`;
+            const emailResponse = await fetch(emailUrl, {
+              method: 'POST',
+              headers: {
+                'Authorization': `whm root:${apiToken}`,
+                'Content-Type': 'application/x-www-form-urlencoded',
+              },
+              body: emailFormData
+            });
+            
+            if (emailResponse.ok) {
+              const emailResult = await emailResponse.json();
+              if (emailResult.metadata?.result === 1 && emailResult.data) {
+                emailAccountCount = Array.isArray(emailResult.data) ? emailResult.data.length : 0;
+              }
+            }
+          } catch (emailError) {
+            console.log(`[Account Stats] Could not fetch email count for ${username}:`, emailError.message);
+            // Default to 0 if we can't get email count
+            emailAccountCount = 0;
+          }
+          
           // Parse WHM account data
           const stats = {
             diskUsage: parseFloat(accountData.diskused || 0),
             diskLimit: parseFloat(accountData.disklimit || 5120),
             bandwidthUsed: parseFloat(accountData.bwused || 0),
             bandwidthLimit: parseFloat(accountData.bwlimit || 10240),
-            emailAccounts: parseInt(accountData.email || 0),
+            emailAccounts: emailAccountCount,
             emailLimit: parseInt(accountData.maxpop || 50),
             databases: parseInt(accountData.mysql || 0),
             databaseLimit: parseInt(accountData.maxsql || 10),
