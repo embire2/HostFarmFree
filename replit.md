@@ -227,6 +227,8 @@ Changelog:
 - July 5, 2025. Completed comprehensive password display system - passwords now ALWAYS visible without refresh needed
 - July 5, 2025. CRITICAL PASSWORD DISPLAY FIX: Updated credentials section to show user.displayPassword instead of tempCredentials
 - July 5, 2025. Fixed password showing as dots - now displays actual password from displayPassword field permanently
+- July 5, 2025. DUPLICATE CREDENTIALS FIX: Removed temporary credentials alert - only permanent credentials section displays now
+- July 5, 2025. Cleaned up credential displays - single credentials section shows username/password permanently for anonymous users
 ```
 
 # User Preferences
