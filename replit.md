@@ -217,6 +217,11 @@ Changelog:
 - July 5, 2025. Created always-visible credentials section at top of dashboard with enhanced styling and copy functionality
 - July 5, 2025. Updated domain registration to store plain text password permanently for user access
 - July 5, 2025. Enhanced navbar with redesigned Sign In button and removed Get Started Free button for better UX
+- July 5, 2025. CRITICAL FIX: Fixed password display system - all existing users now have displayPassword populated
+- July 5, 2025. CRITICAL FIX: Fixed device monitoring enforcement - backend now properly blocks unlimited account registrations
+- July 5, 2025. Added device fingerprint validation to domain registration endpoint with proper error handling
+- July 5, 2025. Enhanced device fingerprinting system to record fingerprints during account creation
+- July 5, 2025. Updated frontend domain search to pass device fingerprint data and handle device limit errors
 ```
 
 # User Preferences

@@ -61,9 +61,20 @@ export default function DomainSearch({ onSuccess }: DomainSearchProps) {
 
   const domainRegistrationMutation = useMutation({
     mutationFn: async (subdomain: string) => {
+      // Generate device fingerprint data for registration
+      const fingerprint = await useDeviceFingerprint().generateFingerprint();
+      
       const response = await apiRequest("POST", "/api/register-domain", {
         subdomain,
         packageId: 1, // Default to free package
+        // Include device fingerprint data for enforcement
+        fingerprintHash: fingerprint.fingerprintHash,
+        macAddress: fingerprint.macAddress,
+        userAgent: fingerprint.userAgent,
+        screenResolution: fingerprint.screenResolution,
+        timezone: fingerprint.timezone,
+        language: fingerprint.language,
+        platformInfo: fingerprint.platformInfo,
       });
       return response.json();
     },
@@ -104,11 +115,28 @@ export default function DomainSearch({ onSuccess }: DomainSearchProps) {
     },
     onError: (error: Error) => {
       console.error("[Domain Registration] Error:", error);
-      toast({
-        title: "Registration Failed",
-        description: error.message,
-        variant: "destructive",
-      });
+      
+      // Handle device limit exceeded error specifically
+      if (error.message.includes("Device registration limit exceeded")) {
+        toast({
+          title: "Device Registration Limit Reached",
+          description: "You've reached the maximum number of devices for account registration. Please use an existing account or contact support.",
+          variant: "destructive",
+        });
+        
+        // Update device limits state to show warning
+        setDeviceLimits({
+          canRegister: false,
+          currentDevices: 2,
+          maxDevices: 2
+        });
+      } else {
+        toast({
+          title: "Registration Failed",
+          description: error.message,
+          variant: "destructive",
+        });
+      }
     },
   });
 

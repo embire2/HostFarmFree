@@ -668,7 +668,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Domain is already taken" });
       }
 
-      // Step 3: Get hosting package
+      // Step 3: Check device fingerprint limits BEFORE creating account
+      const { fingerprintHash } = req.body;
+      if (fingerprintHash) {
+        console.log(`[Domain Registration ${requestId}] Checking device limits for fingerprint: ${fingerprintHash.substring(0, 10)}...`);
+        
+        const deviceCount = await storage.getDeviceCountByFingerprint(fingerprintHash);
+        console.log(`[Domain Registration ${requestId}] Current device count for fingerprint: ${deviceCount}`);
+        
+        // Get default user group limits (Free group allows 2 devices)
+        const freeGroup = await storage.getUserGroupByName("Free");
+        const maxDevices = freeGroup?.maxDevices || 2;
+        
+        if (deviceCount >= maxDevices) {
+          console.error(`[Domain Registration ${requestId}] ERROR - Device limit exceeded: ${deviceCount}/${maxDevices}`);
+          return res.status(403).json({ 
+            message: `Device registration limit exceeded. You can only register accounts from ${maxDevices} devices. Currently registered on ${deviceCount} devices.`,
+            error: "DEVICE_LIMIT_EXCEEDED",
+            currentDevices: deviceCount,
+            maxDevices: maxDevices
+          });
+        }
+        
+        console.log(`[Domain Registration ${requestId}] ✓ Device limits check passed: ${deviceCount}/${maxDevices}`);
+      } else {
+        console.warn(`[Domain Registration ${requestId}] WARNING - No device fingerprint provided`);
+      }
+
+      // Step 4: Get hosting package
       const hostingPackage = await storage.getHostingPackageById(packageId);
       if (!hostingPackage) {
         console.error(`[Domain Registration ${requestId}] ERROR - Invalid package ID: ${packageId}`);
@@ -801,7 +828,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log(`[Domain Registration ${requestId}] ✓ Hosting account database record created: ID ${hostingAccount.id}`);
 
-      // Step 8: Automatically log in the newly created user
+      // Step 8: Record device fingerprint for new user
+      if (fingerprintHash) {
+        console.log(`[Domain Registration ${requestId}] Recording device fingerprint...`);
+        
+        try {
+          // Extract device info from request
+          const userAgent = req.headers['user-agent'] || '';
+          const ipAddress = req.ip || req.connection.remoteAddress || '';
+          const { macAddress, screenResolution, timezone, language, platformInfo } = req.body;
+          
+          await storage.createDeviceFingerprint({
+            userId: user.id,
+            fingerprintHash,
+            macAddress,
+            userAgent,
+            screenResolution,
+            timezone,
+            language,
+            platformInfo: platformInfo ? JSON.stringify(platformInfo) : null,
+            ipAddress,
+          });
+          
+          console.log(`[Domain Registration ${requestId}] ✓ Device fingerprint recorded`);
+        } catch (error) {
+          console.error(`[Domain Registration ${requestId}] WARNING - Failed to record device fingerprint:`, error);
+          // Continue registration even if fingerprint recording fails
+        }
+      }
+
+      // Step 9: Automatically log in the newly created user
       console.log(`[Domain Registration ${requestId}] Authenticating user...`);
       
       // Use Promise wrapper for req.login
