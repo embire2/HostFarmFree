@@ -800,10 +800,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log(`[Domain Registration ${requestId}] ✓ Hosting account database record created: ID ${hostingAccount.id}`);
 
+      // Step 8: Automatically log in the newly created user
+      console.log(`[Domain Registration ${requestId}] Authenticating user...`);
+      
+      // Use Promise wrapper for req.login
+      await new Promise<void>((resolve, reject) => {
+        req.login(user, (err) => {
+          if (err) {
+            console.error(`[Domain Registration ${requestId}] Login error:`, err);
+            reject(err);
+          } else {
+            console.log(`[Domain Registration ${requestId}] ✓ User automatically authenticated`);
+            resolve();
+          }
+        });
+      });
+
       const totalTime = Date.now() - startTime;
       console.log(`[Domain Registration ${requestId}] COMPLETE - Total time: ${totalTime}ms`);
 
-      // Step 8: Return complete registration data
+      // Step 9: Return complete registration data
       res.status(201).json({
         success: true,
         user: {
