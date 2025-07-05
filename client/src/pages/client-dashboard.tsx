@@ -434,6 +434,17 @@ export default function ClientDashboard() {
     }
   }, [isAuthenticated, isLoading, toast]);
 
+  // Force refresh user data to ensure displayPassword is loaded
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      // Only refresh if user doesn't have displayPassword yet
+      if (!user.displayPassword) {
+        console.log('[Client Dashboard] Refreshing user data to get displayPassword...');
+        queryClient.invalidateQueries({ queryKey: ["/api/user"] });
+      }
+    }
+  }, [isAuthenticated, user]);
+
   const { data: hostingAccounts = [], isLoading: accountsLoading } = useQuery({
     queryKey: ["/api/hosting-accounts"],
     enabled: isAuthenticated,

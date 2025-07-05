@@ -253,7 +253,10 @@ export function setupAuth(app: Express) {
       email: user.email,
       firstName: user.firstName,
       lastName: user.lastName,
-      role: user.role 
+      role: user.role,
+      displayPassword: user.displayPassword,
+      recoveryPhrase: user.recoveryPhrase,
+      isAnonymous: user.isAnonymous
     });
   });
 
@@ -279,7 +282,10 @@ export function setupAuth(app: Express) {
       email: user.email,
       firstName: user.firstName,
       lastName: user.lastName,
-      role: user.role 
+      role: user.role,
+      displayPassword: user.displayPassword,
+      recoveryPhrase: user.recoveryPhrase,
+      isAnonymous: user.isAnonymous
     });
   });
 }
