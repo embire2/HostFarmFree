@@ -234,9 +234,9 @@ export default function DomainSearch({ onSuccess }: DomainSearchProps) {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               onKeyPress={(e) => e.key === "Enter" && handleSearch()}
-              className="bg-white text-dark placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-accent pr-32"
+              className="bg-white text-dark placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-accent pr-36"
             />
-            <span className="absolute right-3 top-2.5 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold px-3 py-1 rounded-lg shadow-md text-sm border border-blue-500/30">
+            <span className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold px-2.5 py-1.5 rounded-md shadow-md text-xs border border-blue-500/30">
               .hostme.today
             </span>
           </div>
