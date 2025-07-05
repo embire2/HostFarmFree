@@ -1226,12 +1226,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Get email account count via separate API call
           let emailAccountCount = 0;
           try {
+            console.log(`[Account Stats] Attempting to fetch email count for user: ${username}`);
+            
             const emailFormData = new URLSearchParams({
               'api.version': '1',
               'user': username
             });
             
             const emailUrl = `${apiSettings.whmApiUrl.replace(/\/json-api.*$/, '')}:2087/json-api/list_pops`;
+            console.log(`[Account Stats] Email API URL: ${emailUrl}`);
+            console.log(`[Account Stats] Email API Form Data: ${emailFormData.toString()}`);
+            
             const emailResponse = await fetch(emailUrl, {
               method: 'POST',
               headers: {
@@ -1241,14 +1246,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
               body: emailFormData
             });
             
+            console.log(`[Account Stats] Email API Response Status: ${emailResponse.status} ${emailResponse.statusText}`);
+            
             if (emailResponse.ok) {
               const emailResult = await emailResponse.json();
-              if (emailResult.metadata?.result === 1 && emailResult.data) {
-                emailAccountCount = Array.isArray(emailResult.data) ? emailResult.data.length : 0;
+              console.log(`[Account Stats] Email API Response:`, JSON.stringify(emailResult, null, 2));
+              
+              if (emailResult.metadata?.result === 1) {
+                // Different response formats possible
+                if (emailResult.data && Array.isArray(emailResult.data)) {
+                  emailAccountCount = emailResult.data.length;
+                } else if (emailResult.data && emailResult.data.pop) {
+                  emailAccountCount = Array.isArray(emailResult.data.pop) ? emailResult.data.pop.length : 0;
+                } else if (emailResult.data && typeof emailResult.data === 'object') {
+                  // Count keys in data object (each key might be an email account)
+                  emailAccountCount = Object.keys(emailResult.data).length;
+                } else {
+                  console.log(`[Account Stats] Unexpected email data format:`, emailResult.data);
+                  emailAccountCount = 0;
+                }
+                console.log(`[Account Stats] Calculated email account count: ${emailAccountCount}`);
+              } else {
+                console.log(`[Account Stats] Email API returned error result:`, emailResult.metadata);
+                emailAccountCount = 0;
               }
+            } else {
+              const errorText = await emailResponse.text();
+              console.log(`[Account Stats] Email API Error Response: ${errorText}`);
+              emailAccountCount = 0;
             }
-          } catch (emailError) {
-            console.log(`[Account Stats] Could not fetch email count for ${username}:`, emailError.message);
+          } catch (emailError: any) {
+            console.error(`[Account Stats] Email API Exception for ${username}:`, emailError?.message || emailError);
             // Default to 0 if we can't get email count
             emailAccountCount = 0;
           }
