@@ -208,27 +208,23 @@ export default function DomainSearch({ onSuccess }: DomainSearchProps) {
                     </Button>
                   </div>
                 ) : (
-                  <div className="space-y-3">
-                    <p className="text-green-100 text-sm">
-                      To claim this domain, please create an account or sign in:
+                  <div className="space-y-4">
+                    <p className="text-green-100 text-base font-medium text-center">
+                      🎉 Claim this domain now!
                     </p>
-                    <div className="flex flex-col sm:flex-row gap-2">
+                    <div className="flex justify-center">
                       <Button
                         onClick={handleSignUp}
-                        className="bg-green-600 hover:bg-green-700 text-white flex-1"
+                        size="lg"
+                        className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold px-8 py-4 text-lg rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
                       >
-                        <UserPlus className="w-4 h-4 mr-2" />
-                        Create Account
-                      </Button>
-                      <Button
-                        onClick={handleSignIn}
-                        variant="outline"
-                        className="border-green-400 text-green-100 hover:bg-green-600/20 flex-1"
-                      >
-                        <LogIn className="w-4 h-4 mr-2" />
-                        Sign In
+                        <UserPlus className="w-5 h-5 mr-3" />
+                        Create Your Free Account
                       </Button>
                     </div>
+                    <p className="text-green-200 text-xs text-center opacity-80">
+                      No credit card required • Setup takes less than 30 seconds
+                    </p>
                   </div>
                 )}
               </div>
