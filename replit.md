@@ -229,6 +229,8 @@ Changelog:
 - July 5, 2025. Fixed password showing as dots - now displays actual password from displayPassword field permanently
 - July 5, 2025. DUPLICATE CREDENTIALS FIX: Removed temporary credentials alert - only permanent credentials section displays now
 - July 5, 2025. Cleaned up credential displays - single credentials section shows username/password permanently for anonymous users
+- July 5, 2025. FINAL DUPLICATE REMOVAL: Removed blue-styled "ALWAYS VISIBLE CREDENTIALS" section completely
+- July 5, 2025. Dashboard now has only ONE credentials display showing username/password/recovery phrase for anonymous users
 ```
 
 # User Preferences
