@@ -190,6 +190,11 @@ Changelog:
 - July 5, 2025. Fixed client dashboard hosting statistics to use proper username generation matching account creation logic
 - July 5, 2025. Ensured client cPanel auto-login uses correct username format for WHM API create_user_session calls
 - July 5, 2025. Client dashboard now has full parity with admin panel - live WHM stats and working cPanel auto-login
+- July 5, 2025. MAJOR IMPROVEMENT: Created integrated domain registration endpoint that creates hosting accounts on WHM first, then user accounts
+- July 5, 2025. Fixed domain search flow to use new consolidated registration for immediate dashboard visibility
+- July 5, 2025. Added comprehensive error logging throughout registration process for automatic issue detection
+- July 5, 2025. Implemented prominent red email collection banner for users without email addresses
+- July 5, 2025. Updated domain registration to store credentials temporarily for immediate display to users
 ```
 
 # User Preferences

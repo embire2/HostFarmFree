@@ -33,9 +33,54 @@ export default function DomainSearch({ onSuccess }: DomainSearchProps) {
     retry: false,
   });
 
-  const createAccountMutation = useMutation({
+  const domainRegistrationMutation = useMutation({
     mutationFn: async (subdomain: string) => {
-      const response = await apiRequest("POST", "/api/create-hosting-account", {
+      const response = await apiRequest("POST", "/api/register-domain", {
+        subdomain,
+        packageId: 1, // Default to free package
+      });
+      return response.json();
+    },
+    onSuccess: (data) => {
+      console.log("[Domain Registration] Success:", data);
+      
+      // Store credentials temporarily for display
+      sessionStorage.setItem('newCredentials', JSON.stringify({
+        username: data.user.username,
+        password: data.user.password,
+        recoveryPhrase: data.user.recoveryPhrase,
+        domain: data.hostingAccount.domain,
+        registrationTime: Date.now()
+      }));
+      
+      toast({
+        title: "🎉 Account Created Successfully!",
+        description: `Your website ${data.hostingAccount.domain} is ready! Redirecting to dashboard...`,
+      });
+      
+      setSearchTerm("");
+      setLastSearched("");
+      
+      // Redirect to dashboard immediately - account is already created and ready
+      setTimeout(() => {
+        window.location.href = '/dashboard';
+      }, 2000);
+      
+      onSuccess?.();
+    },
+    onError: (error: Error) => {
+      console.error("[Domain Registration] Error:", error);
+      toast({
+        title: "Registration Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const hostingAccountMutation = useMutation({
+    mutationFn: async (subdomain: string) => {
+      const response = await apiRequest("POST", "/api/hosting-accounts", {
         subdomain,
         packageId: 1, // Default to free package
       });
@@ -44,14 +89,14 @@ export default function DomainSearch({ onSuccess }: DomainSearchProps) {
     onSuccess: (data) => {
       toast({
         title: "Success!",
-        description: "Your hosting account has been created successfully. It may take up to 2 minutes to activate.",
+        description: "Your hosting account has been created successfully.",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/hosting-accounts"] });
       setSearchTerm("");
       setLastSearched("");
-      // Redirect to dashboard with activation flag
+      // Redirect to dashboard
       setTimeout(() => {
-        window.location.href = '/?activation=true';
+        window.location.href = '/dashboard';
       }, 1000);
       onSuccess?.();
     },
@@ -78,19 +123,21 @@ export default function DomainSearch({ onSuccess }: DomainSearchProps) {
       });
       return;
     }
-    createAccountMutation.mutate(searchTerm.trim());
+    // If user is authenticated, use hosting account creation for existing users
+    const subdomain = searchTerm.trim().replace('.hostme.today', '');
+    hostingAccountMutation.mutate(subdomain);
   };
 
   const handleSignUp = () => {
-    // Store the desired domain in localStorage for after registration
-    localStorage.setItem('pendingDomain', lastSearched);
-    anonymousRegisterMutation.mutate();
+    // Use new integrated domain registration that creates everything at once
+    const subdomain = lastSearched.replace('.hostme.today', '');
+    domainRegistrationMutation.mutate(subdomain);
   };
 
   const handleSignIn = () => {
-    // For anonymous hosting, we also create an anonymous account
-    localStorage.setItem('pendingDomain', lastSearched);
-    anonymousRegisterMutation.mutate();
+    // For new domain registration, create everything at once
+    const subdomain = lastSearched.replace('.hostme.today', '');
+    domainRegistrationMutation.mutate(subdomain);
   };
 
   const isAvailable = lastSearched && searchResult?.available && !isSearching;
@@ -154,10 +201,10 @@ export default function DomainSearch({ onSuccess }: DomainSearchProps) {
                   <div className="flex justify-end">
                     <Button
                       onClick={handleCreateHosting}
-                      disabled={createAccountMutation.isPending}
+                      disabled={hostingAccountMutation.isPending}
                       className="bg-green-600 hover:bg-green-700 text-white"
                     >
-                      {createAccountMutation.isPending ? "Creating..." : "Create Hosting Account"}
+                      {hostingAccountMutation.isPending ? "Creating..." : "Create Hosting Account"}
                     </Button>
                   </div>
                 ) : (

@@ -542,6 +542,28 @@ export default function ClientDashboard() {
       <Navbar />
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Email Collection Banner for users without email */}
+        {user && !user.email && (
+          <div className="mb-8">
+            <Card className="border-red-500 bg-red-100 dark:bg-red-900/30">
+              <CardContent className="p-4">
+                <div className="flex items-center space-x-3">
+                  <AlertTriangle className="h-6 w-6 text-red-600 dark:text-red-400" />
+                  <div className="flex-1">
+                    <h3 className="text-lg font-semibold text-red-900 dark:text-red-100">
+                      🚨 Email Address Required
+                    </h3>
+                    <p className="text-red-800 dark:text-red-200 mb-3">
+                      Add your email address to receive important hosting notifications, security alerts, and account updates.
+                    </p>
+                    <EmailUpdateForm userId={user.id} currentEmail={user.email} />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
         {/* Welcome Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-dark mb-2">

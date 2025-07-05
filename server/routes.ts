@@ -2,7 +2,7 @@ import type { Express } from "express";
 import express from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { setupAuth, isAuthenticated } from "./auth";
+import { setupAuth, isAuthenticated, generateUsername, generatePassword, generateRecoveryPhrase, hashPassword } from "./auth";
 import { insertHostingAccountSchema, insertPluginSchema, insertDonationSchema } from "@shared/schema";
 import multer from "multer";
 import path from "path";
@@ -624,6 +624,220 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Remove duplicate routes since they're now properly ordered above
+
+  // Complete domain registration - creates hosting account first, then user account
+  app.post("/api/register-domain", async (req, res) => {
+    const startTime = Date.now();
+    const requestId = Math.random().toString(36).substring(7);
+    
+    try {
+      const { subdomain, packageId = 1 } = req.body;
+      
+      console.log(`[Domain Registration ${requestId}] START - Subdomain: ${subdomain}, Package: ${packageId}`);
+      
+      if (!subdomain) {
+        console.error(`[Domain Registration ${requestId}] ERROR - No subdomain provided`);
+        return res.status(400).json({ message: "Subdomain is required" });
+      }
+
+      // Step 1: Get API settings and validate WHM access
+      const apiSettings = await storage.getApiSettings();
+      const envToken = process.env.WHM_API_TOKEN;
+      const apiToken = envToken || apiSettings?.whmApiToken;
+      
+      console.log(`[Domain Registration ${requestId}] WHM API Settings:`, {
+        hasDbSettings: !!apiSettings,
+        hasUrl: !!apiSettings?.whmApiUrl,
+        hasDbToken: !!apiSettings?.whmApiToken,
+        hasEnvToken: !!envToken,
+        usingToken: envToken ? 'environment' : 'database'
+      });
+      
+      if (!apiSettings?.whmApiUrl || !apiToken) {
+        console.error(`[Domain Registration ${requestId}] ERROR - Missing WHM API configuration`);
+        return res.status(500).json({ message: "WHM API settings not configured" });
+      }
+
+      // Step 2: Check if domain is available
+      const domain = `${subdomain}.hostme.today`;
+      console.log(`[Domain Registration ${requestId}] Checking domain availability: ${domain}`);
+      
+      const existingAccount = await storage.getHostingAccountByDomain(domain);
+      if (existingAccount) {
+        console.error(`[Domain Registration ${requestId}] ERROR - Domain already exists: ${domain}`);
+        return res.status(400).json({ message: "Domain is already taken" });
+      }
+
+      // Step 3: Get hosting package
+      const hostingPackage = await storage.getHostingPackageById(packageId);
+      if (!hostingPackage) {
+        console.error(`[Domain Registration ${requestId}] ERROR - Invalid package ID: ${packageId}`);
+        return res.status(400).json({ message: "Invalid hosting package" });
+      }
+      
+      console.log(`[Domain Registration ${requestId}] Using hosting package: ${hostingPackage.name}`);
+
+      // Step 4: Generate username and password for WHM
+      let username = subdomain.toLowerCase().replace(/[^a-z0-9]/g, '');
+      if (/^[0-9]/.test(username)) {
+        username = 'h' + username;
+      }
+      if (!username || username.length > 16) {
+        username = subdomain.substring(0, 16);
+      }
+      
+      const generatedPassword = Math.random().toString(36).slice(-12) + Math.random().toString(36).slice(-4).toUpperCase();
+      
+      console.log(`[Domain Registration ${requestId}] Generated WHM username: ${username}`);
+
+      // Step 5: Create hosting account on WHM first
+      console.log(`[Domain Registration ${requestId}] Creating hosting account on WHM...`);
+      
+      const baseUrl = apiSettings.whmApiUrl.replace(/\/+$/, '').replace(/\/json-api.*$/, '').replace(/:2087.*$/, '');
+      const createUrl = `${baseUrl}:2087/json-api/createacct`;
+      
+      const formData = new URLSearchParams({
+        'api.version': '1',
+        'username': username,
+        'domain': domain,
+        'plan': hostingPackage.whmPackageName || '512MB Free Hosting',
+        'featurelist': 'default',
+        'password': generatedPassword,
+        'ip': 'n', // Use shared IP
+        'cgi': '1',
+        'hasshell': '0',
+        'contactemail': '',
+        'cpmod': 'jupiter',
+        'maxftp': 'unlimited',
+        'maxsql': hostingPackage.databases?.toString() || '1',
+        'maxpop': hostingPackage.emailAccounts?.toString() || '1',
+        'maxlst': '0',
+        'maxsub': hostingPackage.subdomains?.toString() || '1',
+        'maxpark': '0',
+        'maxaddon': '0',
+        'bwlimit': hostingPackage.bandwidthQuota?.toString() || '10240', // Already in MB
+        'language': 'en'
+      });
+
+      const whmResponse = await fetch(createUrl, {
+        method: 'POST',
+        headers: {
+          'Authorization': `whm root:${apiToken}`,
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: formData
+      });
+
+      if (!whmResponse.ok) {
+        const errorText = await whmResponse.text();
+        console.error(`[Domain Registration ${requestId}] WHM API Error:`, {
+          status: whmResponse.status,
+          statusText: whmResponse.statusText,
+          response: errorText
+        });
+        return res.status(500).json({ message: "Failed to create hosting account on server" });
+      }
+
+      const whmResult = await whmResponse.json();
+      console.log(`[Domain Registration ${requestId}] WHM Response:`, JSON.stringify(whmResult, null, 2));
+
+      // Check if WHM account creation was successful
+      const whmSuccess = whmResult.metadata?.result === 1 || whmResult.result?.[0]?.status === 1;
+      if (!whmSuccess) {
+        const errorReason = whmResult.metadata?.reason || whmResult.result?.[0]?.statusmsg || 'Unknown error';
+        console.error(`[Domain Registration ${requestId}] WHM Account Creation Failed:`, errorReason);
+        return res.status(500).json({ message: `Failed to create hosting account: ${errorReason}` });
+      }
+
+      console.log(`[Domain Registration ${requestId}] ✓ WHM hosting account created successfully`);
+
+      // Step 6: Create anonymous user account
+      console.log(`[Domain Registration ${requestId}] Creating anonymous user account...`);
+      
+      let userUsername: string;
+      let attempts = 0;
+      const maxAttempts = 10;
+
+      do {
+        userUsername = generateUsername();
+        const existingUser = await storage.getUserByUsername(userUsername);
+        if (!existingUser) break;
+        attempts++;
+      } while (attempts < maxAttempts);
+
+      if (attempts >= maxAttempts) {
+        console.error(`[Domain Registration ${requestId}] ERROR - Unable to generate unique username`);
+        return res.status(500).json({ message: "Unable to generate unique username. Please try again." });
+      }
+
+      const userPassword = generatePassword();
+      const recoveryPhrase = generateRecoveryPhrase();
+
+      const user = await storage.createUser({
+        username: userUsername,
+        password: await hashPassword(userPassword),
+        recoveryPhrase,
+        isAnonymous: true,
+        role: "client",
+      });
+
+      console.log(`[Domain Registration ${requestId}] ✓ User account created: ${user.username}`);
+
+      // Step 7: Create hosting account record in database
+      console.log(`[Domain Registration ${requestId}] Creating hosting account database record...`);
+      
+      const hostingAccount = await storage.createHostingAccount({
+        userId: user.id,
+        domain: domain,
+        subdomain: subdomain,
+        status: "active",
+        packageId: packageId,
+        cpanelUsername: username,
+        cpanelPassword: generatedPassword,
+        diskLimit: hostingPackage.diskSpaceQuota || 5120, // Already in MB
+        bandwidthLimit: hostingPackage.bandwidthQuota || 10240, // Already in MB
+      });
+
+      console.log(`[Domain Registration ${requestId}] ✓ Hosting account database record created: ID ${hostingAccount.id}`);
+
+      const totalTime = Date.now() - startTime;
+      console.log(`[Domain Registration ${requestId}] COMPLETE - Total time: ${totalTime}ms`);
+
+      // Step 8: Return complete registration data
+      res.status(201).json({
+        success: true,
+        user: {
+          id: user.id,
+          username: user.username,
+          password: userPassword,
+          recoveryPhrase: recoveryPhrase,
+          role: user.role,
+          isAnonymous: true,
+        },
+        hostingAccount: {
+          id: hostingAccount.id,
+          domain: hostingAccount.domain,
+          subdomain: hostingAccount.subdomain,
+          status: hostingAccount.status,
+          cpanelUsername: username,
+          package: hostingPackage.name,
+        },
+        message: "Account and hosting created successfully! Please save your credentials.",
+        processingTime: totalTime
+      });
+
+    } catch (error) {
+      const totalTime = Date.now() - startTime;
+      console.error(`[Domain Registration ${requestId}] FATAL ERROR after ${totalTime}ms:`, error);
+      console.error(`[Domain Registration ${requestId}] Error stack:`, error instanceof Error ? error.stack : 'No stack trace');
+      
+      res.status(500).json({ 
+        message: "Domain registration failed. Please try again.",
+        error: error instanceof Error ? error.message : String(error),
+        processingTime: totalTime
+      });
+    }
+  });
 
   // Statistics endpoint
   app.get("/api/stats", async (req, res) => {
