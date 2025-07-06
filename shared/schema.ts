@@ -50,6 +50,12 @@ export const deviceFingerprints = pgTable("device_fingerprints", {
   language: varchar("language"),
   platformInfo: text("platform_info"), // JSON string with additional device info
   ipAddress: varchar("ip_address"),
+  canvasFingerprint: text("canvas_fingerprint"), // Canvas fingerprint for unique identification
+  webglFingerprint: text("webgl_fingerprint"), // WebGL renderer fingerprint
+  audioFingerprint: varchar("audio_fingerprint"), // Audio context fingerprint
+  deviceMemory: integer("device_memory"), // Device memory if available
+  hardwareConcurrency: integer("hardware_concurrency"), // CPU cores
+  connectionType: varchar("connection_type"), // Network connection type
   lastSeen: timestamp("last_seen").defaultNow(),
   createdAt: timestamp("created_at").defaultNow(),
 }, (table) => [

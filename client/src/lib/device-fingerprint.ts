@@ -9,6 +9,12 @@ interface DeviceFingerprint {
   language: string;
   platformInfo: string;
   ipAddress?: string;
+  canvasFingerprint?: string;
+  webglFingerprint?: string;
+  audioFingerprint?: string;
+  deviceMemory?: number;
+  hardwareConcurrency?: number;
+  connectionType?: string;
 }
 
 export class DeviceFingerprintManager {
@@ -25,49 +31,178 @@ export class DeviceFingerprintManager {
     const fingerprint: DeviceFingerprint = {
       fingerprintHash: '',
       userAgent: navigator.userAgent,
-      screenResolution: `${screen.width}x${screen.height}`,
+      screenResolution: `${screen.width}x${screen.height}x${screen.colorDepth}`,
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       language: navigator.language,
+      deviceMemory: (navigator as any).deviceMemory || 0,
+      hardwareConcurrency: navigator.hardwareConcurrency || 0,
+      connectionType: (navigator as any).connection?.effectiveType || 'unknown',
       platformInfo: JSON.stringify({
         platform: navigator.platform,
         cookieEnabled: navigator.cookieEnabled,
         doNotTrack: navigator.doNotTrack,
-        hardwareConcurrency: navigator.hardwareConcurrency,
         maxTouchPoints: navigator.maxTouchPoints,
         vendor: navigator.vendor,
         vendorSub: navigator.vendorSub,
         productSub: navigator.productSub,
         oscpu: (navigator as any).oscpu || null,
         buildID: (navigator as any).buildID || null,
+        fonts: await this.getFontList(),
+        plugins: this.getPluginList(),
+        screenDetails: {
+          availWidth: screen.availWidth,
+          availHeight: screen.availHeight,
+          colorDepth: screen.colorDepth,
+          pixelDepth: screen.pixelDepth
+        }
       })
     };
 
-    // Try to get MAC address (limited browser support and requires permissions)
-    try {
-      if ('bluetooth' in navigator) {
-        // Note: This would require user permission and is very limited
-        // We'll skip this for now as it's not reliably available
-      }
-    } catch (error) {
-      // MAC address not available, continue without it
-    }
+    // Generate Canvas fingerprint
+    fingerprint.canvasFingerprint = await this.generateCanvasFingerprint();
+    
+    // Generate WebGL fingerprint
+    fingerprint.webglFingerprint = await this.generateWebGLFingerprint();
+    
+    // Generate Audio fingerprint
+    fingerprint.audioFingerprint = await this.generateAudioFingerprint();
 
-    // Get IP address from external service (optional)
+    // Get IP address (optional)
     try {
-      const ipResponse = await fetch('https://api.ipify.org?format=json');
+      const ipResponse = await fetch('https://api.ipify.org?format=json', { 
+        signal: AbortSignal.timeout(3000) 
+      });
       if (ipResponse.ok) {
         const ipData = await ipResponse.json();
         fingerprint.ipAddress = ipData.ip;
       }
     } catch (error) {
       // IP detection failed, continue without it
+      console.log('IP detection failed, continuing without IP');
     }
 
     // Generate hash from collected data
     fingerprint.fingerprintHash = await this.generateHash(fingerprint);
     
     this.fingerprint = fingerprint;
+    console.log('Generated device fingerprint:', fingerprint.fingerprintHash);
     return fingerprint;
+  }
+
+  /**
+   * Generate Canvas fingerprint for unique device identification
+   */
+  private async generateCanvasFingerprint(): Promise<string> {
+    try {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return 'no-canvas';
+
+      canvas.width = 200;
+      canvas.height = 50;
+      
+      // Draw unique patterns
+      ctx.textBaseline = 'top';
+      ctx.font = '14px Arial';
+      ctx.fillStyle = '#f60';
+      ctx.fillRect(125, 1, 62, 20);
+      ctx.fillStyle = '#069';
+      ctx.fillText('Device fingerprint test 🚀', 2, 15);
+      ctx.fillStyle = 'rgba(102, 204, 0, 0.7)';
+      ctx.fillText('Device fingerprint test 🚀', 4, 17);
+
+      return canvas.toDataURL();
+    } catch (error) {
+      return 'canvas-error';
+    }
+  }
+
+  /**
+   * Generate WebGL fingerprint
+   */
+  private async generateWebGLFingerprint(): Promise<string> {
+    try {
+      const canvas = document.createElement('canvas');
+      const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+      if (!gl) return 'no-webgl';
+
+      const info = {
+        vendor: gl.getParameter(gl.VENDOR),
+        renderer: gl.getParameter(gl.RENDERER),
+        version: gl.getParameter(gl.VERSION),
+        shadingLanguageVersion: gl.getParameter(gl.SHADING_LANGUAGE_VERSION),
+        extensions: gl.getSupportedExtensions()?.sort().join(',') || '',
+      };
+
+      return JSON.stringify(info);
+    } catch (error) {
+      return 'webgl-error';
+    }
+  }
+
+  /**
+   * Generate Audio fingerprint
+   */
+  private async generateAudioFingerprint(): Promise<string> {
+    try {
+      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const oscillator = audioContext.createOscillator();
+      const analyser = audioContext.createAnalyser();
+      const gainNode = audioContext.createGain();
+      const scriptProcessor = audioContext.createScriptProcessor(4096, 1, 1);
+
+      gainNode.gain.value = 0; // Mute
+      oscillator.connect(analyser);
+      analyser.connect(scriptProcessor);
+      scriptProcessor.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      oscillator.start(0);
+
+      const fingerprint = analyser.frequencyBinCount.toString();
+      oscillator.stop();
+      audioContext.close();
+      
+      return fingerprint;
+    } catch (error) {
+      return 'audio-error';
+    }
+  }
+
+  /**
+   * Get available fonts (basic detection)
+   */
+  private async getFontList(): Promise<string[]> {
+    const fonts = [
+      'Arial', 'Arial Black', 'Comic Sans MS', 'Courier New', 'Georgia',
+      'Helvetica', 'Impact', 'Lucida Console', 'Times New Roman', 'Trebuchet MS',
+      'Verdana', 'Calibri', 'Cambria', 'Candara', 'Consolas', 'Constantia'
+    ];
+    
+    const availableFonts: string[] = [];
+    
+    for (const font of fonts) {
+      if (document.fonts && document.fonts.check) {
+        if (document.fonts.check(`12px "${font}"`)) {
+          availableFonts.push(font);
+        }
+      } else {
+        // Fallback font detection
+        availableFonts.push(font);
+      }
+    }
+    
+    return availableFonts;
+  }
+
+  /**
+   * Get plugin list
+   */
+  private getPluginList(): string[] {
+    const plugins: string[] = [];
+    for (let i = 0; i < navigator.plugins.length; i++) {
+      plugins.push(navigator.plugins[i].name);
+    }
+    return plugins.sort();
   }
 
   /**
@@ -80,6 +215,12 @@ export class DeviceFingerprintManager {
       timezone: data.timezone,
       language: data.language,
       platformInfo: data.platformInfo,
+      canvasFingerprint: data.canvasFingerprint,
+      webglFingerprint: data.webglFingerprint,
+      audioFingerprint: data.audioFingerprint,
+      deviceMemory: data.deviceMemory,
+      hardwareConcurrency: data.hardwareConcurrency,
+      connectionType: data.connectionType,
       // Include MAC and IP if available
       ...(data.macAddress && { macAddress: data.macAddress }),
       ...(data.ipAddress && { ipAddress: data.ipAddress })
@@ -129,24 +270,32 @@ export class DeviceFingerprintManager {
     currentDevices: number;
     maxDevices: number;
   }> {
-    const fingerprint = await this.generateFingerprint();
-    
     try {
+      console.log('[Device Fingerprint] Starting device registration check...');
+      const fingerprint = await this.generateFingerprint();
+      console.log('[Device Fingerprint] Generated fingerprint:', fingerprint.fingerprintHash.substring(0, 10) + '...');
+      
+      const requestBody = { fingerprintHash: fingerprint.fingerprintHash };
+      console.log('[Device Fingerprint] Sending device limits request');
+      
       const response = await fetch('/api/check-device-limits', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ fingerprintHash: fingerprint.fingerprintHash }),
+        body: JSON.stringify(requestBody),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to check device limits');
+        console.error('[Device Fingerprint] API request failed:', response.status, response.statusText);
+        throw new Error(`Device limits API returned ${response.status}: ${response.statusText}`);
       }
 
-      return await response.json();
+      const result = await response.json();
+      console.log('[Device Fingerprint] Device limits check result:', result);
+      return result;
     } catch (error) {
-      console.error('Failed to check device limits:', error);
+      console.error('[Device Fingerprint] Failed to check device limits:', error);
       // Return permissive defaults if check fails
       return {
         canRegister: true,

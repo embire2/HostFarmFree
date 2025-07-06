@@ -3684,7 +3684,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.json(existingFingerprint);
       }
 
-      // Create new fingerprint
+      // Create new fingerprint with all available data
       const fingerprint = await storage.createDeviceFingerprint({
         userId,
         fingerprintHash,
@@ -3695,6 +3695,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         language,
         platformInfo,
         ipAddress,
+        canvasFingerprint: req.body.canvasFingerprint,
+        webglFingerprint: req.body.webglFingerprint,
+        audioFingerprint: req.body.audioFingerprint,
+        deviceMemory: req.body.deviceMemory,
+        hardwareConcurrency: req.body.hardwareConcurrency,
+        connectionType: req.body.connectionType,
       });
 
       res.json(fingerprint);
@@ -3737,23 +3743,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Check if user can register new account based on device fingerprint
   app.post("/api/check-device-limits", async (req, res) => {
     try {
+      console.log('[Device Limits API] Received request with body:', JSON.stringify(req.body));
       const { fingerprintHash } = req.body;
+      
+      if (!fingerprintHash) {
+        console.error('[Device Limits API] No fingerprint hash provided');
+        return res.status(400).json({ 
+          message: "Fingerprint hash is required",
+          canRegister: false,
+          currentDevices: 0,
+          maxDevices: 2
+        });
+      }
+      
+      console.log('[Device Limits API] Checking device count for fingerprint:', fingerprintHash.substring(0, 10) + '...');
       const deviceCount = await storage.getDeviceCountByFingerprint(fingerprintHash);
+      console.log('[Device Limits API] Device count:', deviceCount);
       
       // Get default limits for Free group
       const freeGroup = await storage.getUserGroupByName("Free");
       const maxDevices = freeGroup?.maxDevices || 2;
+      console.log('[Device Limits API] Max devices allowed:', maxDevices);
       
       const canRegister = deviceCount < maxDevices;
       
-      res.json({ 
+      const result = { 
         canRegister, 
         currentDevices: deviceCount, 
         maxDevices 
-      });
+      };
+      
+      console.log('[Device Limits API] Returning result:', result);
+      res.json(result);
     } catch (error) {
-      console.error("Error checking device limits:", error);
-      res.status(500).json({ message: "Failed to check device limits" });
+      console.error("[Device Limits API] Error checking device limits:", error);
+      res.status(500).json({ 
+        message: "Failed to check device limits",
+        canRegister: true, // Fail open for better UX
+        currentDevices: 0,
+        maxDevices: 2
+      });
     }
   });
 

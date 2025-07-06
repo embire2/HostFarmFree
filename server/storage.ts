@@ -570,8 +570,21 @@ export class DatabaseStorage implements IStorage {
 
   // Device Fingerprint operations
   async createDeviceFingerprint(fingerprintData: InsertDeviceFingerprint): Promise<DeviceFingerprint> {
-    const [fingerprint] = await db.insert(deviceFingerprints).values(fingerprintData).returning();
-    return fingerprint;
+    try {
+      console.log('[Storage] Creating device fingerprint with data:', {
+        ...fingerprintData,
+        platformInfo: fingerprintData.platformInfo ? 'JSON data present' : 'null',
+        canvasFingerprint: fingerprintData.canvasFingerprint ? 'Canvas data present' : 'null'
+      });
+      
+      const [fingerprint] = await db.insert(deviceFingerprints).values(fingerprintData).returning();
+      
+      console.log('[Storage] Successfully created device fingerprint with ID:', fingerprint.id);
+      return fingerprint;
+    } catch (error) {
+      console.error('[Storage] Error creating device fingerprint:', error);
+      throw error;
+    }
   }
 
   async getDeviceFingerprintsByUserId(userId: number): Promise<DeviceFingerprint[]> {
