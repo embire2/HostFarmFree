@@ -8,123 +8,80 @@ declare global {
   }
 }
 
-type FacebookPixelSettings = {
-  id: number;
-  pixelId: string;
-  accessToken?: string;
-  isActive: boolean;
-  trackPageViews: boolean;
-  trackPurchases: boolean;
-  purchaseEventValue: string;
-  testMode: boolean;
-  createdAt: string;
-  updatedAt: string;
-};
-
-interface FacebookPixelProps {
-  enabled?: boolean;
-}
-
-export function FacebookPixel({ enabled = true }: FacebookPixelProps) {
-  const { data: settings } = useQuery<FacebookPixelSettings | null>({
+export default function FacebookPixel() {
+  const { data: pixelSettings } = useQuery({
     queryKey: ["/api/facebook-pixel-settings"],
-    enabled: enabled,
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+    retry: false, // Don't retry if no settings configured
   });
 
   useEffect(() => {
-    if (!settings || !settings.isActive || !settings.pixelId) {
+    if (!pixelSettings?.pixelId || !pixelSettings?.isEnabled) {
       return;
     }
 
-    // Initialize Facebook Pixel
-    const initFacebookPixel = () => {
-      // Facebook Pixel Code
-      !(function (f: any, b: any, e: any, v: any, n?: any, t?: any, s?: any) {
-        if (f.fbq) return;
-        n = f.fbq = function () {
-          n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments);
-        };
-        if (!f._fbq) f._fbq = n;
-        n.push = n;
-        n.loaded = !0;
-        n.version = "2.0";
-        n.queue = [];
-        t = b.createElement(e);
-        t.async = !0;
-        t.src = v;
-        s = b.getElementsByTagName(e)[0];
-        s.parentNode.insertBefore(t, s);
-      })(window, document, "script", "https://connect.facebook.net/en_US/fbevents.js");
+    // Check if Facebook Pixel is already loaded
+    if (window.fbq) {
+      return;
+    }
 
-      // Initialize the pixel
-      window.fbq("init", settings.pixelId);
+    // Facebook Pixel Code
+    (function(f: any, b: any, e: any, v: any, n: any, t: any, s: any) {
+      if (f.fbq) return;
+      n = f.fbq = function() {
+        n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments);
+      };
+      if (!f._fbq) f._fbq = n;
+      n.push = n;
+      n.loaded = !0;
+      n.version = '2.0';
+      n.queue = [];
+      t = b.createElement(e);
+      t.async = !0;
+      t.src = v;
+      s = b.getElementsByTagName(e)[0];
+      s.parentNode.insertBefore(t, s);
+    })(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js');
 
-      // Enable test mode if configured
-      if (settings.testMode) {
-        window.fbq("set", "debug", "true");
-        console.log("[Facebook Pixel] Running in test mode");
-      }
+    // Initialize pixel with dynamic ID
+    window.fbq('init', pixelSettings.pixelId);
+    
+    // Track page view
+    window.fbq('track', 'PageView');
+    
+    console.log('[Facebook Pixel] Initialized with ID:', pixelSettings.pixelId);
 
-      // Track page view if enabled
-      if (settings.trackPageViews) {
-        window.fbq("track", "PageView");
-        console.log("[Facebook Pixel] Page view tracked");
-      }
-    };
+    // Add noscript fallback to document head
+    const noscript = document.createElement('noscript');
+    const img = document.createElement('img');
+    img.height = 1;
+    img.width = 1;
+    img.style.display = 'none';
+    img.src = `https://www.facebook.com/tr?id=${pixelSettings.pixelId}&ev=PageView&noscript=1`;
+    noscript.appendChild(img);
+    document.head.appendChild(noscript);
 
-    initFacebookPixel();
-  }, [settings]);
+  }, [pixelSettings]);
 
-  return null;
+  return null; // This component doesn't render anything visible
 }
 
-// Helper function to track purchase events
-export const trackPurchaseEvent = async (value?: number) => {
-  try {
-    // Fetch current settings
-    const response = await fetch("/api/facebook-pixel-settings");
-    if (!response.ok) {
-      console.warn("[Facebook Pixel] Could not fetch settings for purchase tracking");
-      return;
-    }
+// Export utility function for tracking events
+export function trackEvent(eventName: string, parameters?: any) {
+  if (window.fbq) {
+    window.fbq('track', eventName, parameters);
+    console.log(`[Facebook Pixel] Event tracked: ${eventName}`, parameters);
+  }
+}
 
-    const settings: FacebookPixelSettings | null = await response.json();
-
-    if (!settings || !settings.isActive || !settings.trackPurchases) {
-      console.log("[Facebook Pixel] Purchase tracking disabled");
-      return;
-    }
-
-    if (!window.fbq) {
-      console.warn("[Facebook Pixel] Facebook Pixel not initialized");
-      return;
-    }
-
-    const purchaseValue = value || parseFloat(settings.purchaseEventValue) || 5.0;
-
-    // Track purchase event
-    window.fbq("track", "Purchase", {
-      value: purchaseValue,
-      currency: "USD",
-      content_category: "hosting",
-      content_name: "hosting_account",
+// Export utility function for tracking purchases
+export function trackPurchase(value: number, currency: string = 'USD', parameters?: any) {
+  if (window.fbq) {
+    window.fbq('track', 'Purchase', {
+      value: value,
+      currency: currency,
+      ...parameters
     });
-
-    console.log(`[Facebook Pixel] Purchase event tracked with value: $${purchaseValue}`);
-  } catch (error) {
-    console.error("[Facebook Pixel] Error tracking purchase event:", error);
+    console.log(`[Facebook Pixel] Purchase tracked: ${value} ${currency}`, parameters);
   }
-};
-
-// Helper function to track custom events
-export const trackCustomEvent = (eventName: string, parameters?: Record<string, any>) => {
-  if (!window.fbq) {
-    console.warn("[Facebook Pixel] Facebook Pixel not initialized");
-    return;
-  }
-
-  window.fbq("track", eventName, parameters);
-  console.log(`[Facebook Pixel] Custom event tracked: ${eventName}`, parameters);
-};
-
-export default FacebookPixel;
+}

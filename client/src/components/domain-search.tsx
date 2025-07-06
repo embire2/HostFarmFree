@@ -10,7 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { useLocation } from "wouter";
 import { useDeviceFingerprint } from "@/lib/device-fingerprint";
-import { trackPurchaseEvent } from "@/components/facebook-pixel";
+import { trackPurchase } from "@/components/facebook-pixel";
 
 interface DomainSearchProps {
   onSuccess?: () => void;
@@ -83,7 +83,10 @@ export default function DomainSearch({ onSuccess }: DomainSearchProps) {
       
       // Track Facebook Pixel purchase event for new account creation
       try {
-        await trackPurchaseEvent();
+        trackPurchase(5.00, 'USD', {
+          content_category: 'hosting',
+          content_name: 'free_hosting_account'
+        });
         console.log("[Domain Registration] Facebook Pixel purchase event tracked successfully");
       } catch (error) {
         console.warn("[Domain Registration] Failed to track Facebook Pixel purchase event:", error);
