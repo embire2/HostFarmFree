@@ -8,6 +8,7 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import Stripe from "stripe";
+import nodemailer from "nodemailer";
 
 if (!process.env.STRIPE_SECRET_KEY) {
   throw new Error('Missing required Stripe secret: STRIPE_SECRET_KEY');
@@ -3919,16 +3920,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { host, port, username, password, encryption, fromEmail, fromName, testEmail } = req.body;
       
-      const nodemailer = require('nodemailer');
-      
-      const transporter = nodemailer.createTransporter({
+      const transporter = nodemailer.createTransport({
         host,
         port,
-        secure: encryption === 'ssl',
+        secure: encryption === 'ssl', // true for SSL on port 465, false for other ports
         auth: {
           user: username,
           pass: password,
         },
+        ...(encryption === 'tls' && {
+          requireTLS: true,
+          tls: {
+            ciphers: 'SSLv3'
+          }
+        })
       });
 
       const mailOptions = {
