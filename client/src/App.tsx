@@ -15,6 +15,7 @@ import DonationSuccess from "@/pages/donation-success";
 import NotFound from "@/pages/not-found";
 import ApiSettingsPage from "@/pages/api-settings-page";
 import FacebookPixel from "@/components/facebook-pixel";
+import CustomHeaderCodeInjector from "@/components/custom-header-code-injector";
 
 function Router() {
   const { user, isAuthenticated, isLoading } = useAuth();
@@ -80,6 +81,7 @@ function App() {
       <AuthProvider>
         <TooltipProvider>
           <FacebookPixel />
+          <CustomHeaderCodeInjector />
           <Toaster />
           <Router />
         </TooltipProvider>

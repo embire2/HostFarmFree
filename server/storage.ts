@@ -12,6 +12,7 @@ import {
   facebookPixelSettings,
   pluginRequests,
   smtpSettings,
+  customHeaderCode,
   type User,
   type InsertUser,
   type HostingAccount,
@@ -37,6 +38,8 @@ import {
   type InsertPluginRequest,
   type SmtpSettings,
   type InsertSmtpSettings,
+  type CustomHeaderCode,
+  type InsertCustomHeaderCode,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, ilike, and, sql } from "drizzle-orm";
@@ -138,6 +141,13 @@ export interface IStorage {
   getSmtpSettings(): Promise<SmtpSettings | undefined>;
   upsertSmtpSettings(settings: InsertSmtpSettings): Promise<SmtpSettings>;
   deleteSmtpSettings(): Promise<boolean>;
+  
+  // Custom Header Code operations
+  getCustomHeaderCodes(): Promise<CustomHeaderCode[]>;
+  getCustomHeaderCodeById(id: number): Promise<CustomHeaderCode | undefined>;
+  createCustomHeaderCode(code: InsertCustomHeaderCode): Promise<CustomHeaderCode>;
+  updateCustomHeaderCode(id: number, updates: Partial<InsertCustomHeaderCode>): Promise<CustomHeaderCode | undefined>;
+  deleteCustomHeaderCode(id: number): Promise<boolean>;
   
   // Statistics
   getStats(): Promise<{
@@ -776,6 +786,59 @@ export class DatabaseStorage implements IStorage {
       return (result.rowCount || 0) > 0;
     } catch (error) {
       console.error('Error deleting SMTP settings:', error);
+      return false;
+    }
+  }
+
+  // Custom Header Code operations
+  async getCustomHeaderCodes(): Promise<CustomHeaderCode[]> {
+    return await db
+      .select()
+      .from(customHeaderCode)
+      .orderBy(customHeaderCode.position, customHeaderCode.createdAt);
+  }
+
+  async getCustomHeaderCodeById(id: number): Promise<CustomHeaderCode | undefined> {
+    const [code] = await db
+      .select()
+      .from(customHeaderCode)
+      .where(eq(customHeaderCode.id, id));
+    return code;
+  }
+
+  async createCustomHeaderCode(codeData: InsertCustomHeaderCode): Promise<CustomHeaderCode> {
+    const [code] = await db
+      .insert(customHeaderCode)
+      .values(codeData)
+      .returning();
+    return code;
+  }
+
+  async updateCustomHeaderCode(
+    id: number,
+    updates: Partial<InsertCustomHeaderCode>
+  ): Promise<CustomHeaderCode | undefined> {
+    try {
+      const [code] = await db
+        .update(customHeaderCode)
+        .set({ ...updates, updatedAt: new Date() })
+        .where(eq(customHeaderCode.id, id))
+        .returning();
+      return code;
+    } catch (error) {
+      console.error('Error updating custom header code:', error);
+      return undefined;
+    }
+  }
+
+  async deleteCustomHeaderCode(id: number): Promise<boolean> {
+    try {
+      const result = await db
+        .delete(customHeaderCode)
+        .where(eq(customHeaderCode.id, id));
+      return (result.rowCount || 0) > 0;
+    } catch (error) {
+      console.error('Error deleting custom header code:', error);
       return false;
     }
   }

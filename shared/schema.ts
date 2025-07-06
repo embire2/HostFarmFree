@@ -231,6 +231,17 @@ export const smtpSettings = pgTable("smtp_settings", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Custom Header Code table
+export const customHeaderCode = pgTable("custom_header_code", {
+  id: serial("id").primaryKey(),
+  name: varchar("name", { length: 255 }).notNull(), // Name/description of the code block
+  code: text("code").notNull(), // The actual HTML/JS/CSS code
+  isActive: boolean("is_active").default(true),
+  position: integer("position").default(0), // For ordering multiple code blocks
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Relations
 export const userGroupsRelations = relations(userGroups, ({ many }) => ({
   users: many(users),
@@ -409,3 +420,13 @@ export const insertSmtpSettingsSchema = createInsertSchema(smtpSettings).omit({
 
 export type InsertSmtpSettings = z.infer<typeof insertSmtpSettingsSchema>;
 export type SmtpSettings = typeof smtpSettings.$inferSelect;
+
+// Custom Header Code schema
+export const insertCustomHeaderCodeSchema = createInsertSchema(customHeaderCode).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertCustomHeaderCode = z.infer<typeof insertCustomHeaderCodeSchema>;
+export type CustomHeaderCode = typeof customHeaderCode.$inferSelect;

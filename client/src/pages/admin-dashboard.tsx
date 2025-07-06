@@ -36,6 +36,7 @@ import HostingAccountsManagement from "@/components/hosting-accounts-management"
 import UserGroupsManagement from "@/components/user-groups-management";
 import { FacebookPixelSettings } from "@/components/facebook-pixel-settings";
 import SmtpSettings from "@/components/smtp-settings";
+import { CustomHeaderCodeSettings } from "@/components/custom-header-code-settings";
 
 export default function AdminDashboard() {
   const { user, isAuthenticated, isLoading } = useAuth();
@@ -450,6 +451,10 @@ export default function AdminDashboard() {
               <Server className="mr-2 h-4 w-4" />
               SMTP Settings
             </TabsTrigger>
+            <TabsTrigger value="header-code" className="flex items-center">
+              <Puzzle className="mr-2 h-4 w-4" />
+              Header Code
+            </TabsTrigger>
             <TabsTrigger value="system" className="flex items-center">
               <Server className="mr-2 h-4 w-4" />
               System
@@ -801,6 +806,10 @@ export default function AdminDashboard() {
 
           <TabsContent value="smtp-settings" className="space-y-6">
             <SmtpSettings />
+          </TabsContent>
+
+          <TabsContent value="header-code" className="space-y-6">
+            <CustomHeaderCodeSettings />
           </TabsContent>
 
           <TabsContent value="system" className="space-y-6">

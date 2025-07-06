@@ -3997,6 +3997,90 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Custom Header Code endpoints (admin only)
+  app.get("/api/custom-header-codes", isAuthenticated, requireAdmin, async (req, res) => {
+    try {
+      const codes = await storage.getCustomHeaderCodes();
+      res.json(codes);
+    } catch (error) {
+      console.error("Error fetching custom header codes:", error);
+      res.status(500).json({ error: "Failed to fetch custom header codes" });
+    }
+  });
+
+  // Public endpoint for active header codes (must come before /:id route)
+  app.get("/api/custom-header-codes/active", async (req, res) => {
+    try {
+      const allCodes = await storage.getCustomHeaderCodes();
+      const activeCodes = allCodes.filter(code => code.isActive);
+      res.json(activeCodes);
+    } catch (error) {
+      console.error("Error fetching active custom header codes:", error);
+      res.status(500).json({ error: "Failed to fetch active custom header codes" });
+    }
+  });
+
+  app.get("/api/custom-header-codes/:id", isAuthenticated, requireAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ error: "Invalid ID parameter" });
+      }
+      const code = await storage.getCustomHeaderCodeById(id);
+      if (!code) {
+        return res.status(404).json({ error: "Custom header code not found" });
+      }
+      res.json(code);
+    } catch (error) {
+      console.error("Error fetching custom header code:", error);
+      res.status(500).json({ error: "Failed to fetch custom header code" });
+    }
+  });
+
+  app.post("/api/custom-header-codes", isAuthenticated, requireAdmin, async (req, res) => {
+    try {
+      const code = await storage.createCustomHeaderCode(req.body);
+      res.json(code);
+    } catch (error) {
+      console.error("Error creating custom header code:", error);
+      res.status(500).json({ error: "Failed to create custom header code" });
+    }
+  });
+
+  app.put("/api/custom-header-codes/:id", isAuthenticated, requireAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ error: "Invalid ID parameter" });
+      }
+      const code = await storage.updateCustomHeaderCode(id, req.body);
+      if (!code) {
+        return res.status(404).json({ error: "Custom header code not found" });
+      }
+      res.json(code);
+    } catch (error) {
+      console.error("Error updating custom header code:", error);
+      res.status(500).json({ error: "Failed to update custom header code" });
+    }
+  });
+
+  app.delete("/api/custom-header-codes/:id", isAuthenticated, requireAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ error: "Invalid ID parameter" });
+      }
+      const success = await storage.deleteCustomHeaderCode(id);
+      if (!success) {
+        return res.status(404).json({ error: "Custom header code not found" });
+      }
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting custom header code:", error);
+      res.status(500).json({ error: "Failed to delete custom header code" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
