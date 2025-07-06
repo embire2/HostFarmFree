@@ -15,6 +15,7 @@ import {
 import Navbar from "@/components/navbar";
 import PluginCard from "@/components/plugin-card";
 import PluginRequestForm from "@/components/plugin-request-form";
+import SEOHead, { generateSchemaData } from "@/components/seo-head";
 import { Plugin } from "@shared/schema";
 
 export default function PluginLibrary() {
@@ -69,17 +70,57 @@ export default function PluginLibrary() {
     return colors[category] || "bg-gray-500 text-white";
   };
 
+  // Generate structured data for plugin library
+  const pluginLibrarySchema = {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    "name": "Premium WordPress Plugin Library",
+    "description": "Download thousands of premium WordPress plugins for free including WooCommerce, Elementor Pro, Yoast SEO Premium, and more. No subscriptions, completely free access.",
+    "url": "https://hostfarm.org/plugins",
+    "mainEntity": {
+      "@type": "ItemList",
+      "name": "WordPress Plugins",
+      "numberOfItems": plugins?.length || 0,
+      "itemListElement": plugins?.slice(0, 10).map((plugin, index) => ({
+        "@type": "SoftwareApplication",
+        "position": index + 1,
+        "name": plugin.name,
+        "description": plugin.description,
+        "applicationCategory": "WordPress Plugin",
+        "downloadUrl": `https://hostfarm.org/plugin/${plugin.slug}`
+      })) || []
+    }
+  };
+
+  const breadcrumbSchema = generateSchemaData.breadcrumb([
+    { name: "Home", url: "https://hostfarm.org" },
+    { name: "WordPress Plugin Library", url: "https://hostfarm.org/plugins" }
+  ]);
+
+  const combinedSchema = {
+    "@context": "https://schema.org",
+    "@graph": [pluginLibrarySchema, breadcrumbSchema]
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
+      <SEOHead
+        title="Premium WordPress Plugin Library - Free Download | HostFarm.org"
+        description="Download premium WordPress plugins for free including WooCommerce Pro, Elementor Pro, Yoast SEO Premium, Rank Math Pro, WPML, and 2000+ more plugins. No subscriptions, no hidden fees."
+        keywords="WordPress plugins free download, premium WordPress plugins, WooCommerce Pro, Elementor Pro, Yoast SEO Premium, Rank Math Pro, WPML, WordPress plugin library, free plugins, premium plugins download"
+        canonical="https://hostfarm.org/plugins"
+        ogImage="https://hostfarm.org/og-plugin-library.jpg"
+        schemaData={combinedSchema}
+      />
       <Navbar />
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-dark mb-4">Premium Plugin Library</h1>
+          <h1 className="text-4xl font-bold text-dark mb-4">Premium WordPress Plugin Library</h1>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Discover thousands of premium WordPress plugins, all available for free download.
-            No hidden fees, no subscriptions - just premium tools for your projects.
+            Download <strong>2,000+ premium WordPress plugins</strong> worth $15,000+ completely free. 
+            Including WooCommerce Pro, Elementor Pro, Yoast SEO Premium, Rank Math Pro, WPML, and more.
           </p>
         </div>
 

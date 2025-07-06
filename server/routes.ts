@@ -4081,6 +4081,64 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // SEO Routes - Sitemap and SEO optimization
+  app.get("/sitemap.xml", async (req, res) => {
+    try {
+      // Get all public plugins for sitemap
+      const plugins = await storage.getPublicPlugins();
+      
+      const urls = [
+        {
+          url: 'https://hostfarm.org',
+          lastmod: new Date().toISOString(),
+          changefreq: 'daily',
+          priority: '1.0'
+        },
+        {
+          url: 'https://hostfarm.org/plugins',
+          lastmod: new Date().toISOString(),
+          changefreq: 'daily',
+          priority: '0.9'
+        },
+        {
+          url: 'https://hostfarm.org/plugin-library',
+          lastmod: new Date().toISOString(),
+          changefreq: 'daily',
+          priority: '0.9'
+        }
+      ];
+
+      // Add plugin pages to sitemap
+      plugins.forEach(plugin => {
+        if (plugin.slug) {
+          urls.push({
+            url: `https://hostfarm.org/plugin/${plugin.slug}`,
+            lastmod: plugin.updatedAt || new Date().toISOString(),
+            changefreq: 'weekly',
+            priority: '0.8'
+          });
+        }
+      });
+
+      // Generate XML sitemap
+      const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${urls.map(url => `  <url>
+    <loc>${url.url}</loc>
+    <lastmod>${url.lastmod}</lastmod>
+    <changefreq>${url.changefreq}</changefreq>
+    <priority>${url.priority}</priority>
+  </url>`).join('\n')}
+</urlset>`;
+
+      res.set('Content-Type', 'application/xml');
+      res.send(sitemap);
+    } catch (error) {
+      console.error("Error generating sitemap:", error);
+      res.status(500).send("Error generating sitemap");
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

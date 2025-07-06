@@ -1,0 +1,37 @@
+User-agent: *
+Allow: /
+
+# Sitemaps
+Sitemap: https://hostfarm.org/sitemap.xml
+
+# Block admin areas
+Disallow: /admin
+Disallow: /dashboard
+Disallow: /client
+Disallow: /api/
+
+# Allow important pages
+Allow: /
+Allow: /plugins
+Allow: /plugin-library
+Allow: /plugin/*
+
+# Crawl delay for respectful crawling
+Crawl-delay: 1
+
+# Specific bot instructions
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+# Block malicious bots
+User-agent: SemrushBot
+Disallow: /
+
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: MJ12bot
+Disallow: /

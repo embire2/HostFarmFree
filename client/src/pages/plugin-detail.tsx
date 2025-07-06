@@ -14,6 +14,7 @@ import {
   ExternalLink
 } from "lucide-react";
 import Navbar from "@/components/navbar";
+import SEOHead, { generateSchemaData } from "@/components/seo-head";
 import { Plugin } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 
@@ -117,8 +118,29 @@ export default function PluginDetail() {
     return `${mb.toFixed(1)} MB`;
   };
 
+  // Generate plugin-specific structured data
+  const pluginSchema = generateSchemaData.softwareApplication(plugin.name, plugin.description);
+  const breadcrumbSchema = generateSchemaData.breadcrumb([
+    { name: "Home", url: "https://hostfarm.org" },
+    { name: "Plugin Library", url: "https://hostfarm.org/plugins" },
+    { name: plugin.name, url: `https://hostfarm.org/plugin/${plugin.slug}` }
+  ]);
+
+  const combinedSchema = {
+    "@context": "https://schema.org",
+    "@graph": [pluginSchema, breadcrumbSchema]
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
+      <SEOHead
+        title={`${plugin.name} - Premium WordPress Plugin Free Download | HostFarm.org`}
+        description={`Download ${plugin.name} premium WordPress plugin for free. ${plugin.description} Get instant access without subscriptions or hidden fees.`}
+        keywords={`${plugin.name}, ${plugin.category} plugin, WordPress plugin, premium plugin free download, ${plugin.name} download, WordPress ${plugin.category}`}
+        canonical={`https://hostfarm.org/plugin/${plugin.slug}`}
+        ogImage={plugin.imageUrl || "https://hostfarm.org/og-plugin-default.jpg"}
+        schemaData={combinedSchema}
+      />
       <Navbar />
       
       <div className="max-w-6xl mx-auto px-4 py-8">

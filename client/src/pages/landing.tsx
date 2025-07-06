@@ -12,12 +12,17 @@ import {
   Heart,
   Rocket,
   Play,
-  CheckCircle
+  CheckCircle,
+  Database,
+  Lock,
+  Zap,
+  Download
 } from "lucide-react";
 import Navbar from "@/components/navbar";
 import DomainSearch from "@/components/domain-search";
 import StatsGrid from "@/components/stats-grid";
 import DonationModal from "@/components/donation-modal";
+import SEOHead, { generateSchemaData } from "@/components/seo-head";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 
@@ -32,19 +37,32 @@ export default function Landing() {
     queryKey: ["/api/plugins/public"],
   });
 
+  // Generate comprehensive schema data for SEO
+  const organizationSchema = generateSchemaData.organization();
+  const hostingServiceSchema = generateSchemaData.webHostingService();
+  const breadcrumbSchema = generateSchemaData.breadcrumb([
+    { name: "Home", url: "https://hostfarm.org" },
+    { name: "Free WordPress Hosting", url: "https://hostfarm.org" }
+  ]);
+
+  const combinedSchema = {
+    "@context": "https://schema.org",
+    "@graph": [organizationSchema, hostingServiceSchema, breadcrumbSchema]
+  };
+
   const features = [
     {
-      title: "Free WordPress Hosting",
-      description: "Get reliable, fast hosting with one-click WordPress installation. No hidden fees, ever.",
+      title: "Free WordPress Hosting with SSL",
+      description: "Professional WordPress hosting with 99.9% uptime, free SSL certificates, daily backups, and one-click WordPress installation. No hidden fees, ads, or storage limits.",
       icon: Server,
       color: "from-blue-50 to-indigo-100",
       borderColor: "border-blue-200",
       iconBg: "bg-primary",
-      items: ["99.9% Uptime SLA", "SSL Certificates Included", "Daily Backups"]
+      items: ["99.9% Uptime SLA", "Free SSL Certificates", "Daily Automated Backups", "SSD Storage", "24/7 Monitoring"]
     },
     {
-      title: "Premium Plugin Library",
-      description: "Access thousands of premium WordPress plugins worth $10,000+ completely free.",
+      title: "Premium WordPress Plugin Library",
+      description: "Download thousands of premium WordPress plugins worth $15,000+ completely free. Access top plugins for SEO, e-commerce, page builders, and security.",
       icon: Puzzle,
       color: "from-green-50 to-emerald-100",
       borderColor: "border-green-200",
@@ -139,6 +157,14 @@ export default function Landing() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <SEOHead
+        title="Free WordPress Hosting with SSL & Premium Plugins - HostFarm.org"
+        description="Get professional WordPress hosting with free SSL certificates, daily backups, 99.9% uptime, and access to $15,000+ worth of premium WordPress plugins. No ads, no limits, completely anonymous registration."
+        keywords="free WordPress hosting, WordPress hosting with SSL, premium WordPress plugins, anonymous hosting, free hosting, WordPress plugins download, web hosting, subdomain hosting, free SSL certificate, WordPress installation"
+        canonical="https://hostfarm.org"
+        ogImage="https://hostfarm.org/og-hosting-image.jpg"
+        schemaData={combinedSchema}
+      />
       <Navbar />
 
       {/* Anonymous Hosting Banner */}
@@ -167,15 +193,15 @@ export default function Landing() {
         
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-5xl md:text-6xl font-bold mb-6 leading-tight">
-            100% Anonymous WordPress Hosting{" "}
+            Free WordPress Hosting with SSL{" "}
             <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-green-300">
-              + Premium Plugins
+              + Premium Plugin Library
             </span>
           </h1>
           <p className="text-xl md:text-2xl mb-4 max-w-3xl mx-auto opacity-90">
-            <strong>World's only completely anonymous hosting provider.</strong> No email, phone, or personal information required.
-            Get instant access to premium WordPress plugins at no cost.
+            <strong>Professional WordPress hosting with 99.9% uptime guarantee.</strong> Free SSL certificates, daily backups, 
+            SSD storage, and access to $15,000+ worth of premium WordPress plugins. Anonymous registration available.
           </p>
           
           {/* Privacy Benefits */}
