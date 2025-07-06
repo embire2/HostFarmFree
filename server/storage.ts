@@ -10,6 +10,8 @@ import {
   userGroups,
   deviceFingerprints,
   facebookPixelSettings,
+  pluginRequests,
+  smtpSettings,
   type User,
   type InsertUser,
   type HostingAccount,
@@ -31,6 +33,10 @@ import {
   type InsertDeviceFingerprint,
   type FacebookPixelSettings,
   type InsertFacebookPixelSettings,
+  type PluginRequest,
+  type InsertPluginRequest,
+  type SmtpSettings,
+  type InsertSmtpSettings,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, ilike, and, sql } from "drizzle-orm";
@@ -119,6 +125,19 @@ export interface IStorage {
   getFacebookPixelSettings(): Promise<FacebookPixelSettings | undefined>;
   upsertFacebookPixelSettings(settings: InsertFacebookPixelSettings): Promise<FacebookPixelSettings>;
   deleteFacebookPixelSettings(): Promise<boolean>;
+  
+  // Plugin Request operations
+  createPluginRequest(request: InsertPluginRequest): Promise<PluginRequest>;
+  getPluginRequests(): Promise<PluginRequest[]>;
+  getPluginRequestsByUserId(userId: number): Promise<PluginRequest[]>;
+  getUserPluginRequestsToday(userId: number): Promise<number>;
+  updatePluginRequestStatus(id: number, status: string): Promise<PluginRequest | undefined>;
+  deletePluginRequest(id: number): Promise<boolean>;
+  
+  // SMTP Settings operations
+  getSmtpSettings(): Promise<SmtpSettings | undefined>;
+  upsertSmtpSettings(settings: InsertSmtpSettings): Promise<SmtpSettings>;
+  deleteSmtpSettings(): Promise<boolean>;
   
   // Statistics
   getStats(): Promise<{
@@ -676,6 +695,87 @@ export class DatabaseStorage implements IStorage {
       return (result.rowCount || 0) > 0;
     } catch (error) {
       console.error('Error deleting Facebook Pixel settings:', error);
+      return false;
+    }
+  }
+
+  // Plugin Request operations
+  async createPluginRequest(requestData: InsertPluginRequest): Promise<PluginRequest> {
+    const [request] = await db.insert(pluginRequests)
+      .values(requestData)
+      .returning();
+    return request;
+  }
+
+  async getPluginRequests(): Promise<PluginRequest[]> {
+    return await db.select().from(pluginRequests).orderBy(desc(pluginRequests.createdAt));
+  }
+
+  async getPluginRequestsByUserId(userId: number): Promise<PluginRequest[]> {
+    return await db.select().from(pluginRequests)
+      .where(eq(pluginRequests.userId, userId))
+      .orderBy(desc(pluginRequests.createdAt));
+  }
+
+  async getUserPluginRequestsToday(userId: number): Promise<number> {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const result = await db.select({ count: sql<number>`count(*)` })
+      .from(pluginRequests)
+      .where(
+        and(
+          eq(pluginRequests.userId, userId),
+          sql`${pluginRequests.createdAt} >= ${today.toISOString()}`
+        )
+      );
+    
+    return Number(result[0]?.count || 0);
+  }
+
+  async updatePluginRequestStatus(id: number, status: string): Promise<PluginRequest | undefined> {
+    const [updated] = await db.update(pluginRequests)
+      .set({ status })
+      .where(eq(pluginRequests.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deletePluginRequest(id: number): Promise<boolean> {
+    const result = await db.delete(pluginRequests)
+      .where(eq(pluginRequests.id, id));
+    return (result.rowCount || 0) > 0;
+  }
+
+  // SMTP Settings operations
+  async getSmtpSettings(): Promise<SmtpSettings | undefined> {
+    const [settings] = await db.select().from(smtpSettings).where(eq(smtpSettings.isActive, true));
+    return settings;
+  }
+
+  async upsertSmtpSettings(settingsData: InsertSmtpSettings): Promise<SmtpSettings> {
+    try {
+      // Delete existing settings first
+      await db.delete(smtpSettings);
+      
+      // Insert new settings
+      const [newSettings] = await db.insert(smtpSettings)
+        .values(settingsData)
+        .returning();
+      
+      return newSettings;
+    } catch (error) {
+      console.error('Error upserting SMTP settings:', error);
+      throw error;
+    }
+  }
+
+  async deleteSmtpSettings(): Promise<boolean> {
+    try {
+      const result = await db.delete(smtpSettings);
+      return (result.rowCount || 0) > 0;
+    } catch (error) {
+      console.error('Error deleting SMTP settings:', error);
       return false;
     }
   }

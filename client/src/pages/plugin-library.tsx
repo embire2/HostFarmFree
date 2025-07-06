@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import Navbar from "@/components/navbar";
 import PluginCard from "@/components/plugin-card";
+import PluginRequestForm from "@/components/plugin-request-form";
 import { Plugin } from "@shared/schema";
 
 export default function PluginLibrary() {
@@ -278,22 +279,18 @@ export default function PluginLibrary() {
           </Card>
         )}
 
-        {/* Call to Action */}
+        {/* Plugin Request Section */}
         {plugins && plugins.length > 0 && (
           <Card className="mt-16 gradient-primary text-white">
-            <CardContent className="p-8 text-center">
-              <h2 className="text-2xl font-bold mb-4">Can't find what you're looking for?</h2>
-              <p className="text-lg mb-6 opacity-90">
-                Join our community and request the plugins you need. We're constantly adding new premium plugins to our library.
-              </p>
-              <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
-                <Button className="bg-white text-primary hover:bg-gray-100 px-8 py-3">
-                  Request a Plugin
-                </Button>
-                <Button variant="outline" className="border-white text-white hover:bg-white/10 px-8 py-3">
-                  Join Community
-                </Button>
+            <CardContent className="p-8">
+              <div className="text-center mb-6">
+                <h2 className="text-2xl font-bold mb-4">Can't find what you're looking for?</h2>
+                <p className="text-lg mb-6 opacity-90">
+                  Request the plugins you need. We're constantly adding new premium plugins to our library.
+                </p>
               </div>
+              
+              <PluginRequestForm />
             </CardContent>
           </Card>
         )}

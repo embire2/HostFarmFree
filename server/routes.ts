@@ -3756,6 +3756,208 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Plugin Request endpoints
+  app.post("/api/plugin-requests", isAuthenticated, async (req: any, res) => {
+    try {
+      const { firstName, lastName, email, pluginName } = req.body;
+      const userId = req.user.id;
+
+      // Check daily request limit (2 requests per day)
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      const requestsToday = await storage.getUserPluginRequestsToday(userId);
+      if (requestsToday >= 2) {
+        return res.status(429).json({ 
+          message: "You can only submit 2 plugin requests per day. Please try again tomorrow." 
+        });
+      }
+
+      // Create plugin request
+      const request = await storage.createPluginRequest({
+        userId,
+        firstName,
+        lastName,
+        email,
+        pluginName,
+        status: "pending"
+      });
+
+      // Send email to admin (if SMTP is configured)
+      try {
+        const smtpSettings = await storage.getSmtpSettings();
+        if (smtpSettings) {
+          const nodemailer = require('nodemailer');
+          
+          const transporter = nodemailer.createTransporter({
+            host: smtpSettings.host,
+            port: smtpSettings.port,
+            secure: smtpSettings.encryption === 'ssl',
+            auth: {
+              user: smtpSettings.username,
+              pass: smtpSettings.password,
+            },
+          });
+
+          const mailOptions = {
+            from: `"${smtpSettings.fromName}" <${smtpSettings.fromEmail}>`,
+            to: 'admin@hostfarm.org',
+            subject: 'New Plugin Request - HostFarm.org',
+            html: `
+              <h2>New Plugin Request</h2>
+              <p><strong>Name:</strong> ${firstName} ${lastName}</p>
+              <p><strong>Email:</strong> ${email}</p>
+              <p><strong>Plugin Requested:</strong> ${pluginName}</p>
+              <p><strong>User ID:</strong> ${userId}</p>
+              <p><strong>Date:</strong> ${new Date().toLocaleString()}</p>
+              <p>You can manage this request in the admin dashboard.</p>
+            `
+          };
+
+          await transporter.sendMail(mailOptions);
+        }
+      } catch (emailError) {
+        console.error('Error sending plugin request email:', emailError);
+        // Don't fail the request if email fails
+      }
+
+      res.json(request);
+    } catch (error) {
+      console.error('Error creating plugin request:', error);
+      res.status(500).json({ error: "Failed to create plugin request" });
+    }
+  });
+
+  app.get("/api/plugin-requests", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const requests = await storage.getPluginRequestsByUserId(userId);
+      res.json(requests);
+    } catch (error) {
+      console.error('Error fetching plugin requests:', error);
+      res.status(500).json({ error: "Failed to fetch plugin requests" });
+    }
+  });
+
+  // Admin plugin request endpoints
+  app.get("/api/admin/plugin-requests", isAuthenticated, requireAdmin, async (req, res) => {
+    try {
+      const requests = await storage.getPluginRequests();
+      res.json(requests);
+    } catch (error) {
+      console.error('Error fetching all plugin requests:', error);
+      res.status(500).json({ error: "Failed to fetch plugin requests" });
+    }
+  });
+
+  app.patch("/api/admin/plugin-requests/:id", isAuthenticated, requireAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { status } = req.body;
+      
+      const updated = await storage.updatePluginRequestStatus(id, status);
+      if (!updated) {
+        return res.status(404).json({ error: "Plugin request not found" });
+      }
+      
+      res.json(updated);
+    } catch (error) {
+      console.error('Error updating plugin request:', error);
+      res.status(500).json({ error: "Failed to update plugin request" });
+    }
+  });
+
+  app.delete("/api/admin/plugin-requests/:id", isAuthenticated, requireAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const success = await storage.deletePluginRequest(id);
+      
+      if (!success) {
+        return res.status(404).json({ error: "Plugin request not found" });
+      }
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error deleting plugin request:', error);
+      res.status(500).json({ error: "Failed to delete plugin request" });
+    }
+  });
+
+  // SMTP Settings endpoints (admin only)
+  app.get("/api/smtp-settings", isAuthenticated, requireAdmin, async (req, res) => {
+    try {
+      const settings = await storage.getSmtpSettings();
+      res.json(settings);
+    } catch (error) {
+      console.error('Error fetching SMTP settings:', error);
+      res.status(500).json({ error: "Failed to fetch SMTP settings" });
+    }
+  });
+
+  app.post("/api/smtp-settings", isAuthenticated, requireAdmin, async (req, res) => {
+    try {
+      const settings = await storage.upsertSmtpSettings(req.body);
+      res.json(settings);
+    } catch (error) {
+      console.error('Error saving SMTP settings:', error);
+      res.status(500).json({ error: "Failed to save SMTP settings" });
+    }
+  });
+
+  app.delete("/api/smtp-settings", isAuthenticated, requireAdmin, async (req, res) => {
+    try {
+      const success = await storage.deleteSmtpSettings();
+      res.json({ success });
+    } catch (error) {
+      console.error('Error deleting SMTP settings:', error);
+      res.status(500).json({ error: "Failed to delete SMTP settings" });
+    }
+  });
+
+  // Test SMTP settings endpoint
+  app.post("/api/smtp-settings/test", isAuthenticated, requireAdmin, async (req, res) => {
+    try {
+      const { host, port, username, password, encryption, fromEmail, fromName, testEmail } = req.body;
+      
+      const nodemailer = require('nodemailer');
+      
+      const transporter = nodemailer.createTransporter({
+        host,
+        port,
+        secure: encryption === 'ssl',
+        auth: {
+          user: username,
+          pass: password,
+        },
+      });
+
+      const mailOptions = {
+        from: `"${fromName}" <${fromEmail}>`,
+        to: testEmail,
+        subject: 'SMTP Test - HostFarm.org',
+        html: `
+          <h2>SMTP Configuration Test</h2>
+          <p>This is a test email to verify your SMTP settings are working correctly.</p>
+          <p><strong>Host:</strong> ${host}</p>
+          <p><strong>Port:</strong> ${port}</p>
+          <p><strong>Encryption:</strong> ${encryption}</p>
+          <p><strong>Test Time:</strong> ${new Date().toLocaleString()}</p>
+          <p>If you received this email, your SMTP configuration is working properly!</p>
+        `
+      };
+
+      await transporter.sendMail(mailOptions);
+      res.json({ success: true, message: "Test email sent successfully" });
+    } catch (error) {
+      console.error('Error testing SMTP settings:', error);
+      res.status(500).json({ 
+        success: false, 
+        error: "Failed to send test email", 
+        details: error.message 
+      });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

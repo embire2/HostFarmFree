@@ -35,6 +35,7 @@ import PackageManagement from "@/components/package-management";
 import HostingAccountsManagement from "@/components/hosting-accounts-management";
 import UserGroupsManagement from "@/components/user-groups-management";
 import { FacebookPixelSettings } from "@/components/facebook-pixel-settings";
+import SmtpSettings from "@/components/smtp-settings";
 
 export default function AdminDashboard() {
   const { user, isAuthenticated, isLoading } = useAuth();
@@ -412,7 +413,7 @@ export default function AdminDashboard() {
 
         {/* Admin Tabs */}
         <Tabs defaultValue="hosting" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-9">
+          <TabsList className="grid w-full grid-cols-10">
             <TabsTrigger value="hosting" className="flex items-center">
               <Globe className="mr-2 h-4 w-4" />
               Hosting Accounts
@@ -444,6 +445,10 @@ export default function AdminDashboard() {
             <TabsTrigger value="api-settings" className="flex items-center">
               <Settings className="mr-2 h-4 w-4" />
               API Settings
+            </TabsTrigger>
+            <TabsTrigger value="smtp-settings" className="flex items-center">
+              <Server className="mr-2 h-4 w-4" />
+              SMTP Settings
             </TabsTrigger>
             <TabsTrigger value="system" className="flex items-center">
               <Server className="mr-2 h-4 w-4" />
@@ -792,6 +797,10 @@ export default function AdminDashboard() {
 
           <TabsContent value="api-settings" className="space-y-6">
             <ApiSettings />
+          </TabsContent>
+
+          <TabsContent value="smtp-settings" className="space-y-6">
+            <SmtpSettings />
           </TabsContent>
 
           <TabsContent value="system" className="space-y-6">

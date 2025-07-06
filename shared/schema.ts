@@ -204,6 +204,33 @@ export const facebookPixelSettings = pgTable("facebook_pixel_settings", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Plugin Requests table
+export const pluginRequests = pgTable("plugin_requests", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  firstName: varchar("first_name", { length: 100 }).notNull(),
+  lastName: varchar("last_name", { length: 100 }).notNull(),
+  email: varchar("email", { length: 255 }).notNull(),
+  pluginName: varchar("plugin_name", { length: 255 }).notNull(),
+  status: varchar("status", { length: 20 }).default("pending"), // pending, approved, rejected
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// SMTP Settings table
+export const smtpSettings = pgTable("smtp_settings", {
+  id: serial("id").primaryKey(),
+  host: varchar("host", { length: 255 }).notNull(),
+  port: integer("port").notNull().default(587),
+  username: varchar("username", { length: 255 }).notNull(),
+  password: varchar("password", { length: 500 }).notNull(),
+  encryption: varchar("encryption", { length: 10 }).default("tls"), // tls, ssl, none
+  fromEmail: varchar("from_email", { length: 255 }).notNull(),
+  fromName: varchar("from_name", { length: 255 }).notNull(),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Relations
 export const userGroupsRelations = relations(userGroups, ({ many }) => ({
   users: many(users),
@@ -220,6 +247,7 @@ export const usersRelations = relations(users, ({ many, one }) => ({
   donations: many(donations),
   deviceFingerprints: many(deviceFingerprints),
   userGroup: one(userGroups, { fields: [users.userGroupId], references: [userGroups.id] }),
+  pluginRequests: many(pluginRequests),
 }));
 
 export const hostingAccountsRelations = relations(hostingAccounts, ({ one }) => ({
@@ -248,6 +276,10 @@ export const pluginDownloadsRelations = relations(pluginDownloads, ({ one }) => 
 
 export const donationsRelations = relations(donations, ({ one }) => ({
   user: one(users, { fields: [donations.userId], references: [users.id] }),
+}));
+
+export const pluginRequestsRelations = relations(pluginRequests, ({ one }) => ({
+  user: one(users, { fields: [pluginRequests.userId], references: [users.id] }),
 }));
 
 // Schemas for validation
@@ -358,3 +390,22 @@ export const insertFacebookPixelSettingsSchema = createInsertSchema(facebookPixe
 
 export type InsertFacebookPixelSettings = z.infer<typeof insertFacebookPixelSettingsSchema>;
 export type FacebookPixelSettings = typeof facebookPixelSettings.$inferSelect;
+
+// Plugin Requests schema
+export const insertPluginRequestSchema = createInsertSchema(pluginRequests).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertPluginRequest = z.infer<typeof insertPluginRequestSchema>;
+export type PluginRequest = typeof pluginRequests.$inferSelect;
+
+// SMTP Settings schema
+export const insertSmtpSettingsSchema = createInsertSchema(smtpSettings).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertSmtpSettings = z.infer<typeof insertSmtpSettingsSchema>;
+export type SmtpSettings = typeof smtpSettings.$inferSelect;
