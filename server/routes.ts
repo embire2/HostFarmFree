@@ -3915,6 +3915,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Test SMTP connection endpoint (without sending email)
+  app.post("/api/smtp-settings/test-connection", isAuthenticated, requireAdmin, async (req, res) => {
+    try {
+      const { host, port, username, password, encryption } = req.body;
+      
+      const transporter = nodemailer.createTransport({
+        host,
+        port,
+        secure: encryption === 'ssl', // true for SSL on port 465, false for other ports
+        auth: {
+          user: username,
+          pass: password,
+        },
+        ...(encryption === 'tls' && {
+          requireTLS: true,
+          tls: {
+            ciphers: 'SSLv3'
+          }
+        })
+      });
+
+      // Verify connection without sending email
+      await transporter.verify();
+      res.json({ success: true, message: "SMTP connection verified successfully" });
+    } catch (error) {
+      console.error('Error testing SMTP connection:', error);
+      res.status(500).json({ 
+        success: false, 
+        error: "Failed to connect to SMTP server", 
+        details: error.message 
+      });
+    }
+  });
+
   // Test SMTP settings endpoint
   app.post("/api/smtp-settings/test", isAuthenticated, requireAdmin, async (req, res) => {
     try {

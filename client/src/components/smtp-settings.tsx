@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { Mail, TestTube, Settings, Check, X } from "lucide-react";
+import { Mail, TestTube, Settings, Check, X, Wifi } from "lucide-react";
 
 const smtpSettingsSchema = z.object({
   host: z.string().min(1, "Host is required"),
@@ -37,18 +37,18 @@ export default function SmtpSettings() {
   const form = useForm<SmtpSettingsForm>({
     resolver: zodResolver(smtpSettingsSchema),
     defaultValues: {
-      host: smtpSettings?.host || "",
-      port: smtpSettings?.port || 587,
-      username: smtpSettings?.username || "",
-      password: smtpSettings?.password || "",
-      encryption: smtpSettings?.encryption || "tls",
-      fromEmail: smtpSettings?.fromEmail || "",
-      fromName: smtpSettings?.fromName || "HostFarm.org",
+      host: "",
+      port: 587,
+      username: "",
+      password: "",
+      encryption: "tls",
+      fromEmail: "",
+      fromName: "HostFarm.org",
     },
   });
 
   // Update form when data loads
-  useState(() => {
+  useEffect(() => {
     if (smtpSettings) {
       form.reset({
         host: smtpSettings.host || "",
@@ -60,7 +60,7 @@ export default function SmtpSettings() {
         fromName: smtpSettings.fromName || "HostFarm.org",
       });
     }
-  });
+  }, [smtpSettings, form]);
 
   const saveSettingsMutation = useMutation({
     mutationFn: async (data: SmtpSettingsForm) => {
@@ -83,6 +83,26 @@ export default function SmtpSettings() {
     },
   });
 
+  const testConnectionMutation = useMutation({
+    mutationFn: async (data: SmtpSettingsForm) => {
+      const res = await apiRequest("POST", "/api/smtp-settings/test-connection", data);
+      return await res.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Connection Successful",
+        description: data.message || "SMTP connection is working correctly!",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Connection Failed",
+        description: error.message || "Failed to connect to SMTP server.",
+        variant: "destructive",
+      });
+    },
+  });
+
   const testSettingsMutation = useMutation({
     mutationFn: async (data: SmtpSettingsForm & { testEmail: string }) => {
       const res = await apiRequest("POST", "/api/smtp-settings/test", data);
@@ -90,7 +110,7 @@ export default function SmtpSettings() {
     },
     onSuccess: (data) => {
       toast({
-        title: "Test Successful",
+        title: "Test Email Sent",
         description: data.message || "Test email sent successfully!",
       });
     },
@@ -127,6 +147,11 @@ export default function SmtpSettings() {
 
   const onSubmit = (data: SmtpSettingsForm) => {
     saveSettingsMutation.mutate(data);
+  };
+
+  const handleTestConnection = () => {
+    const formData = form.getValues();
+    testConnectionMutation.mutate(formData);
   };
 
   const handleTestSettings = () => {
@@ -348,7 +373,26 @@ export default function SmtpSettings() {
                 />
               </div>
 
-              <div className="flex justify-end">
+              <div className="flex justify-end space-x-3">
+                <Button 
+                  type="button"
+                  variant="outline"
+                  onClick={handleTestConnection}
+                  disabled={testConnectionMutation.isPending || !form.formState.isValid}
+                  className="flex items-center"
+                >
+                  {testConnectionMutation.isPending ? (
+                    <>
+                      <TestTube className="mr-2 h-4 w-4 animate-spin" />
+                      Testing Connection...
+                    </>
+                  ) : (
+                    <>
+                      <Wifi className="mr-2 h-4 w-4" />
+                      Test SMTP Connection
+                    </>
+                  )}
+                </Button>
                 <Button 
                   type="submit"
                   disabled={saveSettingsMutation.isPending}
