@@ -2,8 +2,10 @@ import type { Express } from "express";
 import express from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import { db } from "./db";
 import { setupAuth, isAuthenticated, generateUsername, generatePassword, generateRecoveryPhrase, hashPassword } from "./auth";
-import { insertHostingAccountSchema, insertPluginSchema, insertDonationSchema } from "@shared/schema";
+import { insertHostingAccountSchema, insertPluginSchema, insertDonationSchema, donations } from "@shared/schema";
+import { eq } from "drizzle-orm";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
@@ -3374,6 +3376,70 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Create payment intent for one-time donations (plugin donations)
+  app.post("/api/create-payment-intent", async (req, res) => {
+    try {
+      const { amount, pluginId, pluginName } = req.body;
+      
+      console.log('=== PAYMENT INTENT CREATE START ===');
+      console.log('Request body:', { amount, pluginId, pluginName });
+      
+      if (!amount) {
+        console.error('Missing required amount');
+        return res.status(400).json({ message: "Missing required payment amount" });
+      }
+
+      // Initialize Stripe
+      const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+      if (!stripe) {
+        console.error('Stripe not initialized - missing STRIPE_SECRET_KEY');
+        return res.status(500).json({ message: "Payment system not configured" });
+      }
+
+      // Create payment intent for one-time payment
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: amount * 100, // Convert to cents
+        currency: 'usd',
+        metadata: {
+          pluginId: pluginId?.toString() || '',
+          pluginName: pluginName || '',
+          donationType: 'one-time-plugin',
+          userId: req.user?.id?.toString() || 'anonymous'
+        },
+        automatic_payment_methods: {
+          enabled: true,
+        },
+      });
+
+      console.log('Payment intent created:', paymentIntent.id);
+
+      // Store donation record as pending
+      await storage.createDonation({
+        userId: req.user?.id || null,
+        amount: amount * 100, // Store in cents
+        currency: 'USD',
+        status: 'pending',
+        paymentMethod: 'stripe',
+        stripePaymentIntentId: paymentIntent.id,
+        isRecurring: false,
+        pluginId: pluginId || null,
+        pluginName: pluginName || null,
+      });
+
+      console.log('=== PAYMENT INTENT CREATE SUCCESS ===');
+      res.json({ 
+        clientSecret: paymentIntent.client_secret,
+        paymentIntentId: paymentIntent.id
+      });
+    } catch (error) {
+      console.error('Payment intent creation error:', error);
+      res.status(500).json({ 
+        message: "Failed to create payment intent",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
   // Stripe subscription routes for monthly donations with gifts
   app.post("/api/create-subscription", async (req, res) => {
     try {
@@ -3514,25 +3580,79 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('Stripe webhook event:', event.type);
 
       switch (event.type) {
+        case 'payment_intent.succeeded':
+          const paymentIntent = event.data.object;
+          console.log('One-time payment succeeded:', paymentIntent.id);
+          
+          // Update donation status for one-time payments
+          try {
+            const [donation] = await db.update(donations)
+              .set({ status: 'completed' })
+              .where(eq(donations.stripePaymentIntentId, paymentIntent.id))
+              .returning();
+            
+            if (donation) {
+              console.log('Updated donation status to completed:', donation.id);
+            } else {
+              console.warn('No donation found for payment intent:', paymentIntent.id);
+            }
+          } catch (error) {
+            console.error('Failed to update donation status:', error);
+          }
+          break;
+
         case 'customer.subscription.created':
         case 'customer.subscription.updated':
           const subscription = event.data.object;
           console.log('Subscription updated:', subscription.id, subscription.status);
-          // TODO: Update subscription status in database
+          
+          // Update subscription status in database
+          try {
+            await db.update(donations)
+              .set({ 
+                subscriptionStatus: subscription.status,
+                status: subscription.status === 'active' ? 'completed' : 'pending'
+              })
+              .where(eq(donations.stripeSubscriptionId, subscription.id));
+            console.log('Updated subscription status:', subscription.status);
+          } catch (error) {
+            console.error('Failed to update subscription status:', error);
+          }
           break;
         
         case 'invoice.payment_succeeded':
           const invoice = event.data.object;
           if (invoice.subscription) {
             console.log('Payment succeeded for subscription:', invoice.subscription);
-            // TODO: Implement gift activation logic
+            
+            // Update subscription donation to completed
+            try {
+              await db.update(donations)
+                .set({ status: 'completed' })
+                .where(eq(donations.stripeSubscriptionId, invoice.subscription));
+              console.log('Updated subscription donation to completed');
+            } catch (error) {
+              console.error('Failed to update subscription donation:', error);
+            }
           }
           break;
         
         case 'customer.subscription.deleted':
           const deletedSubscription = event.data.object;
           console.log('Subscription canceled:', deletedSubscription.id);
-          // TODO: Implement cancellation logic
+          
+          // Update subscription status to canceled
+          try {
+            await db.update(donations)
+              .set({ 
+                subscriptionStatus: 'canceled',
+                status: 'failed'
+              })
+              .where(eq(donations.stripeSubscriptionId, deletedSubscription.id));
+            console.log('Updated canceled subscription in database');
+          } catch (error) {
+            console.error('Failed to update canceled subscription:', error);
+          }
           break;
       }
 

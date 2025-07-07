@@ -139,11 +139,16 @@ export const donations = pgTable("donations", {
   paymentMethod: varchar("payment_method"),
   donorEmail: varchar("donor_email"),
   message: text("message"),
-  // Subscription fields
-  stripeSubscriptionId: varchar("stripe_subscription_id"),
+  // Stripe payment fields
+  stripePaymentIntentId: varchar("stripe_payment_intent_id"), // For one-time payments
+  stripeSubscriptionId: varchar("stripe_subscription_id"), // For recurring payments
   stripeCustomerId: varchar("stripe_customer_id"),
   isRecurring: boolean("is_recurring").notNull().default(false),
   subscriptionStatus: varchar("subscription_status"), // 'active' | 'canceled' | 'past_due' | 'incomplete'
+  // Plugin donation fields
+  pluginId: integer("plugin_id").references(() => plugins.id), // For plugin-specific donations
+  pluginName: varchar("plugin_name"), // Store plugin name for reference
+  // Gift fields for subscription donations
   giftTier: varchar("gift_tier"), // '$5', '$10', '$15', '$20'
   giftType: varchar("gift_type"), // 'vps' | 'hosting' | 'both'
   giftDetails: text("gift_details"), // JSON string with gift specifications

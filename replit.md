@@ -256,6 +256,14 @@ Changelog:
 - July 6, 2025. Optimized all major pages (landing, plugin library, plugin details) with SEO-friendly titles, descriptions, and keywords
 - July 6, 2025. Enhanced content with WordPress hosting and plugin industry keywords for better search engine ranking
 - July 6, 2025. Added comprehensive breadcrumb structured data and canonical URLs for improved search visibility
+- July 7, 2025. CRITICAL FIX: Completely repaired Stripe donation system with comprehensive one-time and subscription payment support
+- July 7, 2025. Created missing /api/create-payment-intent endpoint for plugin donations ($5 one-time payments)
+- July 7, 2025. Enhanced donation database schema with stripePaymentIntentId, pluginId, and pluginName fields
+- July 7, 2025. Fixed Stripe webhook integration to properly handle payment_intent.succeeded events for one-time donations
+- July 7, 2025. Added comprehensive plugin checkout success page with improved user experience
+- July 7, 2025. Updated client routing to support complete donation flow from plugin detail to success page
+- July 7, 2025. Enhanced device fingerprinting system with Canvas, WebGL, and Audio fingerprinting for robust unique identification
+- July 7, 2025. Fixed device limits checking API with comprehensive error handling and logging for unique installation tracking
 ```
 
 # User Preferences

@@ -10,6 +10,7 @@ import AdminDashboard from "@/pages/admin-dashboard";
 import PluginLibrary from "@/pages/plugin-library";
 import PluginDetail from "@/pages/plugin-detail";
 import PluginCheckout from "@/pages/plugin-checkout";
+import PluginCheckoutSuccess from "@/pages/plugin-checkout-success";
 import DonationSuccess from "@/pages/donation-success";
 
 import NotFound from "@/pages/not-found";
@@ -41,6 +42,7 @@ function Router() {
           <Route path="/plugin-library" component={PluginLibrary} />
           <Route path="/plugin/:slug" component={PluginDetail} />
           <Route path="/plugin/:slug/donate" component={PluginCheckout} />
+          <Route path="/plugin-checkout-success" component={PluginCheckoutSuccess} />
           <Route path="/donation-success" component={DonationSuccess} />
         </>
       ) : (
@@ -55,6 +57,7 @@ function Router() {
               <Route path="/plugin-library" component={PluginLibrary} />
               <Route path="/plugin/:slug" component={PluginDetail} />
               <Route path="/plugin/:slug/donate" component={PluginCheckout} />
+              <Route path="/plugin-checkout-success" component={PluginCheckoutSuccess} />
               <Route path="/donation-success" component={DonationSuccess} />
             </>
           ) : (
@@ -65,6 +68,7 @@ function Router() {
               <Route path="/plugin-library" component={PluginLibrary} />
               <Route path="/plugin/:slug" component={PluginDetail} />
               <Route path="/plugin/:slug/donate" component={PluginCheckout} />
+              <Route path="/plugin-checkout-success" component={PluginCheckoutSuccess} />
               <Route path="/donation-success" component={DonationSuccess} />
             </>
           )}
