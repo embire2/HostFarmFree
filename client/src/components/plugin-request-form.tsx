@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import LoginModal from "@/components/login-modal";
 
 const pluginRequestSchema = z.object({
   firstName: z.string().min(2, "First name must be at least 2 characters"),
@@ -64,12 +65,13 @@ export default function PluginRequestForm() {
   if (!isAuthenticated) {
     return (
       <div className="text-center">
-        <Button 
-          className="bg-white text-primary hover:bg-gray-100 px-8 py-3"
-          onClick={() => window.location.href = "/api/login"}
-        >
-          Sign In to Request Plugin
-        </Button>
+        <LoginModal>
+          <Button 
+            className="bg-white text-primary hover:bg-gray-100 px-8 py-3"
+          >
+            Sign In to Request Plugin
+          </Button>
+        </LoginModal>
         <p className="text-sm opacity-75 mt-2">
           You must be logged in to request plugins
         </p>
