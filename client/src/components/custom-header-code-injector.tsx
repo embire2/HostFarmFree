@@ -97,34 +97,30 @@ export default function CustomHeaderCodeInjector() {
 
     // Verify injection worked
     setTimeout(() => {
-      const verifyContainer = document.getElementById(containerId);
-      if (verifyContainer) {
-        console.log(`[Custom Header Code] 🔍 Verification: Container still present in DOM with ${verifyContainer.children.length} child elements.`);
-        
-        // Check for Facebook Pixel specifically
-        const fbqScripts = document.querySelectorAll('script[src*="fbevents.js"]');
-        const fbqInlineScripts = Array.from(document.querySelectorAll('script:not([src])')).filter(script => 
-          script.textContent && script.textContent.includes('fbq')
-        );
-        
-        console.log(`[Custom Header Code] 🎯 Facebook Pixel Scripts - External: ${fbqScripts.length}, Inline: ${fbqInlineScripts.length}`);
-        
-        // Check if fbq function is available
-        if (typeof (window as any).fbq === 'function') {
-          console.log(`[Custom Header Code] ✅ Facebook Pixel fbq function is available and ready!`);
-          console.log(`[Custom Header Code] Facebook Pixel Queue:`, (window as any).fbq.queue?.length || 'No queue');
-        } else {
-          console.warn(`[Custom Header Code] ⚠️ Facebook Pixel fbq function not found. This may indicate loading issues.`);
-        }
-        
-        // Check if Facebook Pixel is loaded
-        if ((window as any).fbq && (window as any).fbq.loaded) {
-          console.log(`[Custom Header Code] ✅ Facebook Pixel is fully loaded and initialized!`);
-        } else {
-          console.warn(`[Custom Header Code] ⚠️ Facebook Pixel may not be fully loaded yet.`);
-        }
+      const injectedCodes = document.querySelectorAll('[data-header-code-id]');
+      console.log(`[Custom Header Code] 🔍 Verification: Found ${injectedCodes.length} injected codes in DOM.`);
+      
+      // Check for Facebook Pixel specifically
+      const fbqScripts = document.querySelectorAll('script[src*="fbevents.js"]');
+      const fbqInlineScripts = Array.from(document.querySelectorAll('script:not([src])')).filter(script => 
+        script.textContent && script.textContent.includes('fbq')
+      );
+      
+      console.log(`[Custom Header Code] 🎯 Facebook Pixel Scripts - External: ${fbqScripts.length}, Inline: ${fbqInlineScripts.length}`);
+      
+      // Check if fbq function is available
+      if (typeof (window as any).fbq === 'function') {
+        console.log(`[Custom Header Code] ✅ Facebook Pixel fbq function is available and ready!`);
+        console.log(`[Custom Header Code] Facebook Pixel Queue:`, (window as any).fbq.queue?.length || 'No queue');
       } else {
-        console.warn(`[Custom Header Code] ⚠️ Verification failed: Container not found in DOM!`);
+        console.warn(`[Custom Header Code] ⚠️ Facebook Pixel fbq function not found. This may indicate loading issues.`);
+      }
+      
+      // Check if Facebook Pixel is loaded
+      if ((window as any).fbq && (window as any).fbq.loaded) {
+        console.log(`[Custom Header Code] ✅ Facebook Pixel is fully loaded and initialized!`);
+      } else {
+        console.warn(`[Custom Header Code] ⚠️ Facebook Pixel may not be fully loaded yet.`);
       }
     }, 1000);
 
