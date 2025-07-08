@@ -956,6 +956,14 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(vpsOrders.createdAt));
   }
 
+  async updateVpsOrderByStripeSubscription(subscriptionId: string, updates: Partial<InsertVpsOrder>): Promise<VpsOrder | undefined> {
+    const [order] = await db.update(vpsOrders)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(vpsOrders.stripeSubscriptionId, subscriptionId))
+      .returning();
+    return order;
+  }
+
   async updateVpsOrder(id: number, updates: Partial<InsertVpsOrder>): Promise<VpsOrder | undefined> {
     const [vpsOrder] = await db.update(vpsOrders)
       .set({ ...updates, updatedAt: new Date() })

@@ -213,8 +213,9 @@ export default function VpsPricing() {
       const result = await response.json();
 
       if (result.clientSecret) {
-        // Store order ID globally for checkout success redirect
+        // Store order ID and user account info globally for checkout success redirect
         (window as any).vpsOrderId = result.orderId;
+        (window as any).vpsUserAccount = result.userAccount;
         
         // Redirect to Stripe checkout
         window.location.href = `/vps-checkout?subscription_id=${result.subscriptionId}&client_secret=${result.clientSecret}&order_id=${result.orderId}`;

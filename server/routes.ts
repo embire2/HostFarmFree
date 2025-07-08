@@ -66,6 +66,113 @@ const upload = multer({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Stripe webhook endpoint (must be before express.json() middleware to get raw body)
+  app.post("/api/stripe-webhook", express.raw({ type: 'application/json' }), async (req, res) => {
+    const sig = req.headers['stripe-signature'];
+    
+    let event;
+    try {
+      // Get webhook secret from environment variables
+      const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+      if (!webhookSecret) {
+        console.error('[Stripe Webhook] STRIPE_WEBHOOK_SECRET not set');
+        return res.status(400).send('Webhook secret not configured');
+      }
+      
+      event = stripe.webhooks.constructEvent(req.body, sig!, webhookSecret);
+    } catch (err: any) {
+      console.log(`[Stripe Webhook] Signature verification failed:`, err.message);
+      return res.status(400).send(`Webhook Error: ${err.message}`);
+    }
+
+    console.log(`[Stripe Webhook] Processing event: ${event.type}`);
+
+    try {
+      switch (event.type) {
+        case 'invoice.payment_failed':
+          const failedInvoice = event.data.object;
+          console.log(`[Stripe Webhook] Payment failed for subscription: ${failedInvoice.subscription}`);
+          
+          // Get customer email from the subscription
+          const subscription = await stripe.subscriptions.retrieve(failedInvoice.subscription as string);
+          const customer = await stripe.customers.retrieve(subscription.customer as string);
+          const customerEmail = (customer as any).email;
+          
+          // Send failure notification email
+          try {
+            await sendEmail({
+              to: customerEmail,
+              subject: '🚨 VPS Payment Failed - Action Required',
+              html: `
+                <h2>VPS Payment Failed</h2>
+                <p>Your VPS subscription payment has failed. You have 24 hours to update your payment method before your VPS is flagged for deletion.</p>
+                <p><strong>Subscription ID:</strong> ${subscription.id}</p>
+                <p><strong>Amount Due:</strong> $${(failedInvoice.amount_due / 100).toFixed(2)}</p>
+                <p>Please update your payment method immediately to avoid service interruption.</p>
+                <p>Visit your dashboard to manage your subscription.</p>
+              `
+            });
+            console.log(`[Stripe Webhook] Sent payment failure notification to ${customerEmail}`);
+          } catch (emailError) {
+            console.error(`[Stripe Webhook] Failed to send email notification:`, emailError);
+          }
+          
+          // Update VPS order status to "payment_failed" 
+          try {
+            await storage.updateVpsOrderByStripeSubscription(subscription.id, { 
+              status: 'payment_failed',
+              paymentFailedAt: new Date()
+            } as any);
+            console.log(`[Stripe Webhook] Updated VPS order status to payment_failed`);
+          } catch (dbError) {
+            console.error(`[Stripe Webhook] Failed to update VPS order status:`, dbError);
+          }
+          break;
+
+        case 'invoice.payment_succeeded':
+          const successInvoice = event.data.object;
+          console.log(`[Stripe Webhook] Payment succeeded for subscription: ${successInvoice.subscription}`);
+          
+          // Update VPS order status to "active" if it was payment_failed
+          try {
+            const subscription = await stripe.subscriptions.retrieve(successInvoice.subscription as string);
+            await storage.updateVpsOrderByStripeSubscription(subscription.id, { 
+              status: 'active',
+              paymentFailedAt: null
+            } as any);
+            console.log(`[Stripe Webhook] Updated VPS order status to active`);
+          } catch (dbError) {
+            console.error(`[Stripe Webhook] Failed to update VPS order status:`, dbError);
+          }
+          break;
+
+        case 'subscription_schedule.canceled':
+        case 'customer.subscription.deleted':
+          const canceledSubscription = event.data.object;
+          console.log(`[Stripe Webhook] Subscription canceled: ${canceledSubscription.id}`);
+          
+          // Update VPS order status to "canceled"
+          try {
+            await storage.updateVpsOrderByStripeSubscription(canceledSubscription.id, { 
+              status: 'canceled'
+            } as any);
+            console.log(`[Stripe Webhook] Updated VPS order status to canceled`);
+          } catch (dbError) {
+            console.error(`[Stripe Webhook] Failed to update VPS order status:`, dbError);
+          }
+          break;
+
+        default:
+          console.log(`[Stripe Webhook] Unhandled event type: ${event.type}`);
+      }
+    } catch (error) {
+      console.error(`[Stripe Webhook] Error processing event:`, error);
+      return res.status(500).send('Webhook processing failed');
+    }
+
+    res.json({ received: true });
+  });
+
   // Auth middleware
   setupAuth(app);
 
@@ -660,6 +767,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching plugin downloads:", error);
       res.status(500).json({ message: "Failed to fetch plugin downloads" });
+    }
+  });
+
+  // Get VPS orders for current user
+  app.get("/api/user-vps-orders", isAuthenticated, async (req: any, res) => {
+    try {
+      const userEmail = req.user.email;
+      const vpsOrders = await storage.getVpsOrdersByEmail(userEmail);
+      res.json(vpsOrders);
+    } catch (error) {
+      console.error("Error fetching VPS orders:", error);
+      res.status(500).json({ message: "Failed to fetch VPS orders" });
     }
   });
 
@@ -4594,7 +4713,32 @@ ${urls.map(url => `  <url>
 
       console.log(`[VPS Subscription] Success! Client secret: ${clientSecret.substring(0, 10)}...`);
 
-      // Create VPS order record for admin processing
+      // Create or get user account for this email
+      console.log(`[VPS Subscription] Creating/getting user account for ${customerEmail}`);
+      let user = await storage.getUserByEmail(customerEmail);
+      
+      if (!user) {
+        // Create new user account
+        const { generateUsername, generatePassword } = await import('./auth.js');
+        const username = generateUsername();
+        const password = generatePassword();
+        const { hashPassword } = await import('./auth.js');
+        const hashedPassword = await hashPassword(password);
+        
+        user = await storage.createUser({
+          username,
+          email: customerEmail,
+          password: hashedPassword,
+          displayPassword: password, // Store for user visibility
+          role: 'client',
+        });
+        
+        console.log(`[VPS Subscription] Created new user account: ${user.username} (${user.email})`);
+      } else {
+        console.log(`[VPS Subscription] Found existing user account: ${user.username} (${user.email})`);
+      }
+
+      // Create VPS order record for admin processing and user tracking
       console.log(`[VPS Subscription] Creating VPS order record`);
       const vpsOrder = await storage.createVpsOrder({
         customerEmail,
@@ -4608,6 +4752,7 @@ ${urls.map(url => `  <url>
         vcpu: vpsPackage.vcpu.toString(),
         memory: `${vpsPackage.memory}MB`,
         storage: `${vpsPackage.storage}GB`,
+        status: 'pending', // Set initial status as pending
       });
 
       console.log(`[VPS Subscription] VPS order created: ${vpsOrder.id}`);
@@ -4630,6 +4775,11 @@ ${urls.map(url => `  <url>
         packageName: vpsPackage.displayName,
         monthlyPrice: (vpsPackage.price / 100).toFixed(2),
         orderId: vpsOrder.id,
+        userAccount: {
+          username: user.username,
+          password: user.displayPassword,
+          email: user.email,
+        },
       });
       
     } catch (error) {
@@ -4750,6 +4900,23 @@ ${urls.map(url => `  <url>
     } catch (error) {
       console.error("Error deleting VPS order:", error);
       res.status(500).json({ message: "Error deleting VPS order" });
+    }
+  });
+
+  // Public endpoint for users to fetch their own VPS orders by email
+  app.get("/api/vps-orders/by-email/:email", async (req, res) => {
+    try {
+      const { email } = req.params;
+      
+      if (!email) {
+        return res.status(400).json({ message: "Email parameter is required" });
+      }
+      
+      const orders = await storage.getVpsOrdersByEmail(email);
+      res.json(orders);
+    } catch (error) {
+      console.error("Error fetching VPS orders by email:", error);
+      res.status(500).json({ message: "Failed to fetch VPS orders" });
     }
   });
 

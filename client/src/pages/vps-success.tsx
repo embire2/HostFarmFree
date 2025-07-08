@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { CheckCircle, Server, CreditCard, Clock, ArrowRight } from "lucide-react";
+import { CheckCircle, Server, CreditCard, Clock, ArrowRight, User, Key, Copy, Database } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
 import Navbar from "@/components/navbar";
 
@@ -9,6 +10,8 @@ export default function VpsSuccess() {
   const [, setLocation] = useLocation();
   const [subscriptionId, setSubscriptionId] = useState<string>("");
   const [orderId, setOrderId] = useState<string>("");
+  const [userCredentials, setUserCredentials] = useState<any>(null);
+  const { toast } = useToast();
 
   useEffect(() => {
     // Get URL parameters
@@ -21,6 +24,14 @@ export default function VpsSuccess() {
     }
     if (order_id) {
       setOrderId(order_id);
+    }
+
+    // Get user credentials from global variable
+    const credentials = (window as any).vpsCredentials;
+    if (credentials) {
+      setUserCredentials(credentials);
+      // Clear the global variable for security
+      delete (window as any).vpsCredentials;
     }
 
     // Track successful VPS purchase event for Facebook Pixel
@@ -45,6 +56,14 @@ export default function VpsSuccess() {
 
   const handleGoHome = () => {
     setLocation('/');
+  };
+
+  const copyToClipboard = (text: string, label: string) => {
+    navigator.clipboard.writeText(text);
+    toast({
+      title: "Copied!",
+      description: `${label} copied to clipboard`,
+    });
   };
 
   return (
@@ -112,6 +131,93 @@ export default function VpsSuccess() {
               </div>
             </CardContent>
           </Card>
+
+          {/* Account Credentials */}
+          {userCredentials && (
+            <Card className="bg-gradient-to-br from-blue-500/20 to-cyan-500/20 border-blue-500/30 mb-8">
+              <CardHeader>
+                <CardTitle className="text-white flex items-center justify-center">
+                  <Key className="w-5 h-5 mr-2" />
+                  Your Account Credentials
+                </CardTitle>
+                <p className="text-gray-300 text-sm text-center">
+                  Save these credentials to access your dashboard and manage your VPS orders.
+                </p>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-300">Username</label>
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="text"
+                        value={userCredentials.username}
+                        readOnly
+                        className="flex-1 px-3 py-2 bg-gray-800 border border-gray-600 rounded-md font-mono text-sm text-white"
+                      />
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => copyToClipboard(userCredentials.username, "Username")}
+                        className="border-gray-600 text-gray-300 hover:bg-gray-700"
+                      >
+                        <Copy className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-300">Password</label>
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="text"
+                        value={userCredentials.password}
+                        readOnly
+                        className="flex-1 px-3 py-2 bg-gray-800 border border-gray-600 rounded-md font-mono text-sm text-white"
+                      />
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => copyToClipboard(userCredentials.password, "Password")}
+                        className="border-gray-600 text-gray-300 hover:bg-gray-700"
+                      >
+                        <Copy className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-300">Email Address</label>
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="email"
+                      value={userCredentials.email}
+                      readOnly
+                      className="flex-1 px-3 py-2 bg-gray-800 border border-gray-600 rounded-md text-sm text-white"
+                    />
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => copyToClipboard(userCredentials.email, "Email")}
+                      className="border-gray-600 text-gray-300 hover:bg-gray-700"
+                    >
+                      <Copy className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="bg-amber-500/20 border border-amber-500/50 rounded-lg p-3">
+                  <p className="text-amber-300 text-sm font-medium">
+                    🔐 Important: Save these credentials safely!
+                  </p>
+                  <p className="text-amber-400 text-xs mt-1">
+                    You'll need these to access your dashboard and manage your VPS orders.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Next Steps */}
           <div className="grid md:grid-cols-2 gap-4 mb-8">

@@ -28,7 +28,7 @@ import {
 } from "lucide-react";
 import Navbar from "@/components/navbar";
 import DomainSearch from "@/components/domain-search";
-import { HostingAccount, PluginDownload } from "@shared/schema";
+import { HostingAccount, PluginDownload, VpsOrder } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
@@ -331,6 +331,7 @@ export default function ClientDashboard() {
   const [activationCountdown, setActivationCountdown] = useState(120); // 2 minutes
   const [tempCredentials, setTempCredentials] = useState<any>(null);
 
+
   // Handle automatic domain creation from URL parameter
   useEffect(() => {
     if (!isLoading && isAuthenticated && user) {
@@ -453,6 +454,12 @@ export default function ClientDashboard() {
   const { data: pluginDownloads = [], isLoading: downloadsLoading } = useQuery({
     queryKey: ["/api/plugin-downloads"],
     enabled: isAuthenticated,
+  });
+
+  // Fetch VPS orders for this user
+  const { data: vpsOrders = [] } = useQuery<VpsOrder[]>({
+    queryKey: [`/api/vps-orders/by-email/${user?.email}`],
+    enabled: isAuthenticated && !!user?.email,
   });
 
   const { data: stats = {} } = useQuery({
@@ -879,6 +886,49 @@ export default function ClientDashboard() {
 
           {/* Sidebar */}
           <div className="space-y-6">
+            {/* VPS Orders */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Database className="mr-2 h-5 w-5" />
+                  VPS Orders
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {vpsOrders.length > 0 ? (
+                  <div className="space-y-3">
+                    {vpsOrders.slice(0, 3).map((order: VpsOrder) => (
+                      <div key={order.id} className="border-b border-gray-100 pb-2 last:border-b-0">
+                        <div className="flex justify-between items-center mb-1">
+                          <p className="font-medium text-sm">{order.packageName}</p>
+                          <Badge 
+                            variant={order.status === "active" ? "default" : order.status === "pending" ? "secondary" : "destructive"}
+                            className={
+                              order.status === "active" ? "bg-green-500 text-xs" : 
+                              order.status === "pending" ? "bg-orange-500 text-xs" : 
+                              "bg-red-500 text-xs"
+                            }
+                          >
+                            {order.status}
+                          </Badge>
+                        </div>
+                        <p className="text-xs text-muted-foreground flex items-center">
+                          <Calendar className="mr-1 h-3 w-3" />
+                          {new Date(order.createdAt).toLocaleDateString()}
+                        </p>
+                        <p className="text-xs text-muted-foreground">${(order.packagePrice / 100).toFixed(2)}/month</p>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-4">
+                    <Database className="mx-auto h-8 w-8 text-gray-400 mb-2" />
+                    <p className="text-sm text-muted-foreground">No VPS orders yet</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
             {/* Recent Downloads */}
             <Card>
               <CardHeader>

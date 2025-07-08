@@ -89,6 +89,13 @@ export default function VpsCheckout() {
 
   const handlePaymentSuccess = () => {
     setPaymentComplete(true);
+    
+    // Get stored user account info
+    const userAccount = (window as any).vpsUserAccount;
+    if (userAccount) {
+      // Store user credentials for success page
+      (window as any).vpsCredentials = userAccount;
+    }
   };
 
   if (!clientSecret) {
