@@ -125,31 +125,31 @@ export default function ThreeSectionServices() {
 
       {/* Service Features */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
-        <Card className="bg-gradient-to-br from-emerald-500/20 to-green-600/20 border-emerald-400/50 backdrop-blur-sm">
+        <Card className="bg-gradient-to-br from-emerald-600/80 to-green-700/80 border-emerald-400 backdrop-blur-sm shadow-lg">
           <CardContent className="p-6 text-center">
-            <Shield className="w-12 h-12 text-emerald-400 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-white mb-2">Privacy First</h3>
-            <p className="text-gray-300 text-sm">
+            <Shield className="w-12 h-12 text-emerald-100 mx-auto mb-4 drop-shadow-lg" />
+            <h3 className="text-lg font-bold text-white mb-2 drop-shadow-md">Privacy First</h3>
+            <p className="text-emerald-50 text-sm font-medium">
               All our services prioritize your privacy and security. Anonymous options available.
             </p>
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-cyan-500/20 to-blue-600/20 border-cyan-400/50 backdrop-blur-sm">
+        <Card className="bg-gradient-to-br from-cyan-600/80 to-blue-700/80 border-cyan-400 backdrop-blur-sm shadow-lg">
           <CardContent className="p-6 text-center">
-            <Zap className="w-12 h-12 text-cyan-400 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-white mb-2">Instant Setup</h3>
-            <p className="text-gray-300 text-sm">
+            <Zap className="w-12 h-12 text-cyan-100 mx-auto mb-4 drop-shadow-lg" />
+            <h3 className="text-lg font-bold text-white mb-2 drop-shadow-md">Instant Setup</h3>
+            <p className="text-cyan-50 text-sm font-medium">
               Get your hosting account or VPS ready within minutes. No waiting times.
             </p>
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-fuchsia-500/20 to-purple-600/20 border-fuchsia-400/50 backdrop-blur-sm">
+        <Card className="bg-gradient-to-br from-fuchsia-600/80 to-purple-700/80 border-fuchsia-400 backdrop-blur-sm shadow-lg">
           <CardContent className="p-6 text-center">
-            <CheckCircle className="w-12 h-12 text-fuchsia-400 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-white mb-2">No Contracts</h3>
-            <p className="text-gray-300 text-sm">
+            <CheckCircle className="w-12 h-12 text-fuchsia-100 mx-auto mb-4 drop-shadow-lg" />
+            <h3 className="text-lg font-bold text-white mb-2 drop-shadow-md">No Contracts</h3>
+            <p className="text-fuchsia-50 text-sm font-medium">
               Cancel anytime. No long-term commitments. Pay only for what you use.
             </p>
           </CardContent>
