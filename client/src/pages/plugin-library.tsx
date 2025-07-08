@@ -19,6 +19,7 @@ import {
 import Navbar from "@/components/navbar";
 import PluginCard from "@/components/plugin-card";
 import PluginRequestForm from "@/components/plugin-request-form";
+import PluginLibraryRegistration from "@/components/plugin-library-registration";
 import SEOHead, { generateSchemaData } from "@/components/seo-head";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
@@ -31,6 +32,7 @@ export default function PluginLibrary() {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [emailInput, setEmailInput] = useState("");
   const [showEmailBanner, setShowEmailBanner] = useState(false);
+  const [showRegistrationForm, setShowRegistrationForm] = useState(false);
   
   const { user, isAuthenticated, isLoading } = useAuth();
   const { toast } = useToast();
@@ -211,50 +213,85 @@ export default function PluginLibrary() {
 
         {/* Access Control */}
         {!hasAccess && (
-          <Card className="mb-8 bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200">
-            <CardContent className="p-8 text-center">
-              <Lock className="w-16 h-16 text-blue-500 mx-auto mb-4" />
-              <h2 className="text-2xl font-bold text-gray-800 mb-4">Plugin Library Access Required</h2>
-              
-              {!isAuthenticated ? (
-                <div>
-                  <p className="text-gray-600 mb-6">
-                    Sign in to access our premium WordPress plugin library with 2,000+ plugins.
-                  </p>
-                  <Button 
-                    onClick={() => window.location.href = "/api/login"} 
-                    className="bg-blue-600 hover:bg-blue-700"
-                  >
-                    Sign In to Access Plugins
-                  </Button>
-                </div>
-              ) : (
-                <div>
-                  <p className="text-gray-600 mb-6">
-                    Add your email address to unlock the Plugin Library and Request function.
-                  </p>
-                  <form onSubmit={handleEmailSubmit} className="flex flex-col md:flex-row items-center justify-center gap-4">
-                    <Input
-                      type="email"
-                      placeholder="Enter your email address"
-                      value={emailInput}
-                      onChange={(e) => setEmailInput(e.target.value)}
-                      className="w-80"
-                      required
-                    />
-                    <Button 
-                      type="submit" 
-                      disabled={updateEmailMutation.isPending}
-                      className="bg-blue-600 hover:bg-blue-700"
-                    >
-                      <Mail className="w-4 h-4 mr-2" />
-                      {updateEmailMutation.isPending ? "Saving..." : "Unlock Plugin Library"}
-                    </Button>
-                  </form>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+          <div className="mb-8">
+            {!isAuthenticated ? (
+              <div>
+                {!showRegistrationForm ? (
+                  <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200">
+                    <CardContent className="p-8 text-center">
+                      <Lock className="w-16 h-16 text-blue-500 mx-auto mb-4" />
+                      <h2 className="text-2xl font-bold text-gray-800 mb-4">Plugin Library Access Required</h2>
+                      <p className="text-gray-600 mb-6">
+                        Create an account to access our premium WordPress plugin library with 2,000+ plugins.
+                        Unlike our anonymous services, this requires your details for content access and support.
+                      </p>
+                      <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+                        <Button 
+                          onClick={() => setShowRegistrationForm(true)}
+                          className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold px-8 py-3"
+                        >
+                          Create Account
+                        </Button>
+                        <p className="text-sm text-gray-500">or</p>
+                        <Button 
+                          variant="outline"
+                          onClick={() => window.location.href = "/api/login"} 
+                          className="border-blue-500 text-blue-600 hover:bg-blue-50"
+                        >
+                          Sign In to Existing Account
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <div className="bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 rounded-2xl p-8">
+                    <div className="max-w-4xl mx-auto">
+                      <div className="text-center mb-8">
+                        <Button
+                          variant="outline"
+                          onClick={() => setShowRegistrationForm(false)}
+                          className="mb-6 border-white/20 text-white hover:bg-white/10"
+                        >
+                          ← Back to Sign In Options
+                        </Button>
+                      </div>
+                      <PluginLibraryRegistration />
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200">
+                <CardContent className="p-8 text-center">
+                  <Lock className="w-16 h-16 text-blue-500 mx-auto mb-4" />
+                  <h2 className="text-2xl font-bold text-gray-800 mb-4">Plugin Library Access Required</h2>
+                  <div>
+                    <p className="text-gray-600 mb-6">
+                      Add your email address to unlock the Plugin Library and Request function.
+                    </p>
+                    <form onSubmit={handleEmailSubmit} className="flex flex-col md:flex-row items-center justify-center gap-4">
+                      <Input
+                        type="email"
+                        placeholder="Enter your email address"
+                        value={emailInput}
+                        onChange={(e) => setEmailInput(e.target.value)}
+                        className="w-80"
+                        required
+                      />
+                      <Button 
+                        type="submit" 
+                        disabled={updateEmailMutation.isPending}
+                        className="bg-blue-600 hover:bg-blue-700"
+                      >
+                        <Mail className="w-4 h-4 mr-2" />
+                        {updateEmailMutation.isPending ? "Saving..." : "Unlock Plugin Library"}
+                      </Button>
+                    </form>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
         )}
 
         {/* Search and Filters - Only show if user has access */}
