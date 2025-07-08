@@ -16,24 +16,30 @@ export default function ThreeSectionServices() {
       title: "Create Free Hosting Account",
       icon: <Globe className="w-6 h-6" />,
       description: "Get your free WordPress hosting with a custom subdomain",
-      color: "border-green-500",
-      bgColor: "bg-green-500/10",
+      color: "border-emerald-400",
+      bgColor: "bg-gradient-to-br from-emerald-500/30 to-green-600/30",
+      headerBg: "bg-gradient-to-r from-emerald-500/20 to-green-500/20",
+      iconColor: "text-emerald-400",
     },
     {
       id: "vps" as const,
       title: "Create Anonymous VPS",
       icon: <Server className="w-6 h-6" />,
       description: "100% anonymous VPS hosting with multiple pricing tiers",
-      color: "border-blue-500",
-      bgColor: "bg-blue-500/10",
+      color: "border-cyan-400",
+      bgColor: "bg-gradient-to-br from-cyan-500/30 to-blue-600/30",
+      headerBg: "bg-gradient-to-r from-cyan-500/20 to-blue-500/20",
+      iconColor: "text-cyan-400",
     },
     {
       id: "plugins" as const,
       title: "Access WordPress Plugin Library",
       icon: <Library className="w-6 h-6" />,
       description: "Register to access our premium WordPress plugin collection",
-      color: "border-purple-500",
-      bgColor: "bg-purple-500/10",
+      color: "border-fuchsia-400",
+      bgColor: "bg-gradient-to-br from-fuchsia-500/30 to-purple-600/30",
+      headerBg: "bg-gradient-to-r from-fuchsia-500/20 to-purple-500/20",
+      iconColor: "text-fuchsia-400",
     },
   ];
 
@@ -59,17 +65,23 @@ export default function ThreeSectionServices() {
             key={section.id}
             className={`cursor-pointer transition-all duration-300 hover:scale-105 ${
               activeSection === section.id
-                ? `${section.color} ${section.bgColor} shadow-lg`
+                ? `${section.color} ${section.bgColor} shadow-xl shadow-${section.color.split('-')[1]}-500/20`
                 : "border-white/20 bg-white/5 hover:bg-white/10"
             }`}
             onClick={() => setActiveSection(section.id)}
           >
-            <CardHeader className="text-center">
+            <CardHeader className={`text-center ${
+              activeSection === section.id ? section.headerBg : "bg-white/5"
+            } rounded-t-lg`}>
               <CardTitle className="text-lg font-bold text-white flex items-center justify-center gap-2">
-                {section.icon}
+                <span className={activeSection === section.id ? section.iconColor : "text-white"}>
+                  {section.icon}
+                </span>
                 {section.title}
               </CardTitle>
-              <p className="text-gray-300 text-sm">
+              <p className={`text-sm ${
+                activeSection === section.id ? "text-gray-200" : "text-gray-300"
+              }`}>
                 {section.description}
               </p>
             </CardHeader>
@@ -77,7 +89,7 @@ export default function ThreeSectionServices() {
               <div className="flex justify-center">
                 <Badge
                   variant={activeSection === section.id ? "default" : "secondary"}
-                  className={activeSection === section.id ? "bg-white text-black" : ""}
+                  className={activeSection === section.id ? "bg-white text-black font-semibold" : ""}
                 >
                   {activeSection === section.id ? "Active" : "Click to view"}
                 </Badge>
@@ -105,9 +117,9 @@ export default function ThreeSectionServices() {
 
       {/* Service Features */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
-        <Card className="bg-white/10 backdrop-blur-sm border-white/20">
+        <Card className="bg-gradient-to-br from-emerald-500/20 to-green-600/20 border-emerald-400/50 backdrop-blur-sm">
           <CardContent className="p-6 text-center">
-            <Shield className="w-12 h-12 text-green-400 mx-auto mb-4" />
+            <Shield className="w-12 h-12 text-emerald-400 mx-auto mb-4" />
             <h3 className="text-lg font-semibold text-white mb-2">Privacy First</h3>
             <p className="text-gray-300 text-sm">
               All our services prioritize your privacy and security. Anonymous options available.
@@ -115,9 +127,9 @@ export default function ThreeSectionServices() {
           </CardContent>
         </Card>
 
-        <Card className="bg-white/10 backdrop-blur-sm border-white/20">
+        <Card className="bg-gradient-to-br from-cyan-500/20 to-blue-600/20 border-cyan-400/50 backdrop-blur-sm">
           <CardContent className="p-6 text-center">
-            <Zap className="w-12 h-12 text-yellow-400 mx-auto mb-4" />
+            <Zap className="w-12 h-12 text-cyan-400 mx-auto mb-4" />
             <h3 className="text-lg font-semibold text-white mb-2">Instant Setup</h3>
             <p className="text-gray-300 text-sm">
               Get your hosting account or VPS ready within minutes. No waiting times.
@@ -125,9 +137,9 @@ export default function ThreeSectionServices() {
           </CardContent>
         </Card>
 
-        <Card className="bg-white/10 backdrop-blur-sm border-white/20">
+        <Card className="bg-gradient-to-br from-fuchsia-500/20 to-purple-600/20 border-fuchsia-400/50 backdrop-blur-sm">
           <CardContent className="p-6 text-center">
-            <CheckCircle className="w-12 h-12 text-blue-400 mx-auto mb-4" />
+            <CheckCircle className="w-12 h-12 text-fuchsia-400 mx-auto mb-4" />
             <h3 className="text-lg font-semibold text-white mb-2">No Contracts</h3>
             <p className="text-gray-300 text-sm">
               Cancel anytime. No long-term commitments. Pay only for what you use.
