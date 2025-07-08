@@ -12,6 +12,7 @@ import PluginDetail from "@/pages/plugin-detail";
 import PluginCheckout from "@/pages/plugin-checkout";
 import PluginCheckoutSuccess from "@/pages/plugin-checkout-success";
 import DonationSuccess from "@/pages/donation-success";
+import VpsCheckout from "@/pages/vps-checkout";
 
 import NotFound from "@/pages/not-found";
 import ApiSettingsPage from "@/pages/api-settings-page";
@@ -44,6 +45,7 @@ function Router() {
           <Route path="/plugin/:slug/donate" component={PluginCheckout} />
           <Route path="/plugin-checkout-success" component={PluginCheckoutSuccess} />
           <Route path="/donation-success" component={DonationSuccess} />
+          <Route path="/vps-checkout" component={VpsCheckout} />
         </>
       ) : (
         <>
@@ -59,6 +61,7 @@ function Router() {
               <Route path="/plugin/:slug/donate" component={PluginCheckout} />
               <Route path="/plugin-checkout-success" component={PluginCheckoutSuccess} />
               <Route path="/donation-success" component={DonationSuccess} />
+              <Route path="/vps-checkout" component={VpsCheckout} />
             </>
           ) : (
             <>
@@ -70,6 +73,7 @@ function Router() {
               <Route path="/plugin/:slug/donate" component={PluginCheckout} />
               <Route path="/plugin-checkout-success" component={PluginCheckoutSuccess} />
               <Route path="/donation-success" component={DonationSuccess} />
+              <Route path="/vps-checkout" component={VpsCheckout} />
             </>
           )}
         </>

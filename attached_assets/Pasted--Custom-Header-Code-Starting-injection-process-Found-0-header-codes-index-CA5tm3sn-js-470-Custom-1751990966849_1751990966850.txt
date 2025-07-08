@@ -1,0 +1,43 @@
+[Custom Header Code] Starting injection process. Found 0 header codes.
+index-CA5tm3sn.js:470 [Custom Header Code] No active header codes found. Skipping injection.
+/api/facebook-pixel-settings:1 
+            
+            
+           Failed to load resource: the server responded with a status of 401 ()Understand this error
+/api/user:1 
+            
+            
+           Failed to load resource: the server responded with a status of 401 ()Understand this error
+index-CA5tm3sn.js:456 [Device Fingerprint] Starting device registration check...
+index-CA5tm3sn.js:456 [Deprecation] The ScriptProcessorNode is deprecated. Use AudioWorkletNode instead. (https://bit.ly/audio-worklet)
+generateAudioFingerprint @ index-CA5tm3sn.js:456Understand this warning
+index-CA5tm3sn.js:456 The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio
+generateAudioFingerprint @ index-CA5tm3sn.js:456Understand this warning
+index-CA5tm3sn.js:470 [Custom Header Code] Starting injection process. Found 1 header codes.
+index-CA5tm3sn.js:470 [Custom Header Code] Created new container. Processing 1 codes.
+index-CA5tm3sn.js:470 [Custom Header Code] ✓ Injected (1/1): Facebook Pixel (ID: 1)
+index-CA5tm3sn.js:470 [Custom Header Code] 🎯 Facebook Pixel detected and injected!
+index-CA5tm3sn.js:470 [Custom Header Code] Facebook Pixel Code Preview: <!-- Meta Pixel Code -->
+<script>
+!function(f,b,e,v,n,t,s)
+{if(f.fbq)return;n=f.fbq=function(){n.cal...
+index-CA5tm3sn.js:470 [Custom Header Code] ✅ All codes injected successfully! Container added to document head.
+index-CA5tm3sn.js:456 Generated device fingerprint: 3412d4fccd9987aca44f5798cf4a3d4f281232e741f0c4ea926c4b5846e2ec55
+index-CA5tm3sn.js:456 [Device Fingerprint] Generated fingerprint: 3412d4fccd...
+index-CA5tm3sn.js:456 [Device Fingerprint] Sending device limits request
+index-CA5tm3sn.js:456 [Device Fingerprint] Device limits check result: Object
+index-CA5tm3sn.js:470 [Custom Header Code] 🔍 Verification: Container still present in DOM with 1 child elements.
+index-CA5tm3sn.js:470 [Custom Header Code] 🎯 Facebook Pixel Scripts - External: 0, Inline: 1
+index-CA5tm3sn.js:470 [Custom Header Code] ⚠️ Facebook Pixel fbq function not found. This may indicate loading issues.
+(anonymous) @ index-CA5tm3sn.js:470Understand this warning
+index-CA5tm3sn.js:470 [Custom Header Code] ⚠️ Facebook Pixel may not be fully loaded yet.
+(anonymous) @ index-CA5tm3sn.js:470Understand this warning
+/api/create-vps-subscription:1 
+            
+            
+           Failed to load resource: the server responded with a status of 500 ()Understand this error
+index-CA5tm3sn.js:456 Error creating VPS subscription: Error: 500: {"message":"Error creating VPS subscription"}
+    at Xw (index-CA5tm3sn.js:48:42800)
+    at async xe (index-CA5tm3sn.js:48:43033)
+    at async g (index-CA5tm3sn.js:456:27232)
+g @ index-CA5tm3sn.js:456Understand this error

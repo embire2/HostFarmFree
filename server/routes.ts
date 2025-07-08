@@ -4471,35 +4471,134 @@ ${urls.map(url => `  <url>
     try {
       const { packageId, customerEmail, operatingSystem } = req.body;
       
+      console.log(`[VPS Subscription] Creating subscription for package ${packageId}, email: ${customerEmail}, OS: ${operatingSystem}`);
+      
+      // Validate input
+      if (!packageId || !customerEmail || !operatingSystem) {
+        return res.status(400).json({ message: "Missing required fields: packageId, customerEmail, operatingSystem" });
+      }
+      
       // Get VPS package
       const vpsPackage = await storage.getVpsPackageById(packageId);
       if (!vpsPackage) {
+        console.error(`[VPS Subscription] Package not found: ${packageId}`);
         return res.status(404).json({ message: "VPS package not found" });
       }
 
+      console.log(`[VPS Subscription] Found package: ${vpsPackage.displayName} - $${(vpsPackage.price / 100).toFixed(2)}`);
+
+      // Create or get Stripe price
+      let stripePriceId = vpsPackage.stripePriceId;
+      
+      // Check if we need to create a real Stripe price (if it's a placeholder)
+      if (!stripePriceId || stripePriceId.startsWith('price_') && stripePriceId.includes('_vps')) {
+        console.log(`[VPS Subscription] Creating Stripe price for ${vpsPackage.displayName}`);
+        
+        try {
+          // Create a Stripe product first
+          const product = await stripe.products.create({
+            name: `${vpsPackage.displayName} VPS`,
+            description: `${vpsPackage.displayName} VPS hosting package with ${vpsPackage.cpu} CPU, ${vpsPackage.memory} RAM, ${vpsPackage.storage} storage`,
+            metadata: {
+              vps_package_id: packageId.toString(),
+              package_name: vpsPackage.name,
+            }
+          });
+
+          // Create a Stripe price
+          const price = await stripe.prices.create({
+            product: product.id,
+            unit_amount: vpsPackage.price, // Price is already in cents
+            currency: 'usd',
+            recurring: {
+              interval: 'month',
+            },
+            metadata: {
+              vps_package_id: packageId.toString(),
+              package_name: vpsPackage.name,
+            }
+          });
+
+          stripePriceId = price.id;
+          
+          // Update the package with the real Stripe price ID
+          await storage.updateVpsPackage(packageId, { stripePriceId });
+          console.log(`[VPS Subscription] Created Stripe price: ${stripePriceId}`);
+        } catch (stripeError) {
+          console.error("[VPS Subscription] Error creating Stripe price:", stripeError);
+          return res.status(500).json({ 
+            message: "Failed to create Stripe price", 
+            error: stripeError.message 
+          });
+        }
+      }
+
       // Create Stripe customer
+      console.log(`[VPS Subscription] Creating Stripe customer for ${customerEmail}`);
       const customer = await stripe.customers.create({
         email: customerEmail,
+        metadata: {
+          vps_package_id: packageId.toString(),
+          operating_system: operatingSystem,
+        }
       });
 
+      console.log(`[VPS Subscription] Created customer: ${customer.id}`);
+
       // Create subscription
+      console.log(`[VPS Subscription] Creating subscription with price: ${stripePriceId}`);
       const subscription = await stripe.subscriptions.create({
         customer: customer.id,
         items: [{
-          price: vpsPackage.stripePriceId,
+          price: stripePriceId,
         }],
         payment_behavior: 'default_incomplete',
+        payment_settings: {
+          save_default_payment_method: 'on_subscription',
+        },
         expand: ['latest_invoice.payment_intent'],
+        metadata: {
+          vps_package_id: packageId.toString(),
+          operating_system: operatingSystem,
+        }
       });
+
+      console.log(`[VPS Subscription] Created subscription: ${subscription.id}`);
+
+      // Get client secret from payment intent
+      const clientSecret = subscription.latest_invoice?.payment_intent?.client_secret;
+      
+      if (!clientSecret) {
+        console.error("[VPS Subscription] No client secret found in subscription");
+        return res.status(500).json({ message: "Failed to create payment intent" });
+      }
+
+      console.log(`[VPS Subscription] Success! Client secret: ${clientSecret.substring(0, 10)}...`);
 
       res.json({
         subscriptionId: subscription.id,
-        clientSecret: subscription.latest_invoice?.payment_intent?.client_secret,
+        clientSecret: clientSecret,
         customerId: customer.id,
+        packageName: vpsPackage.displayName,
+        monthlyPrice: (vpsPackage.price / 100).toFixed(2),
       });
+      
     } catch (error) {
-      console.error("Error creating VPS subscription:", error);
-      res.status(500).json({ message: "Error creating VPS subscription" });
+      console.error("[VPS Subscription] Error creating VPS subscription:", error);
+      
+      // Better error handling based on error type
+      if (error.type === 'StripeCardError') {
+        return res.status(400).json({ message: "Card error: " + error.message });
+      } else if (error.type === 'StripeInvalidRequestError') {
+        return res.status(400).json({ message: "Invalid request: " + error.message });
+      } else if (error.type === 'StripeAPIError') {
+        return res.status(500).json({ message: "Stripe API error: " + error.message });
+      } else {
+        return res.status(500).json({ 
+          message: "Error creating VPS subscription", 
+          error: error.message 
+        });
+      }
     }
   });
 
