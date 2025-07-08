@@ -43,8 +43,8 @@ export default function PluginRequestForm() {
     },
     onSuccess: () => {
       toast({
-        title: "Request Submitted",
-        description: "Your plugin request has been submitted successfully. We'll review it and get back to you.",
+        title: "Request Submitted Successfully",
+        description: "Your plugin request has been submitted. You'll receive a confirmation email shortly. We'll load your plugin within 48-72 hours.",
       });
       form.reset();
       setShowForm(false);
@@ -176,7 +176,7 @@ export default function PluginRequestForm() {
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
               <p className="text-sm text-blue-800">
                 <strong>Daily Limit:</strong> You can submit up to 2 plugin requests per day. 
-                We'll review your request and add popular plugins to our library.
+                We'll send you a confirmation email and load your plugin within <strong>48-72 hours</strong>.
               </p>
             </div>
 

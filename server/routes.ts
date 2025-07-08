@@ -3984,9 +3984,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
             },
           });
 
-          const mailOptions = {
+          // Send notification email to admin
+          const adminMailOptions = {
             from: `"${smtpSettings.fromName}" <${smtpSettings.fromEmail}>`,
-            to: 'admin@hostfarm.org',
+            to: 'ceo@openweb.email',
             subject: 'New Plugin Request - HostFarm.org',
             html: `
               <h2>New Plugin Request</h2>
@@ -3999,7 +4000,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
             `
           };
 
-          await transporter.sendMail(mailOptions);
+          // Send auto-reply email to user
+          const userAutoReplyOptions = {
+            from: `"HostFarm.org Support" <${smtpSettings.fromEmail}>`,
+            to: email,
+            subject: 'Plugin Request Received - HostFarm.org',
+            html: `
+              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                <h2 style="color: #2563eb;">Plugin Request Received</h2>
+                
+                <p>Dear ${firstName},</p>
+                
+                <p>Thank you for your plugin request! We've successfully received your request for <strong>${pluginName}</strong>.</p>
+                
+                <div style="background-color: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                  <h3 style="margin-top: 0; color: #374151;">Request Details:</h3>
+                  <p><strong>Plugin Name:</strong> ${pluginName}</p>
+                  <p><strong>Submitted by:</strong> ${firstName} ${lastName}</p>
+                  <p><strong>Email:</strong> ${email}</p>
+                  <p><strong>Date:</strong> ${new Date().toLocaleString()}</p>
+                </div>
+                
+                <p><strong>What happens next?</strong></p>
+                <ul>
+                  <li>Our team will review your plugin request within the next 24 hours</li>
+                  <li>If approved, the plugin will be loaded into our library within <strong>48 to 72 hours</strong></li>
+                  <li>You'll receive a notification once the plugin is available for download</li>
+                </ul>
+                
+                <p>You can submit up to 2 plugin requests per day. If you have any questions or need immediate assistance, please don't hesitate to contact us.</p>
+                
+                <p>Best regards,<br>
+                The HostFarm.org Team</p>
+                
+                <hr style="margin: 30px 0; border: none; border-top: 1px solid #e5e7eb;">
+                <p style="font-size: 12px; color: #6b7280;">
+                  This is an automated message. Please do not reply to this email.
+                </p>
+              </div>
+            `
+          };
+
+          // Send both emails
+          await Promise.all([
+            transporter.sendMail(adminMailOptions),
+            transporter.sendMail(userAutoReplyOptions)
+          ]);
         }
       } catch (emailError) {
         console.error('Error sending plugin request email:', emailError);
