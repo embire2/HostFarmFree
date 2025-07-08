@@ -13,6 +13,8 @@ import {
   pluginRequests,
   smtpSettings,
   customHeaderCode,
+  vpsPackages,
+  vpsInstances,
   type User,
   type InsertUser,
   type HostingAccount,
@@ -40,6 +42,10 @@ import {
   type InsertSmtpSettings,
   type CustomHeaderCode,
   type InsertCustomHeaderCode,
+  type VpsPackage,
+  type InsertVpsPackage,
+  type VpsInstance,
+  type InsertVpsInstance,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, ilike, and, sql } from "drizzle-orm";
@@ -107,6 +113,21 @@ export interface IStorage {
   getUserGroupByName(name: string): Promise<UserGroup | undefined>;
   updateUserGroup(id: number, updates: Partial<InsertUserGroup>): Promise<UserGroup | undefined>;
   deleteUserGroup(id: number): Promise<boolean>;
+  
+  // VPS Package operations
+  createVpsPackage(packageData: InsertVpsPackage): Promise<VpsPackage>;
+  getVpsPackages(): Promise<VpsPackage[]>;
+  getVpsPackageById(id: number): Promise<VpsPackage | undefined>;
+  updateVpsPackage(id: number, updates: Partial<InsertVpsPackage>): Promise<VpsPackage | undefined>;
+  deleteVpsPackage(id: number): Promise<boolean>;
+  
+  // VPS Instance operations
+  createVpsInstance(instanceData: InsertVpsInstance): Promise<VpsInstance>;
+  getVpsInstances(): Promise<VpsInstance[]>;
+  getVpsInstanceById(id: number): Promise<VpsInstance | undefined>;
+  getVpsInstancesByUserId(userId: number): Promise<VpsInstance[]>;
+  updateVpsInstance(id: number, updates: Partial<InsertVpsInstance>): Promise<VpsInstance | undefined>;
+  deleteVpsInstance(id: number): Promise<boolean>;
   
   // Device Fingerprint operations  
   createDeviceFingerprint(fingerprint: InsertDeviceFingerprint): Promise<DeviceFingerprint>;
@@ -852,6 +873,78 @@ export class DatabaseStorage implements IStorage {
       return (result.rowCount || 0) > 0;
     } catch (error) {
       console.error('Error deleting custom header code:', error);
+      return false;
+    }
+  }
+
+  // VPS Package operations
+  async createVpsPackage(packageData: InsertVpsPackage): Promise<VpsPackage> {
+    const [vpsPackage] = await db.insert(vpsPackages).values(packageData).returning();
+    return vpsPackage;
+  }
+
+  async getVpsPackages(): Promise<VpsPackage[]> {
+    return await db.select().from(vpsPackages)
+      .where(eq(vpsPackages.isActive, true))
+      .orderBy(vpsPackages.sortOrder);
+  }
+
+  async getVpsPackageById(id: number): Promise<VpsPackage | undefined> {
+    const [vpsPackage] = await db.select().from(vpsPackages).where(eq(vpsPackages.id, id));
+    return vpsPackage;
+  }
+
+  async updateVpsPackage(id: number, updates: Partial<InsertVpsPackage>): Promise<VpsPackage | undefined> {
+    const [vpsPackage] = await db.update(vpsPackages)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(vpsPackages.id, id))
+      .returning();
+    return vpsPackage;
+  }
+
+  async deleteVpsPackage(id: number): Promise<boolean> {
+    try {
+      const result = await db.delete(vpsPackages).where(eq(vpsPackages.id, id));
+      return (result.rowCount || 0) > 0;
+    } catch (error) {
+      console.error("Error deleting VPS package:", error);
+      return false;
+    }
+  }
+
+  // VPS Instance operations
+  async createVpsInstance(instanceData: InsertVpsInstance): Promise<VpsInstance> {
+    const [vpsInstance] = await db.insert(vpsInstances).values(instanceData).returning();
+    return vpsInstance;
+  }
+
+  async getVpsInstances(): Promise<VpsInstance[]> {
+    return await db.select().from(vpsInstances).orderBy(desc(vpsInstances.createdAt));
+  }
+
+  async getVpsInstanceById(id: number): Promise<VpsInstance | undefined> {
+    const [vpsInstance] = await db.select().from(vpsInstances).where(eq(vpsInstances.id, id));
+    return vpsInstance;
+  }
+
+  async getVpsInstancesByUserId(userId: number): Promise<VpsInstance[]> {
+    return await db.select().from(vpsInstances).where(eq(vpsInstances.userId, userId));
+  }
+
+  async updateVpsInstance(id: number, updates: Partial<InsertVpsInstance>): Promise<VpsInstance | undefined> {
+    const [vpsInstance] = await db.update(vpsInstances)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(vpsInstances.id, id))
+      .returning();
+    return vpsInstance;
+  }
+
+  async deleteVpsInstance(id: number): Promise<boolean> {
+    try {
+      const result = await db.delete(vpsInstances).where(eq(vpsInstances.id, id));
+      return (result.rowCount || 0) > 0;
+    } catch (error) {
+      console.error("Error deleting VPS instance:", error);
       return false;
     }
   }

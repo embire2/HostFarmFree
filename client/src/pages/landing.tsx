@@ -19,7 +19,7 @@ import {
   Download
 } from "lucide-react";
 import Navbar from "@/components/navbar";
-import DomainSearch from "@/components/domain-search";
+import ThreeSectionServices from "@/components/three-section-services";
 import StatsGrid from "@/components/stats-grid";
 import DonationModal from "@/components/donation-modal";
 import SEOHead, { generateSchemaData } from "@/components/seo-head";
@@ -226,7 +226,7 @@ export default function Landing() {
             </div>
           </div>
 
-          <DomainSearch />
+          <ThreeSectionServices />
 
           <div className="mt-12">
             <StatsGrid />

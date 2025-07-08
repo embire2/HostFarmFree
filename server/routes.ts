@@ -4,7 +4,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { db } from "./db";
 import { setupAuth, isAuthenticated, generateUsername, generatePassword, generateRecoveryPhrase, hashPassword } from "./auth";
-import { insertHostingAccountSchema, insertPluginSchema, insertDonationSchema, donations } from "@shared/schema";
+import { insertHostingAccountSchema, insertPluginSchema, insertDonationSchema, insertVpsPackageSchema, insertVpsInstanceSchema, insertUserSchema, insertPluginRequestSchema, donations } from "@shared/schema";
 import { eq } from "drizzle-orm";
 import multer from "multer";
 import path from "path";
@@ -4285,6 +4285,140 @@ ${urls.map(url => `  <url>
     } catch (error) {
       console.error("Error generating sitemap:", error);
       res.status(500).send("Error generating sitemap");
+    }
+  });
+
+  // VPS Package endpoints
+  app.get("/api/vps-packages", async (req, res) => {
+    try {
+      const packages = await storage.getVpsPackages();
+      res.json(packages);
+    } catch (error) {
+      console.error("Error fetching VPS packages:", error);
+      res.status(500).json({ message: "Error fetching VPS packages" });
+    }
+  });
+
+  app.get("/api/vps-packages/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const vpsPackage = await storage.getVpsPackageById(id);
+      
+      if (!vpsPackage) {
+        return res.status(404).json({ message: "VPS package not found" });
+      }
+      
+      res.json(vpsPackage);
+    } catch (error) {
+      console.error("Error fetching VPS package:", error);
+      res.status(500).json({ message: "Error fetching VPS package" });
+    }
+  });
+
+  // VPS Instance endpoints
+  app.get("/api/vps-instances", isAuthenticated, async (req: any, res) => {
+    try {
+      const instances = await storage.getVpsInstancesByUserId(req.user.id);
+      res.json(instances);
+    } catch (error) {
+      console.error("Error fetching VPS instances:", error);
+      res.status(500).json({ message: "Error fetching VPS instances" });
+    }
+  });
+
+  app.post("/api/vps-instances", isAuthenticated, async (req: any, res) => {
+    try {
+      const validatedData = insertVpsInstanceSchema.parse(req.body);
+      const instance = await storage.createVpsInstance({
+        ...validatedData,
+        userId: req.user.id,
+      });
+      res.json(instance);
+    } catch (error) {
+      console.error("Error creating VPS instance:", error);
+      res.status(500).json({ message: "Error creating VPS instance" });
+    }
+  });
+
+  // Plugin Library Registration
+  app.post("/api/plugin-library-register", async (req, res) => {
+    try {
+      const { firstName, lastName, email, country, password } = req.body;
+      
+      // Check if user already exists
+      const existingUser = await storage.getUserByEmail(email);
+      if (existingUser) {
+        return res.status(400).json({ message: "User with this email already exists" });
+      }
+      
+      // Generate username from email
+      const username = email.split('@')[0] + Math.floor(Math.random() * 1000);
+      
+      // Hash password
+      const hashedPassword = await hashPassword(password);
+      
+      // Create user
+      const user = await storage.createUser({
+        username,
+        email,
+        password: hashedPassword,
+        firstName,
+        lastName,
+        isAnonymous: false,
+        role: "client",
+        displayPassword: password, // Store plain text password for display
+      });
+      
+      res.json({ 
+        user: {
+          id: user.id,
+          username: user.username,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+        },
+        message: "Registration successful"
+      });
+    } catch (error) {
+      console.error("Error registering plugin library user:", error);
+      res.status(500).json({ message: "Error creating account" });
+    }
+  });
+
+  // VPS Subscription endpoint
+  app.post("/api/create-vps-subscription", async (req, res) => {
+    try {
+      const { packageId, customerEmail, operatingSystem } = req.body;
+      
+      // Get VPS package
+      const vpsPackage = await storage.getVpsPackageById(packageId);
+      if (!vpsPackage) {
+        return res.status(404).json({ message: "VPS package not found" });
+      }
+
+      // Create Stripe customer
+      const customer = await stripe.customers.create({
+        email: customerEmail,
+      });
+
+      // Create subscription
+      const subscription = await stripe.subscriptions.create({
+        customer: customer.id,
+        items: [{
+          price: vpsPackage.stripePriceId,
+        }],
+        payment_behavior: 'default_incomplete',
+        expand: ['latest_invoice.payment_intent'],
+      });
+
+      res.json({
+        subscriptionId: subscription.id,
+        clientSecret: subscription.latest_invoice?.payment_intent?.client_secret,
+        customerId: customer.id,
+      });
+    } catch (error) {
+      console.error("Error creating VPS subscription:", error);
+      res.status(500).json({ message: "Error creating VPS subscription" });
     }
   });
 

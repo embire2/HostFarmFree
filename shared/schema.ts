@@ -253,6 +253,47 @@ export const customHeaderCode = pgTable("custom_header_code", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// VPS packages table
+export const vpsPackages = pgTable("vps_packages", {
+  id: serial("id").primaryKey(),
+  name: varchar("name", { length: 255 }).notNull(),
+  displayName: varchar("display_name", { length: 255 }).notNull(),
+  description: text("description"),
+  price: integer("price").notNull(), // in cents
+  currency: varchar("currency", { length: 3 }).notNull().default("USD"),
+  vcpu: decimal("vcpu", { precision: 3, scale: 1 }).notNull(), // e.g., 0.5, 1.0, 2.0
+  memory: integer("memory").notNull(), // RAM in MB
+  storage: integer("storage").notNull(), // Storage in GB
+  additionalStorage: integer("additional_storage").default(0), // Additional storage in GB
+  ipv4Addresses: integer("ipv4_addresses").notNull().default(1),
+  trafficPort: varchar("traffic_port", { length: 50 }).notNull(), // e.g., "100Mbps", "1Gbps"
+  osChoices: text("os_choices").notNull(), // JSON array of OS options
+  isAnonymous: boolean("is_anonymous").default(true),
+  stripePriceId: varchar("stripe_price_id", { length: 255 }), // Stripe price ID for subscriptions
+  isActive: boolean("is_active").default(true),
+  sortOrder: integer("sort_order").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// VPS instances table
+export const vpsInstances = pgTable("vps_instances", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  packageId: integer("package_id").notNull().references(() => vpsPackages.id),
+  instanceName: varchar("instance_name", { length: 255 }).notNull(),
+  ipv4Address: varchar("ipv4_address", { length: 15 }),
+  operatingSystem: varchar("operating_system", { length: 100 }).notNull(),
+  status: varchar("status", { length: 50 }).notNull().default("pending"), // pending, active, suspended, terminated
+  stripeSubscriptionId: varchar("stripe_subscription_id", { length: 255 }),
+  stripeCustomerId: varchar("stripe_customer_id", { length: 255 }),
+  subscriptionStatus: varchar("subscription_status", { length: 50 }), // active, past_due, canceled, etc.
+  rootPassword: varchar("root_password", { length: 255 }), // encrypted
+  sshKeys: text("ssh_keys"), // JSON array of SSH keys
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Relations
 export const userGroupsRelations = relations(userGroups, ({ many }) => ({
   users: many(users),
@@ -270,6 +311,7 @@ export const usersRelations = relations(users, ({ many, one }) => ({
   deviceFingerprints: many(deviceFingerprints),
   userGroup: one(userGroups, { fields: [users.userGroupId], references: [userGroups.id] }),
   pluginRequests: many(pluginRequests),
+  vpsInstances: many(vpsInstances),
 }));
 
 export const hostingAccountsRelations = relations(hostingAccounts, ({ one }) => ({
@@ -298,6 +340,15 @@ export const pluginDownloadsRelations = relations(pluginDownloads, ({ one }) => 
 
 export const donationsRelations = relations(donations, ({ one }) => ({
   user: one(users, { fields: [donations.userId], references: [users.id] }),
+}));
+
+export const vpsPackagesRelations = relations(vpsPackages, ({ many }) => ({
+  instances: many(vpsInstances),
+}));
+
+export const vpsInstancesRelations = relations(vpsInstances, ({ one }) => ({
+  user: one(users, { fields: [vpsInstances.userId], references: [users.id] }),
+  package: one(vpsPackages, { fields: [vpsInstances.packageId], references: [vpsPackages.id] }),
 }));
 
 export const pluginRequestsRelations = relations(pluginRequests, ({ one }) => ({
@@ -349,6 +400,18 @@ export const insertDeviceFingerprintSchema = createInsertSchema(deviceFingerprin
   lastSeen: true,
 });
 
+export const insertVpsPackageSchema = createInsertSchema(vpsPackages).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertVpsInstanceSchema = createInsertSchema(vpsInstances).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Types
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -385,6 +448,10 @@ export type InsertUserGroup = z.infer<typeof insertUserGroupSchema>;
 export type UserGroup = typeof userGroups.$inferSelect;
 export type InsertDeviceFingerprint = z.infer<typeof insertDeviceFingerprintSchema>;
 export type DeviceFingerprint = typeof deviceFingerprints.$inferSelect;
+export type InsertVpsPackage = z.infer<typeof insertVpsPackageSchema>;
+export type VpsPackage = typeof vpsPackages.$inferSelect;
+export type InsertVpsInstance = z.infer<typeof insertVpsInstanceSchema>;
+export type VpsInstance = typeof vpsInstances.$inferSelect;
 
 // Package management schemas
 export const insertHostingPackageSchema = createInsertSchema(hostingPackages).omit({
