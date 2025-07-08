@@ -33,7 +33,7 @@ const CheckoutForm = ({ subscriptionId, onSuccess }: { subscriptionId: string; o
     const { error } = await stripe.confirmPayment({
       elements,
       confirmParams: {
-        return_url: `${window.location.origin}/vps-success?subscription_id=${subscriptionId}`,
+        return_url: `${window.location.origin}/vps-success?subscription_id=${subscriptionId}&order_id=${(window as any).vpsOrderId || ''}`,
       },
     });
 

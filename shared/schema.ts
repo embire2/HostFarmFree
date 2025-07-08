@@ -294,6 +294,44 @@ export const vpsInstances = pgTable("vps_instances", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// VPS Orders table for tracking pending orders before server provisioning
+export const vpsOrders = pgTable("vps_orders", {
+  id: serial("id").primaryKey(),
+  customerEmail: varchar("customer_email").notNull(),
+  customerName: varchar("customer_name"),
+  packageId: integer("package_id").notNull().references(() => vpsPackages.id),
+  operatingSystem: varchar("operating_system").notNull(),
+  status: varchar("status").notNull().default("pending"), // 'pending' | 'processing' | 'completed' | 'cancelled'
+  
+  // Stripe subscription details
+  stripeSubscriptionId: varchar("stripe_subscription_id").notNull(),
+  stripeCustomerId: varchar("stripe_customer_id").notNull(),
+  subscriptionStatus: varchar("subscription_status").notNull(),
+  
+  // Package details snapshot
+  packageName: varchar("package_name").notNull(),
+  packagePrice: integer("package_price").notNull(), // in cents
+  vcpu: varchar("vcpu").notNull(),
+  memory: varchar("memory").notNull(),
+  storage: varchar("storage").notNull(),
+  
+  // Server details (filled by admin)
+  serverIpAddress: varchar("server_ip_address"),
+  serverSshPort: integer("server_ssh_port"),
+  serverRdpPort: integer("server_rdp_port"),
+  serverUsername: varchar("server_username"),
+  serverPassword: varchar("server_password"),
+  serverSshKey: text("server_ssh_key"),
+  serverNotes: text("server_notes"),
+  
+  // Admin processing
+  processedBy: integer("processed_by").references(() => users.id),
+  processedAt: timestamp("processed_at"),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Relations
 export const userGroupsRelations = relations(userGroups, ({ many }) => ({
   users: many(users),
@@ -448,10 +486,13 @@ export type InsertUserGroup = z.infer<typeof insertUserGroupSchema>;
 export type UserGroup = typeof userGroups.$inferSelect;
 export type InsertDeviceFingerprint = z.infer<typeof insertDeviceFingerprintSchema>;
 export type DeviceFingerprint = typeof deviceFingerprints.$inferSelect;
+
 export type InsertVpsPackage = z.infer<typeof insertVpsPackageSchema>;
 export type VpsPackage = typeof vpsPackages.$inferSelect;
 export type InsertVpsInstance = z.infer<typeof insertVpsInstanceSchema>;
 export type VpsInstance = typeof vpsInstances.$inferSelect;
+
+
 
 // Package management schemas
 export const insertHostingPackageSchema = createInsertSchema(hostingPackages).omit({
@@ -508,3 +549,13 @@ export const insertCustomHeaderCodeSchema = createInsertSchema(customHeaderCode)
 
 export type InsertCustomHeaderCode = z.infer<typeof insertCustomHeaderCodeSchema>;
 export type CustomHeaderCode = typeof customHeaderCode.$inferSelect;
+
+// VPS Order schema
+export const insertVpsOrderSchema = createInsertSchema(vpsOrders).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertVpsOrder = z.infer<typeof insertVpsOrderSchema>;
+export type VpsOrder = typeof vpsOrders.$inferSelect;

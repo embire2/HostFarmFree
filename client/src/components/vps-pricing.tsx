@@ -213,8 +213,11 @@ export default function VpsPricing() {
       const result = await response.json();
 
       if (result.clientSecret) {
+        // Store order ID globally for checkout success redirect
+        (window as any).vpsOrderId = result.orderId;
+        
         // Redirect to Stripe checkout
-        window.location.href = `/vps-checkout?subscription_id=${result.subscriptionId}&client_secret=${result.clientSecret}`;
+        window.location.href = `/vps-checkout?subscription_id=${result.subscriptionId}&client_secret=${result.clientSecret}&order_id=${result.orderId}`;
       } else {
         throw new Error("Failed to create subscription");
       }

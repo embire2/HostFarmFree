@@ -15,6 +15,7 @@ import {
   customHeaderCode,
   vpsPackages,
   vpsInstances,
+  vpsOrders,
   type User,
   type InsertUser,
   type HostingAccount,
@@ -46,6 +47,8 @@ import {
   type InsertVpsPackage,
   type VpsInstance,
   type InsertVpsInstance,
+  type VpsOrder,
+  type InsertVpsOrder,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, ilike, and, sql } from "drizzle-orm";
@@ -929,6 +932,46 @@ export class DatabaseStorage implements IStorage {
   async createVpsInstance(instanceData: InsertVpsInstance): Promise<VpsInstance> {
     const [vpsInstance] = await db.insert(vpsInstances).values(instanceData).returning();
     return vpsInstance;
+  }
+
+  // VPS Order operations
+  async createVpsOrder(orderData: InsertVpsOrder): Promise<VpsOrder> {
+    const [vpsOrder] = await db.insert(vpsOrders).values(orderData).returning();
+    return vpsOrder;
+  }
+
+  async getVpsOrders(): Promise<VpsOrder[]> {
+    return await db.select().from(vpsOrders)
+      .orderBy(desc(vpsOrders.createdAt));
+  }
+
+  async getVpsOrderById(id: number): Promise<VpsOrder | undefined> {
+    const [vpsOrder] = await db.select().from(vpsOrders).where(eq(vpsOrders.id, id));
+    return vpsOrder;
+  }
+
+  async getVpsOrdersByEmail(email: string): Promise<VpsOrder[]> {
+    return await db.select().from(vpsOrders)
+      .where(eq(vpsOrders.customerEmail, email))
+      .orderBy(desc(vpsOrders.createdAt));
+  }
+
+  async updateVpsOrder(id: number, updates: Partial<InsertVpsOrder>): Promise<VpsOrder | undefined> {
+    const [vpsOrder] = await db.update(vpsOrders)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(vpsOrders.id, id))
+      .returning();
+    return vpsOrder;
+  }
+
+  async deleteVpsOrder(id: number): Promise<boolean> {
+    try {
+      const result = await db.delete(vpsOrders).where(eq(vpsOrders.id, id));
+      return (result.rowCount || 0) > 0;
+    } catch (error) {
+      console.error("Error deleting VPS order:", error);
+      return false;
+    }
   }
 
   async getVpsInstances(): Promise<VpsInstance[]> {

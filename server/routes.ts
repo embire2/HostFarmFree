@@ -4575,12 +4575,42 @@ ${urls.map(url => `  <url>
 
       console.log(`[VPS Subscription] Success! Client secret: ${clientSecret.substring(0, 10)}...`);
 
+      // Create VPS order record for admin processing
+      console.log(`[VPS Subscription] Creating VPS order record`);
+      const vpsOrder = await storage.createVpsOrder({
+        customerEmail,
+        packageId,
+        operatingSystem,
+        stripeSubscriptionId: subscription.id,
+        stripeCustomerId: customer.id,
+        subscriptionStatus: subscription.status,
+        packageName: vpsPackage.displayName,
+        packagePrice: vpsPackage.price,
+        vcpu: vpsPackage.vcpu.toString(),
+        memory: `${vpsPackage.memory}MB`,
+        storage: `${vpsPackage.storage}GB`,
+      });
+
+      console.log(`[VPS Subscription] VPS order created: ${vpsOrder.id}`);
+
+      // Send notification email to admin
+      try {
+        console.log(`[VPS Subscription] Sending admin notification email`);
+        const { sendVpsOrderNotification } = await import('./email.js');
+        await sendVpsOrderNotification(vpsOrder, vpsPackage);
+        console.log(`[VPS Subscription] Admin notification email sent`);
+      } catch (emailError) {
+        console.error(`[VPS Subscription] Email warning - failed to send admin notification:`, emailError);
+        // Don't fail the whole request for email issues
+      }
+
       res.json({
         subscriptionId: subscription.id,
         clientSecret: clientSecret,
         customerId: customer.id,
         packageName: vpsPackage.displayName,
         monthlyPrice: (vpsPackage.price / 100).toFixed(2),
+        orderId: vpsOrder.id,
       });
       
     } catch (error) {
@@ -4599,6 +4629,108 @@ ${urls.map(url => `  <url>
           error: error.message 
         });
       }
+    }
+  });
+
+  // Import email function for VPS notifications
+  const { sendVpsOrderNotification } = await import('./email.js');
+
+  // Add email functionality to VPS subscription endpoint (will be imported by the updated endpoint above)
+
+  // VPS Order Management endpoints
+  app.get("/api/vps-orders", isAuthenticated, async (req: any, res) => {
+    try {
+      // Only admin users can view all VPS orders
+      const user = await storage.getUser(req.user.claims.sub);
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const orders = await storage.getVpsOrders();
+      res.json(orders);
+    } catch (error) {
+      console.error("Error fetching VPS orders:", error);
+      res.status(500).json({ message: "Error fetching VPS orders" });
+    }
+  });
+
+  app.get("/api/vps-orders/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const user = await storage.getUser(req.user.claims.sub);
+      
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const order = await storage.getVpsOrderById(id);
+      if (!order) {
+        return res.status(404).json({ message: "VPS order not found" });
+      }
+
+      res.json(order);
+    } catch (error) {
+      console.error("Error fetching VPS order:", error);
+      res.status(500).json({ message: "Error fetching VPS order" });
+    }
+  });
+
+  app.put("/api/vps-orders/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const user = await storage.getUser(req.user.claims.sub);
+      
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const updates = req.body;
+      const order = await storage.updateVpsOrder(id, {
+        ...updates,
+        processedBy: user.id,
+        processedAt: new Date(),
+      });
+
+      if (!order) {
+        return res.status(404).json({ message: "VPS order not found" });
+      }
+
+      // If order is completed, send notification to customer
+      if (updates.status === 'completed' && updates.serverIpAddress) {
+        try {
+          const { sendVpsSetupCompleteNotification } = await import('./email.js');
+          await sendVpsSetupCompleteNotification(order);
+          console.log(`[VPS Order] Setup complete notification sent for order ${id}`);
+        } catch (emailError) {
+          console.error(`[VPS Order] Failed to send setup notification for order ${id}:`, emailError);
+        }
+      }
+
+      res.json(order);
+    } catch (error) {
+      console.error("Error updating VPS order:", error);
+      res.status(500).json({ message: "Error updating VPS order" });
+    }
+  });
+
+  app.delete("/api/vps-orders/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const user = await storage.getUser(req.user.claims.sub);
+      
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const success = await storage.deleteVpsOrder(id);
+      if (!success) {
+        return res.status(404).json({ message: "VPS order not found" });
+      }
+
+      res.json({ message: "VPS order deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting VPS order:", error);
+      res.status(500).json({ message: "Error deleting VPS order" });
     }
   });
 
