@@ -17,9 +17,11 @@ export default function ThreeSectionServices() {
       icon: <Globe className="w-6 h-6" />,
       description: "Get your free WordPress hosting with a custom subdomain",
       color: "border-emerald-400",
-      bgColor: "bg-gradient-to-br from-emerald-500/30 to-green-600/30",
-      headerBg: "bg-gradient-to-r from-emerald-500/20 to-green-500/20",
-      iconColor: "text-emerald-400",
+      bgColor: "bg-gradient-to-br from-emerald-500/40 to-green-600/40",
+      headerBg: "bg-gradient-to-r from-emerald-500/30 to-green-500/30",
+      iconColor: "text-emerald-300",
+      titleColor: "text-white",
+      descColor: "text-emerald-50",
     },
     {
       id: "vps" as const,
@@ -27,9 +29,11 @@ export default function ThreeSectionServices() {
       icon: <Server className="w-6 h-6" />,
       description: "100% anonymous VPS hosting with multiple pricing tiers",
       color: "border-cyan-400",
-      bgColor: "bg-gradient-to-br from-cyan-500/30 to-blue-600/30",
-      headerBg: "bg-gradient-to-r from-cyan-500/20 to-blue-500/20",
-      iconColor: "text-cyan-400",
+      bgColor: "bg-gradient-to-br from-cyan-500/40 to-blue-600/40",
+      headerBg: "bg-gradient-to-r from-cyan-500/30 to-blue-500/30",
+      iconColor: "text-cyan-300",
+      titleColor: "text-white",
+      descColor: "text-cyan-50",
     },
     {
       id: "plugins" as const,
@@ -37,9 +41,11 @@ export default function ThreeSectionServices() {
       icon: <Library className="w-6 h-6" />,
       description: "Register to access our premium WordPress plugin collection",
       color: "border-fuchsia-400",
-      bgColor: "bg-gradient-to-br from-fuchsia-500/30 to-purple-600/30",
-      headerBg: "bg-gradient-to-r from-fuchsia-500/20 to-purple-500/20",
-      iconColor: "text-fuchsia-400",
+      bgColor: "bg-gradient-to-br from-fuchsia-500/40 to-purple-600/40",
+      headerBg: "bg-gradient-to-r from-fuchsia-500/30 to-purple-500/30",
+      iconColor: "text-fuchsia-300",
+      titleColor: "text-white",
+      descColor: "text-fuchsia-50",
     },
   ];
 
@@ -73,14 +79,16 @@ export default function ThreeSectionServices() {
             <CardHeader className={`text-center ${
               activeSection === section.id ? section.headerBg : "bg-white/5"
             } rounded-t-lg`}>
-              <CardTitle className="text-lg font-bold text-white flex items-center justify-center gap-2">
+              <CardTitle className={`text-lg font-bold flex items-center justify-center gap-2 ${
+                activeSection === section.id ? section.titleColor : "text-white"
+              }`}>
                 <span className={activeSection === section.id ? section.iconColor : "text-white"}>
                   {section.icon}
                 </span>
                 {section.title}
               </CardTitle>
-              <p className={`text-sm ${
-                activeSection === section.id ? "text-gray-200" : "text-gray-300"
+              <p className={`text-sm font-medium ${
+                activeSection === section.id ? section.descColor : "text-gray-300"
               }`}>
                 {section.description}
               </p>
@@ -89,7 +97,7 @@ export default function ThreeSectionServices() {
               <div className="flex justify-center">
                 <Badge
                   variant={activeSection === section.id ? "default" : "secondary"}
-                  className={activeSection === section.id ? "bg-white text-black font-semibold" : ""}
+                  className={activeSection === section.id ? "bg-white text-black font-semibold shadow-lg" : "bg-white/20 text-white font-medium hover:bg-white/30"}
                 >
                   {activeSection === section.id ? "Active" : "Click to view"}
                 </Badge>
