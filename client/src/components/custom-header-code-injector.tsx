@@ -29,33 +29,57 @@ export default function CustomHeaderCodeInjector() {
       return;
     }
 
-    // Create a container element to hold our injected code
-    const containerId = 'custom-header-codes-container';
-    let container = document.getElementById(containerId);
-    
-    // Remove existing container if it exists
-    if (container) {
-      console.log(`[Custom Header Code] Removing existing container for refresh.`);
-      container.remove();
-    }
+    // Remove any existing injected codes first
+    const existingCodes = document.querySelectorAll('[data-header-code-id]');
+    existingCodes.forEach(el => el.remove());
 
-    // Create new container
-    container = document.createElement('div');
-    container.id = containerId;
-    container.style.display = 'none'; // Hide the container since it's just for script/style injection
+    console.log(`[Custom Header Code] Processing ${sortedHeaderCodes.length} codes for direct injection.`);
 
-    console.log(`[Custom Header Code] Created new container. Processing ${sortedHeaderCodes.length} codes.`);
-
-    // Inject each active header code
+    // Inject each active header code directly into the head
     sortedHeaderCodes.forEach((headerCode, index) => {
       try {
-        // Create a wrapper div for this specific code block
-        const wrapper = document.createElement('div');
-        wrapper.setAttribute('data-header-code-id', headerCode.id.toString());
-        wrapper.setAttribute('data-header-code-name', headerCode.name);
-        wrapper.innerHTML = headerCode.code;
+        // Create a temporary container to parse the HTML
+        const tempContainer = document.createElement('div');
+        tempContainer.innerHTML = headerCode.code.trim();
+        
+        // Process each child element from the parsed HTML
+        Array.from(tempContainer.children).forEach(element => {
+          // Clone the element to avoid reference issues
+          const clonedElement = element.cloneNode(true) as HTMLElement;
+          
+          // Add identification attributes
+          clonedElement.setAttribute('data-header-code-id', headerCode.id.toString());
+          clonedElement.setAttribute('data-header-code-name', headerCode.name);
+          
+          // Insert before the closing head tag
+          document.head.appendChild(clonedElement);
+        });
 
-        container.appendChild(wrapper);
+        // Also handle script tags that might be directly in the code (not wrapped in other elements)
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = headerCode.code.trim();
+        const scriptMatch = headerCode.code.match(/<script[^>]*>[\s\S]*?<\/script>/gi);
+        
+        if (scriptMatch) {
+          scriptMatch.forEach(scriptHtml => {
+            const scriptElement = document.createElement('script');
+            const scriptContent = scriptHtml.replace(/<script[^>]*>/, '').replace(/<\/script>/, '');
+            
+            // Check if it's an external script or inline script
+            const srcMatch = scriptHtml.match(/src="([^"]+)"/);
+            if (srcMatch) {
+              scriptElement.src = srcMatch[1];
+              scriptElement.async = true;
+            } else {
+              scriptElement.textContent = scriptContent;
+            }
+            
+            scriptElement.setAttribute('data-header-code-id', headerCode.id.toString());
+            scriptElement.setAttribute('data-header-code-name', headerCode.name);
+            
+            document.head.appendChild(scriptElement);
+          });
+        }
 
         console.log(`[Custom Header Code] ✓ Injected (${index + 1}/${sortedHeaderCodes.length}): ${headerCode.name} (ID: ${headerCode.id})`);
         
@@ -69,9 +93,7 @@ export default function CustomHeaderCodeInjector() {
       }
     });
 
-    // Append container to head
-    document.head.appendChild(container);
-    console.log(`[Custom Header Code] ✅ All codes injected successfully! Container added to document head.`);
+    console.log(`[Custom Header Code] ✅ All codes injected successfully! Added directly to document head.`);
 
     // Verify injection worked
     setTimeout(() => {
@@ -126,11 +148,9 @@ export default function CustomHeaderCodeInjector() {
 
     // Cleanup function to remove injected codes when component unmounts or codes change
     return () => {
-      const existingContainer = document.getElementById(containerId);
-      if (existingContainer) {
-        existingContainer.remove();
-        console.log(`[Custom Header Code] 🧹 Cleanup: Removed container from DOM.`);
-      }
+      const existingCodes = document.querySelectorAll('[data-header-code-id]');
+      existingCodes.forEach(el => el.remove());
+      console.log(`[Custom Header Code] 🧹 Cleanup: Removed ${existingCodes.length} injected codes from DOM.`);
     };
   }, [headerCodes]);
 

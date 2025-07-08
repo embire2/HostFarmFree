@@ -16,7 +16,6 @@ import VpsCheckout from "@/pages/vps-checkout";
 
 import NotFound from "@/pages/not-found";
 import ApiSettingsPage from "@/pages/api-settings-page";
-import FacebookPixel from "@/components/facebook-pixel";
 import CustomHeaderCodeInjector from "@/components/custom-header-code-injector";
 
 function Router() {
@@ -88,7 +87,6 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <TooltipProvider>
-          <FacebookPixel />
           <CustomHeaderCodeInjector />
           <Toaster />
           <Router />

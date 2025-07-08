@@ -277,6 +277,9 @@ Changelog:
 - July 8, 2025. Enhanced plugin request system with new email destination (ceo@openweb.email) and auto-reply functionality
 - July 8, 2025. Created comprehensive auto-reply email system addressing users by name with 48-72 hour delivery timeline
 - July 8, 2025. Maintained 2 requests per day limit for plugin requests with improved user messaging and confirmation
+- July 8, 2025. CRITICAL FIX: Fixed Facebook Pixel integration by removing conflicting systems - now properly loads and tracks on all pages
+- July 8, 2025. Enhanced VPS subscription system with comprehensive Stripe integration and automatic price creation
+- July 8, 2025. Fixed VPS checkout flow with proper Stripe Elements integration and error handling
 ```
 
 # User Preferences
