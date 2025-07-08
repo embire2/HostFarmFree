@@ -15,7 +15,9 @@ import nodemailer from "nodemailer";
 if (!process.env.STRIPE_SECRET_KEY) {
   throw new Error('Missing required Stripe secret: STRIPE_SECRET_KEY');
 }
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+  apiVersion: "2024-06-20",
+});
 
 // Ensure plugins directory exists
 const pluginsDir = path.join(process.cwd(), "plugins");
@@ -3392,7 +3394,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const Stripe = (await import('stripe')).default;
-      const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+      const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+        apiVersion: "2024-06-20",
+      });
 
       const paymentIntent = await stripe.paymentIntents.create({
         amount: Math.round(amount * 100), // Convert to cents
@@ -3425,7 +3429,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Initialize Stripe
-      const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+      const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY, {
+        apiVersion: "2024-06-20",
+      });
       if (!stripe) {
         console.error('Stripe not initialized - missing STRIPE_SECRET_KEY');
         return res.status(500).json({ message: "Payment system not configured" });
@@ -4545,7 +4551,27 @@ ${urls.map(url => `  <url>
 
       console.log(`[VPS Subscription] Created customer: ${customer.id}`);
 
-      // Create subscription
+      // Create a SetupIntent first for payment method collection
+      console.log(`[VPS Subscription] Creating SetupIntent for payment method collection`);
+      const setupIntent = await stripe.setupIntents.create({
+        customer: customer.id,
+        usage: 'off_session',
+        payment_method_types: ['card'],
+        metadata: {
+          vps_package_id: packageId.toString(),
+          operating_system: operatingSystem,
+        }
+      });
+
+      console.log(`[VPS Subscription] Created SetupIntent: ${setupIntent.id}`);
+      console.log(`[VPS Subscription] SetupIntent client secret: ${setupIntent.client_secret ? 'Found' : 'Missing'}`);
+
+      if (!setupIntent.client_secret) {
+        console.error("[VPS Subscription] No client secret found in SetupIntent");
+        return res.status(500).json({ message: "Failed to create payment setup" });
+      }
+
+      // Create subscription in incomplete state - will be completed after payment confirmation
       console.log(`[VPS Subscription] Creating subscription with price: ${stripePriceId}`);
       const subscription = await stripe.subscriptions.create({
         customer: customer.id,
@@ -4556,22 +4582,15 @@ ${urls.map(url => `  <url>
         payment_settings: {
           save_default_payment_method: 'on_subscription',
         },
-        expand: ['latest_invoice.payment_intent'],
         metadata: {
           vps_package_id: packageId.toString(),
           operating_system: operatingSystem,
+          setup_intent_id: setupIntent.id,
         }
       });
 
       console.log(`[VPS Subscription] Created subscription: ${subscription.id}`);
-
-      // Get client secret from payment intent
-      const clientSecret = subscription.latest_invoice?.payment_intent?.client_secret;
-      
-      if (!clientSecret) {
-        console.error("[VPS Subscription] No client secret found in subscription");
-        return res.status(500).json({ message: "Failed to create payment intent" });
-      }
+      const clientSecret = setupIntent.client_secret;
 
       console.log(`[VPS Subscription] Success! Client secret: ${clientSecret.substring(0, 10)}...`);
 

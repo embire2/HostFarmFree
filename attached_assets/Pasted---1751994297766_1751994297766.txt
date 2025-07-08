@@ -1,0 +1,115 @@
+
+      /////////////////////
+   ///////////////////////////
+  ////////@@@@@@@//////////////
+  ////////@@@@@@@//////////////
+  ////////@@@@@@@//////////////        Curious and driven?
+  ///////////////@@@@@@@///////        Work with us!
+  ///////////////@@@@@@@///////
+  ///////////////@@@@@@@///////        https://join.replit.com/hack.with.us
+  ////////@@@@@@@//////////////
+  ////////@@@@@@@//////////////
+  ////////@@@@@@#//////////////
+   ///////////////////////////
+      /////////////////////
+      
+_app-127614843ca9a977.js:38 [LaunchDarkly] LaunchDarkly client initialized
+25Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.Understand this error
+framework-4945b215c7ace337.js:1 Unrecognized feature: 'ambient-light-sensor'.
+_ @ framework-4945b215c7ace337.js:1Understand this warning
+framework-4945b215c7ace337.js:1 Unrecognized feature: 'battery'.
+_ @ framework-4945b215c7ace337.js:1Understand this warning
+framework-4945b215c7ace337.js:1 Unrecognized feature: 'execution-while-not-rendered'.
+_ @ framework-4945b215c7ace337.js:1Understand this warning
+framework-4945b215c7ace337.js:1 Unrecognized feature: 'execution-while-out-of-viewport'.
+_ @ framework-4945b215c7ace337.js:1Understand this warning
+framework-4945b215c7ace337.js:1 Unrecognized feature: 'layout-animations'.
+_ @ framework-4945b215c7ace337.js:1Understand this warning
+framework-4945b215c7ace337.js:1 Unrecognized feature: 'legacy-image-formats'.
+_ @ framework-4945b215c7ace337.js:1Understand this warning
+framework-4945b215c7ace337.js:1 Unrecognized feature: 'navigation-override'.
+_ @ framework-4945b215c7ace337.js:1Understand this warning
+framework-4945b215c7ace337.js:1 Unrecognized feature: 'oversized-images'.
+_ @ framework-4945b215c7ace337.js:1Understand this warning
+framework-4945b215c7ace337.js:1 Unrecognized feature: 'publickey-credentials'.
+_ @ framework-4945b215c7ace337.js:1Understand this warning
+framework-4945b215c7ace337.js:1 Unrecognized feature: 'speaker-selection'.
+_ @ framework-4945b215c7ace337.js:1Understand this warning
+framework-4945b215c7ace337.js:1 Unrecognized feature: 'unoptimized-images'.
+_ @ framework-4945b215c7ace337.js:1Understand this warning
+framework-4945b215c7ace337.js:1 Unrecognized feature: 'unsized-media'.
+_ @ framework-4945b215c7ace337.js:1Understand this warning
+framework-4945b215c7ace337.js:1 Unrecognized feature: 'pointer-lock'.
+_ @ framework-4945b215c7ace337.js:1Understand this warning
+framework-4945b215c7ace337.js:1 Allow attribute will take precedence over 'allowfullscreen'.
+_ @ framework-4945b215c7ace337.js:1Understand this warning
+framework-4945b215c7ace337.js:1 Allow attribute will take precedence over 'allowpaymentrequest'.
+_ @ framework-4945b215c7ace337.js:1Understand this warning
+about:srcdoc:1 An iframe which has both allow-scripts and allow-same-origin for its sandbox attribute can escape its sandboxing.Understand this warning
+7AICodeAssistant:1 Uncaught (in promise) Error: A listener indicated an asynchronous response by returning true, but the message channel closed before a response was receivedUnderstand this error
+3HostFarmFree:1 Uncaught (in promise) Error: A listener indicated an asynchronous response by returning true, but the message channel closed before a response was receivedUnderstand this error
+_app-127614843ca9a977.js:38 task queue exceeded allotted deadline by 22ms
+(anonymous) @ _app-127614843ca9a977.js:38Understand this warning
+_app-127614843ca9a977.js:38 task queue exceeded allotted deadline by 31ms
+(anonymous) @ _app-127614843ca9a977.js:38Understand this warning
+/graphql:1 
+            
+            
+           Failed to load resource: the server responded with a status of 520 ()Understand this error
+Grammarly-check.js:1 [Violation] Permissions policy violation: unload is not allowed in this document.
+(anonymous) @ Grammarly-check.js:1Understand this error
+da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/__replco/workspace_iframe.html?initialPath=%2Fplugins&id=%3Ar2mp%3A:32 Unrecognized feature: 'ambient-light-sensor'.Understand this warning
+da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/__replco/workspace_iframe.html?initialPath=%2Fplugins&id=%3Ar2mp%3A:32 Unrecognized feature: 'battery'.Understand this warning
+da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/__replco/workspace_iframe.html?initialPath=%2Fplugins&id=%3Ar2mp%3A:32 Unrecognized feature: 'execution-while-not-rendered'.Understand this warning
+da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/__replco/workspace_iframe.html?initialPath=%2Fplugins&id=%3Ar2mp%3A:32 Unrecognized feature: 'execution-while-out-of-viewport'.Understand this warning
+da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/__replco/workspace_iframe.html?initialPath=%2Fplugins&id=%3Ar2mp%3A:32 Unrecognized feature: 'layout-animations'.Understand this warning
+da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/__replco/workspace_iframe.html?initialPath=%2Fplugins&id=%3Ar2mp%3A:32 Unrecognized feature: 'legacy-image-formats'.Understand this warning
+da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/__replco/workspace_iframe.html?initialPath=%2Fplugins&id=%3Ar2mp%3A:32 Unrecognized feature: 'navigation-override'.Understand this warning
+da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/__replco/workspace_iframe.html?initialPath=%2Fplugins&id=%3Ar2mp%3A:32 Unrecognized feature: 'oversized-images'.Understand this warning
+da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/__replco/workspace_iframe.html?initialPath=%2Fplugins&id=%3Ar2mp%3A:32 Unrecognized feature: 'publickey-credentials'.Understand this warning
+da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/__replco/workspace_iframe.html?initialPath=%2Fplugins&id=%3Ar2mp%3A:32 Unrecognized feature: 'speaker-selection'.Understand this warning
+da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/__replco/workspace_iframe.html?initialPath=%2Fplugins&id=%3Ar2mp%3A:32 Unrecognized feature: 'unoptimized-images'.Understand this warning
+da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/__replco/workspace_iframe.html?initialPath=%2Fplugins&id=%3Ar2mp%3A:32 Unrecognized feature: 'unsized-media'.Understand this warning
+da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/__replco/workspace_iframe.html?initialPath=%2Fplugins&id=%3Ar2mp%3A:32 Allow attribute will take precedence over 'allowfullscreen'.Understand this warning
+da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/__replco/workspace_iframe.html?initialPath=%2Fplugins&id=%3Ar2mp%3A:32 Allow attribute will take precedence over 'allowpaymentrequest'.Understand this warning
+Console.js:61 [Custom Header Code] Starting injection process. Found 0 header codes.
+Console.js:61 [Custom Header Code] No active header codes found. Skipping injection.
+da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/api/user:1 
+            
+            
+           Failed to load resource: the server responded with a status of 401 (Unauthorized)Understand this error
+Console.js:61 [Device Fingerprint] Starting device registration check...
+device-fingerprint.ts:152 [Deprecation] The ScriptProcessorNode is deprecated. Use AudioWorkletNode instead. (https://bit.ly/audio-worklet)
+generateAudioFingerprint @ device-fingerprint.ts:152Understand this warning
+Console.js:61 [Custom Header Code] Starting injection process. Found 1 header codes.
+Console.js:61 [Custom Header Code] Processing 1 codes for direct injection.
+Console.js:61 [Custom Header Code] ✓ Injected (1/1): Facebook Pixel (ID: 1)
+Console.js:61 [Custom Header Code] 🎯 Facebook Pixel detected and injected!
+Console.js:61 [Custom Header Code] Facebook Pixel Code Preview: <!-- Meta Pixel Code -->
+<script>
+!function(f,b,e,v,n,t,s)
+{if(f.fbq)return;n=f.fbq=function(){n.cal...
+Console.js:61 [Custom Header Code] ✅ All codes injected successfully! Added directly to document head.
+Console.js:61 Generated device fingerprint: 3412d4fccd9987aca44f5798cf4a3d4f281232e741f0c4ea926c4b5846e2ec55
+Console.js:61 [Device Fingerprint] Generated fingerprint: 3412d4fccd...
+Console.js:61 [Device Fingerprint] Sending device limits request
+Console.js:61 [Device Fingerprint] Device limits check result: Object
+Console.js:61 [Custom Header Code] 🔍 Verification: Found 3 injected codes in DOM.
+Console.js:61 [Custom Header Code] 🎯 Facebook Pixel Scripts - External: 1, Inline: 2
+Console.js:61 [Custom Header Code] ✅ Facebook Pixel fbq function is available and ready!
+Console.js:61 [Custom Header Code] Facebook Pixel Queue: No queue
+Console.js:61 [Custom Header Code] ✅ Facebook Pixel is fully loaded and initialized!
+Console.js:61 [Custom Header Code] 🎯 Final Facebook Pixel Check:
+Console.js:61 [Custom Header Code] - fbq available: function
+Console.js:61 [Custom Header Code] - fbq loaded: true
+Console.js:61 [Custom Header Code] - fbq version: 2.9.213
+Console.js:61 [Custom Header Code] ✅ Facebook Pixel PageView event sent successfully!
+da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/api/create-vps-subscription:1 
+            
+            
+           Failed to load resource: the server responded with a status of 500 (Internal Server Error)Understand this error
+Console.js:61 Error creating VPS subscription: Error: 500: {"message":"Failed to create payment intent"}
+    at throwIfResNotOk (queryClient.ts:6:11)
+    at async apiRequest (queryClient.ts:25:3)
+    at async handleCreateSubscription (vps-pricing.tsx:207:24)
+Mt.forEach.n.<computed> @ Console.js:61Understand this error

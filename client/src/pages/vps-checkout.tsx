@@ -30,7 +30,7 @@ const CheckoutForm = ({ subscriptionId, onSuccess }: { subscriptionId: string; o
 
     setIsLoading(true);
 
-    const { error } = await stripe.confirmPayment({
+    const { error } = await stripe.confirmSetup({
       elements,
       confirmParams: {
         return_url: `${window.location.origin}/vps-success?subscription_id=${subscriptionId}&order_id=${(window as any).vpsOrderId || ''}`,
@@ -53,7 +53,7 @@ const CheckoutForm = ({ subscriptionId, onSuccess }: { subscriptionId: string; o
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <PaymentElement />
+      <PaymentElement options={{ layout: "tabs" }} />
       <Button 
         type="submit" 
         disabled={!stripe || isLoading}
