@@ -1,31 +1,85 @@
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { 
   Search, 
   Filter,
   Download,
   Star,
   Grid,
-  List
+  List,
+  Mail,
+  Lock,
+  AlertTriangle
 } from "lucide-react";
 import Navbar from "@/components/navbar";
 import PluginCard from "@/components/plugin-card";
 import PluginRequestForm from "@/components/plugin-request-form";
 import SEOHead, { generateSchemaData } from "@/components/seo-head";
+import { useAuth } from "@/hooks/use-auth";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 import { Plugin } from "@shared/schema";
 
 export default function PluginLibrary() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [emailInput, setEmailInput] = useState("");
+  const [showEmailBanner, setShowEmailBanner] = useState(false);
+  
+  const { user, isAuthenticated, isLoading } = useAuth();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
-  const { data: plugins, isLoading } = useQuery({
+  const { data: plugins, isLoading: pluginsLoading } = useQuery({
     queryKey: ["/api/plugins", { category: selectedCategory !== "all" ? selectedCategory : undefined, search: searchTerm || undefined }],
+    enabled: !!(isAuthenticated && user?.email), // Only load plugins if user is authenticated with email
   });
+
+  // Check if user has access to plugin library
+  const hasAccess = isAuthenticated && user?.email;
+  
+  // Show email banner for authenticated users without email
+  useEffect(() => {
+    if (isAuthenticated && user && !user.email) {
+      setShowEmailBanner(true);
+    } else {
+      setShowEmailBanner(false);
+    }
+  }, [isAuthenticated, user]);
+
+  // Email update mutation
+  const updateEmailMutation = useMutation({
+    mutationFn: (email: string) => apiRequest("POST", "/api/update-email", { email }),
+    onSuccess: () => {
+      toast({
+        title: "Email Updated",
+        description: "Your email has been saved. You now have access to the Plugin Library!",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/user"] });
+      setShowEmailBanner(false);
+      setEmailInput("");
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update email address",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleEmailSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (emailInput.trim()) {
+      updateEmailMutation.mutate(emailInput.trim());
+    }
+  };
 
   const categories = [
     { id: "all", name: "All Plugins", count: plugins?.length || 0 },
@@ -114,6 +168,37 @@ export default function PluginLibrary() {
       />
       <Navbar />
       
+      {/* Email Collection Banner */}
+      {showEmailBanner && (
+        <Alert className="bg-red-50 border-red-200 text-red-800 mx-4 mt-4">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription>
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <div>
+                <strong>Unlock Plugin Library Access:</strong> By providing your email address, you unlock the Plugin Library and Request function.
+              </div>
+              <form onSubmit={handleEmailSubmit} className="flex gap-2">
+                <Input
+                  type="email"
+                  placeholder="Enter your email address"
+                  value={emailInput}
+                  onChange={(e) => setEmailInput(e.target.value)}
+                  className="w-64"
+                  required
+                />
+                <Button 
+                  type="submit" 
+                  disabled={updateEmailMutation.isPending}
+                  className="bg-red-600 hover:bg-red-700"
+                >
+                  {updateEmailMutation.isPending ? "Saving..." : "Save Email"}
+                </Button>
+              </form>
+            </div>
+          </AlertDescription>
+        </Alert>
+      )}
+      
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="text-center mb-12">
@@ -124,8 +209,57 @@ export default function PluginLibrary() {
           </p>
         </div>
 
-        {/* Search and Filters */}
-        <div className="mb-8">
+        {/* Access Control */}
+        {!hasAccess && (
+          <Card className="mb-8 bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200">
+            <CardContent className="p-8 text-center">
+              <Lock className="w-16 h-16 text-blue-500 mx-auto mb-4" />
+              <h2 className="text-2xl font-bold text-gray-800 mb-4">Plugin Library Access Required</h2>
+              
+              {!isAuthenticated ? (
+                <div>
+                  <p className="text-gray-600 mb-6">
+                    Sign in to access our premium WordPress plugin library with 2,000+ plugins.
+                  </p>
+                  <Button 
+                    onClick={() => window.location.href = "/api/login"} 
+                    className="bg-blue-600 hover:bg-blue-700"
+                  >
+                    Sign In to Access Plugins
+                  </Button>
+                </div>
+              ) : (
+                <div>
+                  <p className="text-gray-600 mb-6">
+                    Add your email address to unlock the Plugin Library and Request function.
+                  </p>
+                  <form onSubmit={handleEmailSubmit} className="flex flex-col md:flex-row items-center justify-center gap-4">
+                    <Input
+                      type="email"
+                      placeholder="Enter your email address"
+                      value={emailInput}
+                      onChange={(e) => setEmailInput(e.target.value)}
+                      className="w-80"
+                      required
+                    />
+                    <Button 
+                      type="submit" 
+                      disabled={updateEmailMutation.isPending}
+                      className="bg-blue-600 hover:bg-blue-700"
+                    >
+                      <Mail className="w-4 h-4 mr-2" />
+                      {updateEmailMutation.isPending ? "Saving..." : "Unlock Plugin Library"}
+                    </Button>
+                  </form>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Search and Filters - Only show if user has access */}
+        {hasAccess && (
+          <div className="mb-8">
           <div className="flex flex-col lg:flex-row gap-6">
             {/* Search Bar */}
             <div className="flex-1">
@@ -162,9 +296,11 @@ export default function PluginLibrary() {
             </div>
           </div>
         </div>
+        )}
 
-        {/* Category Filters */}
-        <div className="mb-8">
+        {/* Category Filters - Only show if user has access */}
+        {hasAccess && (
+          <div className="mb-8">
           <div className="flex items-center mb-4">
             <Filter className="h-5 w-5 text-gray-600 mr-2" />
             <span className="text-lg font-semibold text-gray-700">Categories</span>
@@ -194,11 +330,13 @@ export default function PluginLibrary() {
             ))}
           </div>
         </div>
+        )}
 
-        {/* Results Summary */}
-        <div className="flex items-center justify-between mb-6">
+        {/* Results Summary - Only show if user has access */}
+        {hasAccess && (
+          <div className="flex items-center justify-between mb-6">
           <div className="text-gray-600">
-            {isLoading ? (
+            {pluginsLoading ? (
               "Loading plugins..."
             ) : (
               <>
@@ -220,9 +358,12 @@ export default function PluginLibrary() {
             </div>
           </div>
         </div>
+        )}
 
-        {/* Plugin Grid/List */}
-        {isLoading ? (
+        {/* Plugin Grid/List - Only show if user has access */}
+        {hasAccess && (
+          <>
+            {pluginsLoading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {[...Array(6)].map((_, i) => (
               <Card key={i} className="animate-pulse">
@@ -320,7 +461,7 @@ export default function PluginLibrary() {
           </Card>
         )}
 
-        {/* Plugin Request Section */}
+        {/* Plugin Request Section - Available for users with access */}
         {plugins && plugins.length > 0 && (
           <Card className="mt-16 gradient-primary text-white">
             <CardContent className="p-8">
@@ -334,6 +475,8 @@ export default function PluginLibrary() {
               <PluginRequestForm />
             </CardContent>
           </Card>
+        )}
+          </>
         )}
       </div>
     </div>

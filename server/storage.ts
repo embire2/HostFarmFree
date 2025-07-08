@@ -59,6 +59,7 @@ export interface IStorage {
   createUser(user: InsertUser): Promise<User>;
   getAllUsers(): Promise<User[]>;
   updateUser(id: number, updates: Partial<InsertUser>): Promise<User | undefined>;
+  updateUserEmail(id: number, email: string): Promise<User | undefined>;
   deleteUser(id: number): Promise<boolean>;
 
   // Hosting account operations
@@ -218,6 +219,18 @@ export class DatabaseStorage implements IStorage {
       .update(users)
       .set({
         ...updates,
+        updatedAt: new Date()
+      })
+      .where(eq(users.id, id))
+      .returning();
+    return user;
+  }
+
+  async updateUserEmail(id: number, email: string): Promise<User | undefined> {
+    const [user] = await db
+      .update(users)
+      .set({
+        email,
         updatedAt: new Date()
       })
       .where(eq(users.id, id))
