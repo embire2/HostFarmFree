@@ -499,6 +499,17 @@ export class DatabaseStorage implements IStorage {
     await db.delete(hostingPackages).where(eq(hostingPackages.id, id));
   }
 
+  async getNextHostingPackageSortOrder(): Promise<number> {
+    try {
+      const result = await db.select({ maxSortOrder: max(hostingPackages.sortOrder) }).from(hostingPackages);
+      const maxSort = result[0]?.maxSortOrder || 0;
+      return maxSort + 1;
+    } catch (error) {
+      console.error("Error getting next hosting package sort order:", error);
+      throw error;
+    }
+  }
+
   async getActiveHostingPackages(): Promise<HostingPackage[]> {
     return await db.select().from(hostingPackages)
       .where(eq(hostingPackages.isActive, true))

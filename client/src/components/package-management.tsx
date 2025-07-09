@@ -19,6 +19,7 @@ import {
   Plus,
   Edit,
   Trash2,
+  Copy,
   DollarSign,
   HardDrive,
   Network,
@@ -168,6 +169,30 @@ export default function PackageManagement() {
     },
   });
 
+  // Duplicate package mutation
+  const duplicatePackageMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const res = await apiRequest("POST", `/api/admin/packages/${id}/duplicate`);
+      return await res.json();
+    },
+    onSuccess: (duplicatedPackage) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/packages"] });
+      // Open the duplicated package for editing immediately
+      handleEdit(duplicatedPackage);
+      toast({
+        title: "Success", 
+        description: "Package duplicated successfully. You can now edit the copy.",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
   const onSubmit = (data: PackageFormData) => {
     if (editingPackage) {
       updatePackageMutation.mutate({ ...data, id: editingPackage.id });
@@ -200,6 +225,10 @@ export default function PackageManagement() {
     setEditingPackage(null);
     form.reset();
     setIsDialogOpen(true);
+  };
+
+  const handleDuplicate = (pkg: any) => {
+    duplicatePackageMutation.mutate(pkg.id);
   };
 
   const formatPrice = (price: number) => {
@@ -622,6 +651,19 @@ export default function PackageManagement() {
                 >
                   <Edit className="mr-1 h-3 w-3" />
                   Edit
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => handleDuplicate(pkg)}
+                  disabled={duplicatePackageMutation.isPending}
+                  title="Duplicate package"
+                >
+                  {duplicatePackageMutation.isPending ? (
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                  ) : (
+                    <Copy className="h-3 w-3" />
+                  )}
                 </Button>
                 <Button 
                   variant="outline" 

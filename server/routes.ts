@@ -2828,6 +2828,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Duplicate hosting package (admin only)
+  app.post("/api/admin/packages/:id/duplicate", isAuthenticated, requireAdmin, async (req, res) => {
+    try {
+      console.log('[Hosting Package Duplicate] Starting duplication process for package ID:', req.params.id);
+      
+      const id = parseInt(req.params.id);
+      
+      // Get the original package
+      const originalPackage = await storage.getHostingPackageById(id);
+      if (!originalPackage) {
+        console.log('[Hosting Package Duplicate] Original package not found:', id);
+        return res.status(404).json({ message: "Package not found" });
+      }
+      
+      console.log('[Hosting Package Duplicate] Found original package:', originalPackage.displayName);
+      
+      // Create duplicate with modified values
+      const duplicateData = {
+        name: `${originalPackage.name}_copy_${Date.now()}`,
+        displayName: `${originalPackage.displayName} (Copy)`,
+        description: originalPackage.description,
+        price: originalPackage.price,
+        currency: originalPackage.currency,
+        diskSpaceQuota: originalPackage.diskSpaceQuota,
+        bandwidthQuota: originalPackage.bandwidthQuota,
+        emailAccounts: originalPackage.emailAccounts,
+        databases: originalPackage.databases,
+        subdomains: originalPackage.subdomains,
+        whmPackageName: originalPackage.whmPackageName,
+        isActive: false, // Inactive by default
+        isFree: originalPackage.isFree,
+        sortOrder: await storage.getNextHostingPackageSortOrder(),
+        isNew: true // Flag to indicate this package needs review
+      };
+      
+      console.log('[Hosting Package Duplicate] Creating duplicate with data:', duplicateData);
+      
+      // Create the duplicate package
+      const duplicatedPackage = await storage.createHostingPackage(duplicateData);
+      
+      console.log('[Hosting Package Duplicate] Successfully created duplicate:', duplicatedPackage.id);
+      
+      res.json(duplicatedPackage);
+    } catch (error) {
+      console.error('[Hosting Package Duplicate] Error duplicating package:', error);
+      res.status(500).json({ 
+        message: "Failed to duplicate package",
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
   // WHM Package endpoints
   app.get("/api/admin/whm-packages", isAuthenticated, requireAdmin, async (req, res) => {
     console.log(`[WHM API] Starting package fetch request at ${new Date().toISOString()}`);
