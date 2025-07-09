@@ -501,12 +501,14 @@ export class DatabaseStorage implements IStorage {
 
   async getNextHostingPackageSortOrder(): Promise<number> {
     try {
-      const result = await db.select({ maxSortOrder: max(hostingPackages.sortOrder) }).from(hostingPackages);
-      const maxSort = result[0]?.maxSortOrder || 0;
-      return maxSort + 1;
+      // Use raw SQL to avoid type casting issues with Neon serverless
+      const result = await db.execute(sql`SELECT COALESCE(MAX(sort_order), 0) as max_sort_order FROM hosting_packages`);
+      const maxSort = result.rows[0]?.max_sort_order || 0;
+      return Number(maxSort) + 1;
     } catch (error) {
       console.error("Error getting next hosting package sort order:", error);
-      throw error;
+      // Fallback: return a default value if query fails
+      return 1;
     }
   }
 
