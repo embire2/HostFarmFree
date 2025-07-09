@@ -14,6 +14,7 @@ import {
   Plus, 
   Edit, 
   Trash2, 
+  Copy,
   Settings, 
   CreditCard,
   Cpu,
@@ -69,6 +70,7 @@ export default function VpsManagement() {
   const queryClient = useQueryClient();
   const [editingPackage, setEditingPackage] = useState<VpsPackage | null>(null);
   const [isCreatingPackage, setIsCreatingPackage] = useState(false);
+  const [duplicatingPackage, setDuplicatingPackage] = useState<VpsPackage | null>(null);
   const [stripeSettings, setStripeSettings] = useState<StripeSettings>({
     publicKey: "",
     secretKey: "",
@@ -148,6 +150,25 @@ export default function VpsManagement() {
     },
   });
 
+  // Duplicate package mutation  
+  const duplicatePackageMutation = useMutation({
+    mutationFn: async (packageId: number) => {
+      const response = await apiRequest("POST", `/api/admin/vps-packages/${packageId}/duplicate`);
+      return response.json();
+    },
+    onSuccess: (duplicatedPackage) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/vps-packages"] });
+      // Open the duplicated package for editing immediately
+      setEditingPackage(duplicatedPackage);
+      setDuplicatingPackage(null);
+      toast({ title: "Success", description: "VPS package duplicated successfully. You can now edit the copy." });
+    },
+    onError: (error: Error) => {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+      setDuplicatingPackage(null);
+    },
+  });
+
   // Update Stripe settings mutation
   const updateStripeSettingsMutation = useMutation({
     mutationFn: async (settings: StripeSettings) => {
@@ -204,6 +225,11 @@ export default function VpsManagement() {
       isActive: formData.get("isActive") === "on",
     };
     updatePackageMutation.mutate(packageData);
+  };
+
+  const handleDuplicatePackage = (pkg: VpsPackage) => {
+    setDuplicatingPackage(pkg);
+    duplicatePackageMutation.mutate(pkg.id);
   };
 
   const handleUpdateStripeSettings = (formData: FormData) => {
@@ -481,13 +507,28 @@ export default function VpsManagement() {
                         size="sm" 
                         variant="outline"
                         onClick={() => setEditingPackage(pkg)}
+                        title="Edit package"
                       >
                         <Edit className="h-4 w-4" />
                       </Button>
                       <Button 
                         size="sm" 
+                        variant="secondary"
+                        onClick={() => handleDuplicatePackage(pkg)}
+                        disabled={duplicatePackageMutation.isPending && duplicatingPackage?.id === pkg.id}
+                        title="Duplicate package"
+                      >
+                        {duplicatePackageMutation.isPending && duplicatingPackage?.id === pkg.id ? (
+                          <div className="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full" />
+                        ) : (
+                          <Copy className="h-4 w-4" />
+                        )}
+                      </Button>
+                      <Button 
+                        size="sm" 
                         variant="destructive"
                         onClick={() => deletePackageMutation.mutate(pkg.id)}
+                        title="Delete package"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>

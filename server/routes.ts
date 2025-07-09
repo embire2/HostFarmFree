@@ -5027,6 +5027,53 @@ ${urls.map(url => `  <url>
     }
   });
 
+  // Duplicate VPS package endpoint
+  app.post("/api/admin/vps-packages/:id/duplicate", isAuthenticated, async (req: any, res) => {
+    try {
+      console.log("[VPS Package Duplication] Starting duplication process");
+      
+      const user = await storage.getUser(req.user.id);
+      if (!user || user.role !== 'admin') {
+        console.log("[VPS Package Duplication] Access denied - user not admin");
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const originalId = parseInt(req.params.id);
+      console.log(`[VPS Package Duplication] Duplicating package ${originalId}`);
+      
+      // Get the original package
+      const originalPackage = await storage.getVpsPackageById(originalId);
+      if (!originalPackage) {
+        console.log("[VPS Package Duplication] Original package not found");
+        return res.status(404).json({ message: "Original VPS package not found" });
+      }
+
+      // Create duplicate with modified name and display name
+      const duplicateData = {
+        ...originalPackage,
+        name: `${originalPackage.name}_copy_${Date.now()}`,
+        displayName: `${originalPackage.displayName} (Copy)`,
+        stripePriceId: `${originalPackage.stripePriceId}_copy_${Date.now()}`, // Generate new Stripe price ID
+        sortOrder: await storage.getNextVpsPackageSortOrder(),
+      };
+
+      // Remove fields that shouldn't be copied
+      delete duplicateData.id;
+      delete duplicateData.createdAt;
+      delete duplicateData.updatedAt;
+
+      console.log("[VPS Package Duplication] Creating duplicate with data:", duplicateData);
+      
+      const duplicatedPackage = await storage.createVpsPackage(duplicateData);
+      console.log("[VPS Package Duplication] Duplicate created with ID:", duplicatedPackage.id);
+      
+      res.json(duplicatedPackage);
+    } catch (error) {
+      console.error("[VPS Package Duplication] Error duplicating VPS package:", error);
+      res.status(500).json({ message: "Error duplicating VPS package", error: error.message });
+    }
+  });
+
   // VPS Order Management endpoints
   app.get("/api/vps-orders", isAuthenticated, async (req: any, res) => {
     try {

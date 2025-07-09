@@ -54,7 +54,7 @@ import {
   type InsertStripeSettings,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, ilike, and, sql } from "drizzle-orm";
+import { eq, desc, ilike, and, sql, max } from "drizzle-orm";
 
 export interface IStorage {
   // User operations
@@ -928,6 +928,17 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error("Error deleting VPS package:", error);
       return false;
+    }
+  }
+
+  async getNextVpsPackageSortOrder(): Promise<number> {
+    try {
+      const result = await db.select({ maxSortOrder: max(vpsPackages.sortOrder) }).from(vpsPackages);
+      const maxSort = result[0]?.maxSortOrder || 0;
+      return maxSort + 1;
+    } catch (error) {
+      console.error("Error getting next VPS package sort order:", error);
+      throw error;
     }
   }
 
