@@ -302,6 +302,8 @@ Changelog:
 - July 9, 2025. CRITICAL SMTP FIX: Resolved SMTP connection timeouts by replacing deprecated SSLv3 ciphers with modern TLS 1.2+ configuration
 - July 9, 2025. Enhanced SMTP system with proper connection timeouts, secure cipher suites, and comprehensive error logging
 - July 9, 2025. Fixed "Greeting never received" errors by implementing 10-second connection timeouts and modern TLS settings
+- July 9, 2025. SMTP FUNCTION FIX: Corrected nodemailer function call from createTransporter to createTransport in test endpoints
+- July 9, 2025. Fixed "nodemailer.createTransporter is not a function" error in both SMTP test connection and test email endpoints
 ```
 
 # User Preferences

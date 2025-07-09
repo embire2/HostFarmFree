@@ -4364,7 +4364,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ignoreTLS: transportConfig.ignoreTLS
       });
 
-      const transporter = nodemailer.createTransporter(transportConfig);
+      const transporter = nodemailer.createTransport(transportConfig);
 
       // Verify connection without sending email
       await transporter.verify();
@@ -4421,7 +4421,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         transportConfig.ignoreTLS = true;
       }
 
-      const transporter = nodemailer.createTransporter(transportConfig);
+      const transporter = nodemailer.createTransport(transportConfig);
 
       const mailOptions = {
         from: `"${fromName}" <${fromEmail}>`,
