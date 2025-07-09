@@ -4329,10 +4329,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log(`[SMTP Test] Testing connection to ${host}:${port} with encryption: ${encryption}`);
       
+      // Determine secure mode based on port and encryption type
+      const portNum = parseInt(port);
+      const isSecurePort = portNum === 465 || portNum === 993 || portNum === 995;
+      
       const transportConfig = {
         host,
-        port: parseInt(port),
-        secure: encryption === 'ssl', // true for SSL on port 465, false for other ports
+        port: portNum,
+        // Port 465 always uses implicit SSL/TLS, regardless of what user selects
+        secure: isSecurePort || encryption === 'ssl',
         auth: {
           user: username,
           pass: password,
@@ -4343,14 +4348,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         socketTimeout: 10000, // 10 seconds
       };
 
-      // Add TLS configuration for non-SSL connections
-      if (encryption === 'tls') {
-        transportConfig.requireTLS = true;
+      // Configure TLS based on port and encryption setting
+      if (isSecurePort) {
+        // Port 465 uses implicit SSL/TLS - add TLS options
         transportConfig.tls = {
-          // Use modern TLS settings instead of deprecated SSLv3
           minVersion: 'TLSv1.2',
           ciphers: 'HIGH:!aNULL:!MD5:!RC4:!3DES:!DES:!EXP:!PSK:!SRP:!DSS',
-          rejectUnauthorized: false, // Allow self-signed certificates for development
+          rejectUnauthorized: false, // Allow self-signed certificates
+        };
+      } else if (encryption === 'tls' && !isSecurePort) {
+        // Port 587/25 with STARTTLS
+        transportConfig.requireTLS = true;
+        transportConfig.tls = {
+          minVersion: 'TLSv1.2',
+          ciphers: 'HIGH:!aNULL:!MD5:!RC4:!3DES:!DES:!EXP:!PSK:!SRP:!DSS',
+          rejectUnauthorized: false,
         };
       } else if (encryption === 'none') {
         transportConfig.ignoreTLS = true;
@@ -4394,10 +4406,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log(`[SMTP Email Test] Sending test email to ${testEmail} via ${host}:${port} with encryption: ${encryption}`);
       
+      // Determine secure mode based on port and encryption type
+      const portNum = parseInt(port);
+      const isSecurePort = portNum === 465 || portNum === 993 || portNum === 995;
+      
       const transportConfig = {
         host,
-        port: parseInt(port),
-        secure: encryption === 'ssl', // true for SSL on port 465, false for other ports
+        port: portNum,
+        // Port 465 always uses implicit SSL/TLS, regardless of what user selects
+        secure: isSecurePort || encryption === 'ssl',
         auth: {
           user: username,
           pass: password,
@@ -4408,14 +4425,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         socketTimeout: 10000, // 10 seconds
       };
 
-      // Add TLS configuration for non-SSL connections
-      if (encryption === 'tls') {
-        transportConfig.requireTLS = true;
+      // Configure TLS based on port and encryption setting
+      if (isSecurePort) {
+        // Port 465 uses implicit SSL/TLS - add TLS options
         transportConfig.tls = {
-          // Use modern TLS settings instead of deprecated SSLv3
           minVersion: 'TLSv1.2',
           ciphers: 'HIGH:!aNULL:!MD5:!RC4:!3DES:!DES:!EXP:!PSK:!SRP:!DSS',
-          rejectUnauthorized: false, // Allow self-signed certificates for development
+          rejectUnauthorized: false, // Allow self-signed certificates
+        };
+      } else if (encryption === 'tls' && !isSecurePort) {
+        // Port 587/25 with STARTTLS
+        transportConfig.requireTLS = true;
+        transportConfig.tls = {
+          minVersion: 'TLSv1.2',
+          ciphers: 'HIGH:!aNULL:!MD5:!RC4:!3DES:!DES:!EXP:!PSK:!SRP:!DSS',
+          rejectUnauthorized: false,
         };
       } else if (encryption === 'none') {
         transportConfig.ignoreTLS = true;

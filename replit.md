@@ -304,6 +304,9 @@ Changelog:
 - July 9, 2025. Fixed "Greeting never received" errors by implementing 10-second connection timeouts and modern TLS settings
 - July 9, 2025. SMTP FUNCTION FIX: Corrected nodemailer function call from createTransporter to createTransport in test endpoints
 - July 9, 2025. Fixed "nodemailer.createTransporter is not a function" error in both SMTP test connection and test email endpoints
+- July 9, 2025. CRITICAL SMTP PORT FIX: Fixed port 465 SMTP connections by automatically setting secure: true for secure ports (465, 993, 995)
+- July 9, 2025. Resolved "Greeting never received" timeouts for port 465 by using implicit SSL/TLS instead of STARTTLS
+- July 9, 2025. Updated SMTP logic to properly handle different port/encryption combinations: Port 465=SSL/TLS, Port 587=STARTTLS, Port 25=Plain
 ```
 
 # User Preferences
