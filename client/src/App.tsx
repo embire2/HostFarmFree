@@ -56,6 +56,7 @@ function Router() {
             <>
               <Route path="/" component={AdminDashboard} />
               <Route path="/dashboard" component={AdminDashboard} />
+              <Route path="/admin-dashboard" component={AdminDashboard} />
               <Route path="/client" component={ClientDashboard} />
               <Route path="/admin/api-settings" component={ApiSettingsPage} />
               <Route path="/plugins" component={PluginLibrary} />
