@@ -16,6 +16,7 @@ import {
   vpsPackages,
   vpsInstances,
   vpsOrders,
+  stripeSettings,
   type User,
   type InsertUser,
   type HostingAccount,
@@ -49,6 +50,8 @@ import {
   type InsertVpsInstance,
   type VpsOrder,
   type InsertVpsOrder,
+  type StripeSettings,
+  type InsertStripeSettings,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, ilike, and, sql } from "drizzle-orm";

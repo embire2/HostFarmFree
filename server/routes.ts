@@ -4937,7 +4937,8 @@ ${urls.map(url => `  <url>
   // VPS Package Management endpoints (Admin only)
   app.get("/api/admin/vps-packages", isAuthenticated, async (req: any, res) => {
     try {
-      const user = await storage.getUser(req.user.claims.sub);
+      // Use req.user.id which is set by our auth system
+      const user = await storage.getUser(req.user.id);
       if (!user || user.role !== 'admin') {
         return res.status(403).json({ message: "Admin access required" });
       }
