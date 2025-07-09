@@ -4327,31 +4327,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { host, port, username, password, encryption } = req.body;
       
-      const transporter = nodemailer.createTransport({
+      console.log(`[SMTP Test] Testing connection to ${host}:${port} with encryption: ${encryption}`);
+      
+      const transportConfig = {
         host,
-        port,
+        port: parseInt(port),
         secure: encryption === 'ssl', // true for SSL on port 465, false for other ports
         auth: {
           user: username,
           pass: password,
         },
-        ...(encryption === 'tls' && {
-          requireTLS: true,
-          tls: {
-            ciphers: 'SSLv3'
-          }
-        })
+        // Connection timeout settings
+        connectionTimeout: 10000, // 10 seconds
+        greetingTimeout: 5000, // 5 seconds
+        socketTimeout: 10000, // 10 seconds
+      };
+
+      // Add TLS configuration for non-SSL connections
+      if (encryption === 'tls') {
+        transportConfig.requireTLS = true;
+        transportConfig.tls = {
+          // Use modern TLS settings instead of deprecated SSLv3
+          minVersion: 'TLSv1.2',
+          ciphers: 'HIGH:!aNULL:!MD5:!RC4:!3DES:!DES:!EXP:!PSK:!SRP:!DSS',
+          rejectUnauthorized: false, // Allow self-signed certificates for development
+        };
+      } else if (encryption === 'none') {
+        transportConfig.ignoreTLS = true;
+      }
+
+      console.log(`[SMTP Test] Transport config:`, {
+        host: transportConfig.host,
+        port: transportConfig.port,
+        secure: transportConfig.secure,
+        requireTLS: transportConfig.requireTLS,
+        ignoreTLS: transportConfig.ignoreTLS
       });
+
+      const transporter = nodemailer.createTransporter(transportConfig);
 
       // Verify connection without sending email
       await transporter.verify();
+      console.log(`[SMTP Test] ✓ Connection verified successfully for ${host}:${port}`);
       res.json({ success: true, message: "SMTP connection verified successfully" });
     } catch (error) {
       console.error('Error testing SMTP connection:', error);
+      console.error('Full error details:', {
+        message: error.message,
+        code: error.code,
+        command: error.command,
+        errno: error.errno
+      });
       res.status(500).json({ 
         success: false, 
         error: "Failed to connect to SMTP server", 
-        details: error.message 
+        details: error.message,
+        code: error.code
       });
     }
   });
@@ -4361,21 +4392,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { host, port, username, password, encryption, fromEmail, fromName, testEmail } = req.body;
       
-      const transporter = nodemailer.createTransport({
+      console.log(`[SMTP Email Test] Sending test email to ${testEmail} via ${host}:${port} with encryption: ${encryption}`);
+      
+      const transportConfig = {
         host,
-        port,
+        port: parseInt(port),
         secure: encryption === 'ssl', // true for SSL on port 465, false for other ports
         auth: {
           user: username,
           pass: password,
         },
-        ...(encryption === 'tls' && {
-          requireTLS: true,
-          tls: {
-            ciphers: 'SSLv3'
-          }
-        })
-      });
+        // Connection timeout settings
+        connectionTimeout: 10000, // 10 seconds
+        greetingTimeout: 5000, // 5 seconds
+        socketTimeout: 10000, // 10 seconds
+      };
+
+      // Add TLS configuration for non-SSL connections
+      if (encryption === 'tls') {
+        transportConfig.requireTLS = true;
+        transportConfig.tls = {
+          // Use modern TLS settings instead of deprecated SSLv3
+          minVersion: 'TLSv1.2',
+          ciphers: 'HIGH:!aNULL:!MD5:!RC4:!3DES:!DES:!EXP:!PSK:!SRP:!DSS',
+          rejectUnauthorized: false, // Allow self-signed certificates for development
+        };
+      } else if (encryption === 'none') {
+        transportConfig.ignoreTLS = true;
+      }
+
+      const transporter = nodemailer.createTransporter(transportConfig);
 
       const mailOptions = {
         from: `"${fromName}" <${fromEmail}>`,
@@ -4393,13 +4439,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
 
       await transporter.sendMail(mailOptions);
+      console.log(`[SMTP Email Test] ✓ Test email sent successfully to ${testEmail}`);
       res.json({ success: true, message: "Test email sent successfully" });
     } catch (error) {
       console.error('Error testing SMTP settings:', error);
+      console.error('Full email test error details:', {
+        message: error.message,
+        code: error.code,
+        command: error.command,
+        errno: error.errno
+      });
       res.status(500).json({ 
         success: false, 
         error: "Failed to send test email", 
-        details: error.message 
+        details: error.message,
+        code: error.code
       });
     }
   });

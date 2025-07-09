@@ -299,6 +299,9 @@ Changelog:
 - July 9, 2025. Created enhanced VPS ordering flow that checks if users exist, prompts for passwords, creates accounts for new users
 - July 9, 2025. Integrated conversion tracking for all VPS orders with proper authentication before Stripe payment
 - July 9, 2025. VISUAL IMPROVEMENT: Fixed admin dashboard tabs formatting with professional styling, color-coded borders, and responsive design
+- July 9, 2025. CRITICAL SMTP FIX: Resolved SMTP connection timeouts by replacing deprecated SSLv3 ciphers with modern TLS 1.2+ configuration
+- July 9, 2025. Enhanced SMTP system with proper connection timeouts, secure cipher suites, and comprehensive error logging
+- July 9, 2025. Fixed "Greeting never received" errors by implementing 10-second connection timeouts and modern TLS settings
 ```
 
 # User Preferences
