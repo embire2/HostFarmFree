@@ -19,7 +19,7 @@ import {
   Star,
   Puzzle
 } from "lucide-react";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/use-auth";
 import { useLocation } from "wouter";
 
@@ -71,6 +71,21 @@ export default function PluginLibraryRegistration() {
       
       if (response.ok) {
         console.log("[Plugin Library Registration] ✅ Registration successful:", result);
+        
+        // Update auth cache immediately with the new user data
+        const userData = {
+          id: result.user.id,
+          username: result.user.username,
+          email: result.user.email,
+          firstName: result.user.firstName,
+          lastName: result.user.lastName,
+          role: "client",
+          isAnonymous: false,
+          displayPassword: data.password // Include for potential display
+        };
+        
+        console.log("[Plugin Library Registration] Updating auth cache with user data:", userData);
+        queryClient.setQueryData(["/api/user"], userData);
         
         toast({
           title: "Registration Successful!",

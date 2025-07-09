@@ -1,0 +1,147 @@
+
+      /////////////////////
+   ///////////////////////////
+  ////////@@@@@@@//////////////
+  ////////@@@@@@@//////////////
+  ////////@@@@@@@//////////////        Curious and driven?
+  ///////////////@@@@@@@///////        Work with us!
+  ///////////////@@@@@@@///////
+  ///////////////@@@@@@@///////        https://join.replit.com/hack.with.us
+  ////////@@@@@@@//////////////
+  ////////@@@@@@@//////////////
+  ////////@@@@@@#//////////////
+   ///////////////////////////
+      /////////////////////
+      
+_app-267dfd4c30de00ad.js:38 [LaunchDarkly] LaunchDarkly client initialized
+25Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.Understand this error
+framework-6cba3a63b1b6f3a4.js:1 Unrecognized feature: 'ambient-light-sensor'.
+_ @ framework-6cba3a63b1b6f3a4.js:1Understand this warning
+framework-6cba3a63b1b6f3a4.js:1 Unrecognized feature: 'battery'.
+_ @ framework-6cba3a63b1b6f3a4.js:1Understand this warning
+framework-6cba3a63b1b6f3a4.js:1 Unrecognized feature: 'execution-while-not-rendered'.
+_ @ framework-6cba3a63b1b6f3a4.js:1Understand this warning
+framework-6cba3a63b1b6f3a4.js:1 Unrecognized feature: 'execution-while-out-of-viewport'.
+_ @ framework-6cba3a63b1b6f3a4.js:1Understand this warning
+framework-6cba3a63b1b6f3a4.js:1 Unrecognized feature: 'layout-animations'.
+_ @ framework-6cba3a63b1b6f3a4.js:1Understand this warning
+framework-6cba3a63b1b6f3a4.js:1 Unrecognized feature: 'legacy-image-formats'.
+_ @ framework-6cba3a63b1b6f3a4.js:1Understand this warning
+framework-6cba3a63b1b6f3a4.js:1 Unrecognized feature: 'navigation-override'.
+_ @ framework-6cba3a63b1b6f3a4.js:1Understand this warning
+framework-6cba3a63b1b6f3a4.js:1 Unrecognized feature: 'oversized-images'.
+_ @ framework-6cba3a63b1b6f3a4.js:1Understand this warning
+framework-6cba3a63b1b6f3a4.js:1 Unrecognized feature: 'publickey-credentials'.
+_ @ framework-6cba3a63b1b6f3a4.js:1Understand this warning
+framework-6cba3a63b1b6f3a4.js:1 Unrecognized feature: 'speaker-selection'.
+_ @ framework-6cba3a63b1b6f3a4.js:1Understand this warning
+framework-6cba3a63b1b6f3a4.js:1 Unrecognized feature: 'unoptimized-images'.
+_ @ framework-6cba3a63b1b6f3a4.js:1Understand this warning
+framework-6cba3a63b1b6f3a4.js:1 Unrecognized feature: 'unsized-media'.
+_ @ framework-6cba3a63b1b6f3a4.js:1Understand this warning
+framework-6cba3a63b1b6f3a4.js:1 Unrecognized feature: 'pointer-lock'.
+_ @ framework-6cba3a63b1b6f3a4.js:1Understand this warning
+framework-6cba3a63b1b6f3a4.js:1 Allow attribute will take precedence over 'allowfullscreen'.
+_ @ framework-6cba3a63b1b6f3a4.js:1Understand this warning
+framework-6cba3a63b1b6f3a4.js:1 Allow attribute will take precedence over 'allowpaymentrequest'.
+_ @ framework-6cba3a63b1b6f3a4.js:1Understand this warning
+6HostFarmFree:1 Uncaught (in promise) Error: A listener indicated an asynchronous response by returning true, but the message channel closed before a response was receivedUnderstand this error
+_app-267dfd4c30de00ad.js:38 task queue exceeded allotted deadline by 110ms
+(anonymous) @ _app-267dfd4c30de00ad.js:38Understand this warning
+_app-267dfd4c30de00ad.js:38 task queue exceeded allotted deadline by 55ms
+(anonymous) @ _app-267dfd4c30de00ad.js:38Understand this warning
+www.google-analytics.com/collect?v=1&_v=j101&aip=1&a=914150991&t=event&ni=0&_s=97&dl=https%3A%2F%2Freplit.com%2Ft%2Fopenweb%2Frepls%2FHostFarmFree&dp=%2Ft%2Fopenweb%2Frepls%2FHostFarmFree&ul=en-us&de=UTF-8&dt=replEnvironmentDesktop&sd=24-bit&sr=1098x618&vp=2196x898&je=0&ec=All&ea=Agent%20Used&ev=0&_u=SCCAgEAjQAAAAGgCIAD~&jid=672971209&gjid=472844888&cid=717095244.1741870153&tid=UA-25629695-1&_gid=1199027708.1748087730&z=1793047688:1 
+            
+            
+           Failed to load resource: net::ERR_CONNECTION_CLOSEDUnderstand this error
+www.google-analytics.com/collect?v=1&_v=j101&aip=1&a=914150991&t=event&ni=0&_s=98&dl=https%3A%2F%2Freplit.com%2Ft%2Fopenweb%2Frepls%2FHostFarmFree&dp=%2Ft%2Fopenweb%2Frepls%2FHostFarmFree&ul=en-us&de=UTF-8&dt=replEnvironmentDesktop&sd=24-bit&sr=1098x618&vp=2196x898&je=0&ec=All&ea=Visual%20Selector%20Enabled&ev=0&_u=SCCAgEAjQAAAAGgCIAD~&jid=&gjid=&cid=717095244.1741870153&tid=UA-25629695-1&_gid=1199027708.1748087730&z=455970582:1 
+            
+            
+           Failed to load resource: net::ERR_CONNECTION_CLOSEDUnderstand this error
+7HostFarmFree:1 Uncaught (in promise) Error: A listener indicated an asynchronous response by returning true, but the message channel closed before a response was receivedUnderstand this error
+_app-267dfd4c30de00ad.js:38 task queue exceeded allotted deadline by 50ms
+(anonymous) @ _app-267dfd4c30de00ad.js:38Understand this warning
+_app-267dfd4c30de00ad.js:38 task queue exceeded allotted deadline by 110ms
+(anonymous) @ _app-267dfd4c30de00ad.js:38Understand this warning
+_app-267dfd4c30de00ad.js:38 task queue exceeded allotted deadline by 111ms
+(anonymous) @ _app-267dfd4c30de00ad.js:38Understand this warning
+_app-267dfd4c30de00ad.js:38 task queue exceeded allotted deadline by 110ms
+(anonymous) @ _app-267dfd4c30de00ad.js:38Understand this warning
+_app-267dfd4c30de00ad.js:38 task queue exceeded allotted deadline by 93ms
+(anonymous) @ _app-267dfd4c30de00ad.js:38Understand this warning
+_app-267dfd4c30de00ad.js:38 task queue exceeded allotted deadline by 103ms
+(anonymous) @ _app-267dfd4c30de00ad.js:38Understand this warning
+ [Violation] Permissions policy violation: unload is not allowed in this document.
+(anonymous) @ Grammarly-check.js:1Understand this error
+workspace_iframe.html:32 Unrecognized feature: 'ambient-light-sensor'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'battery'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'execution-while-not-rendered'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'execution-while-out-of-viewport'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'layout-animations'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'legacy-image-formats'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'navigation-override'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'oversized-images'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'publickey-credentials'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'speaker-selection'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'unoptimized-images'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'unsized-media'.Understand this warning
+workspace_iframe.html:32 Allow attribute will take precedence over 'allowfullscreen'.Understand this warning
+workspace_iframe.html:32 Allow attribute will take precedence over 'allowpaymentrequest'.Understand this warning
+Console.js:61 [Custom Header Code] Starting injection process. Found 0 header codes.
+Console.js:61 [Custom Header Code] No active header codes found. Skipping injection.
+da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/api/user:1 
+            
+            
+           Failed to load resource: the server responded with a status of 401 (Unauthorized)Understand this error
+Console.js:61 [Device Fingerprint] Starting device registration check...
+device-fingerprint.ts:152 [Deprecation] The ScriptProcessorNode is deprecated. Use AudioWorkletNode instead. (https://bit.ly/audio-worklet)
+generateAudioFingerprint @ device-fingerprint.ts:152Understand this warning
+Console.js:61 [Custom Header Code] Starting injection process. Found 1 header codes.
+Console.js:61 [Custom Header Code] Processing 1 codes for direct injection.
+Console.js:61 [Custom Header Code] ✓ Injected (1/1): Facebook Pixel (ID: 1)
+Console.js:61 [Custom Header Code] 🎯 Facebook Pixel detected and injected!
+Console.js:61 [Custom Header Code] Facebook Pixel Code Preview: <!-- Meta Pixel Code -->
+<script>
+!function(f,b,e,v,n,t,s)
+{if(f.fbq)return;n=f.fbq=function(){n.cal...
+Console.js:61 [Custom Header Code] ✅ All codes injected successfully! Added directly to document head.
+Console.js:61 Generated device fingerprint: 3412d4fccd9987aca44f5798cf4a3d4f281232e741f0c4ea926c4b5846e2ec55
+Console.js:61 [Device Fingerprint] Generated fingerprint: 3412d4fccd...
+Console.js:61 [Device Fingerprint] Sending device limits request
+Console.js:61 [Device Fingerprint] Device limits check result: Object
+Console.js:61 [Custom Header Code] 🔍 Verification: Found 3 injected codes in DOM.
+Console.js:61 [Custom Header Code] 🎯 Facebook Pixel Scripts - External: 1, Inline: 2
+Console.js:61 [Custom Header Code] ✅ Facebook Pixel fbq function is available and ready!
+Console.js:61 [Custom Header Code] Facebook Pixel Queue: No queue
+Console.js:61 [Custom Header Code] ✅ Facebook Pixel is fully loaded and initialized!
+Console.js:61 [Custom Header Code] 🎯 Final Facebook Pixel Check:
+Console.js:61 [Custom Header Code] - fbq available: function
+Console.js:61 [Custom Header Code] - fbq loaded: true
+Console.js:61 [Custom Header Code] - fbq version: 2.9.214
+Console.js:61 [Custom Header Code] ✅ Facebook Pixel PageView event sent successfully!
+Console.js:61 [Plugin Library Registration] ✅ Registration successful: Object
+Console.js:61 [Plugin Library Registration] Storing registration data for conversion tracking
+Console.js:61 [Plugin Library Registration] Redirecting to conversion page: /conversion?type=plugin&destination=%2Fplugins
+Console.js:61 [Conversion Page] Initializing conversion tracking page
+Console.js:61 [Conversion Page] Registration type: plugin, Destination: /plugins
+Console.js:61 [Conversion Page] Conversion data: Object
+Console.js:61 [Conversion Page] Sending Facebook Pixel conversion event
+Console.js:61 [Conversion Page] ✅ Facebook Pixel conversion event sent successfully
+Console.js:61 [Conversion Page] Countdown: 4 seconds remaining
+Console.js:61 [Conversion Page] Countdown: 3 seconds remaining
+Console.js:61 [Conversion Page] Countdown: 2 seconds remaining
+Console.js:61 [Conversion Page] Countdown: 1 seconds remaining
+Console.js:61 [Conversion Page] Countdown: 0 seconds remaining
+Console.js:61 [Conversion Page] Countdown complete, redirecting to: /plugins
+Console.js:61 Warning: Cannot update a component (`Route`) while rendering a different component (`Conversion`). To locate the bad setState() call inside `Conversion`, follow the stack trace as described in https://reactjs.org/link/setstate-in-render
+    at Conversion (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/src/pages/conversion.tsx:25:27)
+    at Route (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=60462b26:323:16)
+    at Switch (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=60462b26:379:17)
+    at Router (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/src/App.tsx?v=_K23NJcZmKOKc_X7mAcer:41:48)
+    at Provider (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-PLT6GTVM.js?v=60462b26:38:15)
+    at TooltipProvider (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=60462b26:62:5)
+    at AuthProvider (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/src/hooks/use-auth.tsx:26:32)
+    at QueryClientProvider (https://da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=60462b26:2805:3)
+    at App
+Mt.forEach.n.<computed> @ Console.js:61Understand this error
+Console.js:61 [Conversion Page] Cleaning up countdown timer
