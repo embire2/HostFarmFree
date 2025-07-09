@@ -4,7 +4,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { db } from "./db";
 import { setupAuth, isAuthenticated, generateUsername, generatePassword, generateRecoveryPhrase, hashPassword } from "./auth";
-import { insertHostingAccountSchema, insertPluginSchema, insertDonationSchema, insertVpsPackageSchema, insertVpsInstanceSchema, insertUserSchema, insertPluginRequestSchema, donations } from "@shared/schema";
+import { insertHostingAccountSchema, insertPluginSchema, insertDonationSchema, insertVpsPackageSchema, insertVpsInstanceSchema, insertUserSchema, insertPluginRequestSchema, donations, vpsPackages, vpsOrders } from "@shared/schema";
 import { eq } from "drizzle-orm";
 import multer from "multer";
 import path from "path";
@@ -4937,18 +4937,30 @@ ${urls.map(url => `  <url>
   // VPS Package Management endpoints (Admin only)
   app.get("/api/admin/vps-packages", isAuthenticated, async (req: any, res) => {
     try {
+      console.log("[VPS Packages] Starting VPS packages fetch request");
+      console.log("[VPS Packages] User object:", req.user);
+      
       // Use req.user.id which is set by our auth system
       const user = await storage.getUser(req.user.id);
+      console.log("[VPS Packages] Retrieved user:", { id: user?.id, role: user?.role });
+      
       if (!user || user.role !== 'admin') {
+        console.log("[VPS Packages] Access denied - user not admin");
         return res.status(403).json({ message: "Admin access required" });
       }
 
+      console.log("[VPS Packages] Admin verified, fetching packages from database");
+      
       // Get all packages including inactive ones for admin
       const packages = await db.select().from(vpsPackages).orderBy(vpsPackages.sortOrder);
+      console.log("[VPS Packages] Found packages:", packages.length);
+      console.log("[VPS Packages] Package details:", packages);
+      
       res.json(packages);
     } catch (error) {
-      console.error("Error fetching VPS packages:", error);
-      res.status(500).json({ message: "Error fetching VPS packages" });
+      console.error("[VPS Packages] ERROR fetching VPS packages:", error);
+      console.error("[VPS Packages] ERROR stack:", error.stack);
+      res.status(500).json({ message: "Error fetching VPS packages", error: error.message });
     }
   });
 
