@@ -416,60 +416,101 @@ export default function AdminDashboard() {
 
         {/* Admin Tabs */}
         <Tabs defaultValue="hosting" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-12">
-            <TabsTrigger value="hosting" className="flex items-center">
-              <Globe className="mr-2 h-4 w-4" />
-              Hosting Accounts
-            </TabsTrigger>
-            <TabsTrigger value="packages" className="flex items-center">
-              <Puzzle className="mr-2 h-4 w-4" />
-              Packages
-            </TabsTrigger>
-            <TabsTrigger value="plugins" className="flex items-center">
-              <Upload className="mr-2 h-4 w-4" />
-              Plugin Management
-            </TabsTrigger>
-            <TabsTrigger value="users" className="flex items-center">
-              <Users className="mr-2 h-4 w-4" />
-              User Management
-            </TabsTrigger>
-            <TabsTrigger value="user-groups" className="flex items-center">
-              <Users className="mr-2 h-4 w-4" />
-              User Groups
-            </TabsTrigger>
-            <TabsTrigger value="donations" className="flex items-center">
-              <Heart className="mr-2 h-4 w-4" />
-              Donations
-            </TabsTrigger>
-            <TabsTrigger value="facebook-pixel" className="flex items-center">
-              <BarChart3 className="mr-2 h-4 w-4" />
-              Facebook Pixel
-            </TabsTrigger>
-            <TabsTrigger value="api-settings" className="flex items-center">
-              <Settings className="mr-2 h-4 w-4" />
-              API Settings
-            </TabsTrigger>
-            <TabsTrigger value="smtp-settings" className="flex items-center">
-              <Server className="mr-2 h-4 w-4" />
-              SMTP Settings
-            </TabsTrigger>
-            <TabsTrigger value="header-code" className="flex items-center">
-              <Puzzle className="mr-2 h-4 w-4" />
-              Header Code
-            </TabsTrigger>
-            <TabsTrigger value="vps-management" className="flex items-center">
-              <Server className="mr-2 h-4 w-4" />
-              VPS Management
-            </TabsTrigger>
-            <TabsTrigger value="vps-orders" className="flex items-center">
-              <Server className="mr-2 h-4 w-4" />
-              VPS Orders
-            </TabsTrigger>
-            <TabsTrigger value="system" className="flex items-center">
-              <Server className="mr-2 h-4 w-4" />
-              System
-            </TabsTrigger>
-          </TabsList>
+          <div className="border-b border-gray-200 bg-white rounded-lg p-1 shadow-sm">
+            <TabsList className="grid w-full grid-cols-4 lg:grid-cols-6 xl:grid-cols-12 gap-1 bg-transparent h-auto p-0">
+              <TabsTrigger 
+                value="hosting" 
+                className="flex items-center justify-center px-3 py-2 text-sm font-medium rounded-md border border-transparent data-[state=active]:border-blue-300 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 hover:bg-gray-50 transition-all duration-200"
+              >
+                <Globe className="mr-1.5 h-4 w-4" />
+                <span className="hidden sm:inline">Hosting</span>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="packages" 
+                className="flex items-center justify-center px-3 py-2 text-sm font-medium rounded-md border border-transparent data-[state=active]:border-green-300 data-[state=active]:bg-green-50 data-[state=active]:text-green-700 hover:bg-gray-50 transition-all duration-200"
+              >
+                <Puzzle className="mr-1.5 h-4 w-4" />
+                <span className="hidden sm:inline">Packages</span>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="plugins" 
+                className="flex items-center justify-center px-3 py-2 text-sm font-medium rounded-md border border-transparent data-[state=active]:border-purple-300 data-[state=active]:bg-purple-50 data-[state=active]:text-purple-700 hover:bg-gray-50 transition-all duration-200"
+              >
+                <Upload className="mr-1.5 h-4 w-4" />
+                <span className="hidden sm:inline">Plugins</span>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="users" 
+                className="flex items-center justify-center px-3 py-2 text-sm font-medium rounded-md border border-transparent data-[state=active]:border-indigo-300 data-[state=active]:bg-indigo-50 data-[state=active]:text-indigo-700 hover:bg-gray-50 transition-all duration-200"
+              >
+                <Users className="mr-1.5 h-4 w-4" />
+                <span className="hidden sm:inline">Users</span>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="user-groups" 
+                className="flex items-center justify-center px-3 py-2 text-sm font-medium rounded-md border border-transparent data-[state=active]:border-cyan-300 data-[state=active]:bg-cyan-50 data-[state=active]:text-cyan-700 hover:bg-gray-50 transition-all duration-200"
+              >
+                <Users className="mr-1.5 h-4 w-4" />
+                <span className="hidden lg:inline">Groups</span>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="donations" 
+                className="flex items-center justify-center px-3 py-2 text-sm font-medium rounded-md border border-transparent data-[state=active]:border-pink-300 data-[state=active]:bg-pink-50 data-[state=active]:text-pink-700 hover:bg-gray-50 transition-all duration-200"
+              >
+                <Heart className="mr-1.5 h-4 w-4" />
+                <span className="hidden lg:inline">Donations</span>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="facebook-pixel" 
+                className="flex items-center justify-center px-3 py-2 text-sm font-medium rounded-md border border-transparent data-[state=active]:border-orange-300 data-[state=active]:bg-orange-50 data-[state=active]:text-orange-700 hover:bg-gray-50 transition-all duration-200"
+              >
+                <BarChart3 className="mr-1.5 h-4 w-4" />
+                <span className="hidden xl:inline">Pixel</span>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="api-settings" 
+                className="flex items-center justify-center px-3 py-2 text-sm font-medium rounded-md border border-transparent data-[state=active]:border-gray-400 data-[state=active]:bg-gray-50 data-[state=active]:text-gray-700 hover:bg-gray-50 transition-all duration-200"
+              >
+                <Settings className="mr-1.5 h-4 w-4" />
+                <span className="hidden xl:inline">API</span>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="smtp-settings" 
+                className="flex items-center justify-center px-3 py-2 text-sm font-medium rounded-md border border-transparent data-[state=active]:border-teal-300 data-[state=active]:bg-teal-50 data-[state=active]:text-teal-700 hover:bg-gray-50 transition-all duration-200"
+              >
+                <Server className="mr-1.5 h-4 w-4" />
+                <span className="hidden xl:inline">SMTP</span>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="header-code" 
+                className="flex items-center justify-center px-3 py-2 text-sm font-medium rounded-md border border-transparent data-[state=active]:border-amber-300 data-[state=active]:bg-amber-50 data-[state=active]:text-amber-700 hover:bg-gray-50 transition-all duration-200"
+              >
+                <Puzzle className="mr-1.5 h-4 w-4" />
+                <span className="hidden xl:inline">Header</span>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="vps-management" 
+                className="flex items-center justify-center px-3 py-2 text-sm font-medium rounded-md border border-transparent data-[state=active]:border-red-300 data-[state=active]:bg-red-50 data-[state=active]:text-red-700 hover:bg-gray-50 transition-all duration-200"
+              >
+                <Server className="mr-1.5 h-4 w-4" />
+                <span className="hidden xl:inline">VPS</span>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="vps-orders" 
+                className="flex items-center justify-center px-3 py-2 text-sm font-medium rounded-md border border-transparent data-[state=active]:border-emerald-300 data-[state=active]:bg-emerald-50 data-[state=active]:text-emerald-700 hover:bg-gray-50 transition-all duration-200"
+              >
+                <Server className="mr-1.5 h-4 w-4" />
+                <span className="hidden xl:inline">Orders</span>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="system" 
+                className="flex items-center justify-center px-3 py-2 text-sm font-medium rounded-md border border-transparent data-[state=active]:border-slate-400 data-[state=active]:bg-slate-50 data-[state=active]:text-slate-700 hover:bg-gray-50 transition-all duration-200"
+              >
+                <Server className="mr-1.5 h-4 w-4" />
+                <span className="hidden xl:inline">System</span>
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
           <TabsContent value="hosting" className="space-y-6">
             <HostingAccountsManagement />
