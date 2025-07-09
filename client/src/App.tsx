@@ -7,6 +7,7 @@ import { AuthProvider, useAuth } from "@/hooks/use-auth";
 import Landing from "@/pages/landing";
 import ClientDashboard from "@/pages/client-dashboard";
 import AdminDashboard from "@/pages/admin-dashboard";
+import Dashboard from "@/pages/dashboard";
 import PluginLibrary from "@/pages/plugin-library";
 import PluginDetail from "@/pages/plugin-detail";
 import PluginCheckout from "@/pages/plugin-checkout";
@@ -36,52 +37,36 @@ function Router() {
 
   return (
     <Switch>
+      {/* Universal routes available regardless of authentication state */}
+      <Route path="/plugins" component={PluginLibrary} />
+      <Route path="/plugin-library" component={PluginLibrary} />
+      <Route path="/plugin/:slug" component={PluginDetail} />
+      <Route path="/plugin/:slug/donate" component={PluginCheckout} />
+      <Route path="/plugin-checkout-success" component={PluginCheckoutSuccess} />
+      <Route path="/donation-success" component={DonationSuccess} />
+      <Route path="/vps-checkout" component={VpsCheckout} />
+      <Route path="/vps-success" component={VpsSuccess} />
+      <Route path="/conversion" component={Conversion} />
+      
+      {/* Dashboard route that handles authentication properly */}
+      <Route path="/dashboard" component={Dashboard} />
+      
       {!isAuthenticated ? (
         <>
           <Route path="/" component={Landing} />
-
-          <Route path="/plugins" component={PluginLibrary} />
-          <Route path="/plugin-library" component={PluginLibrary} />
-          <Route path="/plugin/:slug" component={PluginDetail} />
-          <Route path="/plugin/:slug/donate" component={PluginCheckout} />
-          <Route path="/plugin-checkout-success" component={PluginCheckoutSuccess} />
-          <Route path="/donation-success" component={DonationSuccess} />
-          <Route path="/vps-checkout" component={VpsCheckout} />
-          <Route path="/vps-success" component={VpsSuccess} />
-          <Route path="/conversion" component={Conversion} />
         </>
       ) : (
         <>
           {(user as any)?.role === "admin" ? (
             <>
               <Route path="/" component={AdminDashboard} />
-              <Route path="/dashboard" component={AdminDashboard} />
               <Route path="/admin-dashboard" component={AdminDashboard} />
               <Route path="/client" component={ClientDashboard} />
               <Route path="/admin/api-settings" component={ApiSettingsPage} />
-              <Route path="/plugins" component={PluginLibrary} />
-              <Route path="/plugin-library" component={PluginLibrary} />
-              <Route path="/plugin/:slug" component={PluginDetail} />
-              <Route path="/plugin/:slug/donate" component={PluginCheckout} />
-              <Route path="/plugin-checkout-success" component={PluginCheckoutSuccess} />
-              <Route path="/donation-success" component={DonationSuccess} />
-              <Route path="/vps-checkout" component={VpsCheckout} />
-              <Route path="/vps-success" component={VpsSuccess} />
-              <Route path="/conversion" component={Conversion} />
             </>
           ) : (
             <>
               <Route path="/" component={ClientDashboard} />
-              <Route path="/dashboard" component={ClientDashboard} />
-              <Route path="/plugins" component={PluginLibrary} />
-              <Route path="/plugin-library" component={PluginLibrary} />
-              <Route path="/plugin/:slug" component={PluginDetail} />
-              <Route path="/plugin/:slug/donate" component={PluginCheckout} />
-              <Route path="/plugin-checkout-success" component={PluginCheckoutSuccess} />
-              <Route path="/donation-success" component={DonationSuccess} />
-              <Route path="/vps-checkout" component={VpsCheckout} />
-              <Route path="/vps-success" component={VpsSuccess} />
-              <Route path="/conversion" component={Conversion} />
             </>
           )}
         </>
