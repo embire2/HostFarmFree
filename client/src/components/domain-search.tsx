@@ -28,7 +28,7 @@ export default function DomainSearch({ onSuccess }: DomainSearchProps) {
   const { isAuthenticated, anonymousRegisterMutation } = useAuth();
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
-  const { canRegisterAccount, recordFingerprint } = useDeviceFingerprint();
+  const { canRegisterAccount, recordFingerprint, generateFingerprint } = useDeviceFingerprint();
 
   // Check device limits on component mount (only once)
   useEffect(() => {
@@ -224,7 +224,7 @@ export default function DomainSearch({ onSuccess }: DomainSearchProps) {
 
     try {
       // Generate device fingerprint data for registration
-      const fingerprint = await recordFingerprint();
+      const fingerprint = await generateFingerprint();
       const subdomain = lastSearched.replace('.hostme.today', '');
       
       domainRegistrationMutation.mutate({ subdomain, fingerprint });
@@ -250,8 +250,8 @@ export default function DomainSearch({ onSuccess }: DomainSearchProps) {
     }
 
     try {
-      // Generate device fingerprint data for registration
-      const fingerprint = await recordFingerprint();
+      // Generate device fingerprint data for registration  
+      const fingerprint = await generateFingerprint();
       const subdomain = lastSearched.replace('.hostme.today', '');
       
       domainRegistrationMutation.mutate({ subdomain, fingerprint });

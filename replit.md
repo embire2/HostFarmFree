@@ -321,6 +321,11 @@ Changelog:
 - July 9, 2025. Added intelligent heuristic algorithms for domain availability (short domains, common words, numeric domains)
 - July 9, 2025. Enhanced transfer checking - unavailable domains now properly show transfer options
 - July 9, 2025. Created multi-source domain checking (Spaceship.com, Namecheap, Whois.net) for accurate results
+- July 9, 2025. CRITICAL REGISTRATION FIX: Fixed database schema mismatch preventing premium hosting orders
+- July 9, 2025. Recreated premium hosting database tables with correct customerEmail column names
+- July 9, 2025. Fixed React hooks error in free domain registration by properly calling generateFingerprint()
+- July 9, 2025. Resolved "Cannot read properties of undefined (reading 'fingerprintHash')" error in device fingerprinting
+- July 9, 2025. Both free hosting registration and premium domain ordering now work without errors
 ```
 
 # User Preferences
