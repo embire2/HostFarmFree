@@ -972,6 +972,35 @@ export class DatabaseStorage implements IStorage {
     return vpsOrder;
   }
 
+  // Stripe Settings operations
+  async getStripeSettings(): Promise<StripeSettings | undefined> {
+    const [settings] = await db.select().from(stripeSettings).limit(1);
+    return settings;
+  }
+
+  async createStripeSettings(settingsData: InsertStripeSettings): Promise<StripeSettings> {
+    const [settings] = await db.insert(stripeSettings).values(settingsData).returning();
+    return settings;
+  }
+
+  async updateStripeSettings(id: number, updates: Partial<InsertStripeSettings>): Promise<StripeSettings | undefined> {
+    const [settings] = await db.update(stripeSettings)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(stripeSettings.id, id))
+      .returning();
+    return settings;
+  }
+
+  async upsertStripeSettings(settingsData: InsertStripeSettings): Promise<StripeSettings> {
+    // Check if settings exist
+    const existing = await this.getStripeSettings();
+    if (existing) {
+      return this.updateStripeSettings(existing.id, settingsData) as Promise<StripeSettings>;
+    } else {
+      return this.createStripeSettings(settingsData);
+    }
+  }
+
   async deleteVpsOrder(id: number): Promise<boolean> {
     try {
       const result = await db.delete(vpsOrders).where(eq(vpsOrders.id, id));

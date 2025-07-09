@@ -38,6 +38,7 @@ import { FacebookPixelSettings } from "@/components/facebook-pixel-settings";
 import SmtpSettings from "@/components/smtp-settings";
 import { CustomHeaderCodeSettings } from "@/components/custom-header-code-settings";
 import AdminVpsOrders from "@/pages/admin-vps-orders";
+import VpsManagement from "@/components/vps-management";
 
 export default function AdminDashboard() {
   const { user, isAuthenticated, isLoading } = useAuth();
@@ -415,7 +416,7 @@ export default function AdminDashboard() {
 
         {/* Admin Tabs */}
         <Tabs defaultValue="hosting" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-11">
+          <TabsList className="grid w-full grid-cols-12">
             <TabsTrigger value="hosting" className="flex items-center">
               <Globe className="mr-2 h-4 w-4" />
               Hosting Accounts
@@ -455,6 +456,10 @@ export default function AdminDashboard() {
             <TabsTrigger value="header-code" className="flex items-center">
               <Puzzle className="mr-2 h-4 w-4" />
               Header Code
+            </TabsTrigger>
+            <TabsTrigger value="vps-management" className="flex items-center">
+              <Server className="mr-2 h-4 w-4" />
+              VPS Management
             </TabsTrigger>
             <TabsTrigger value="vps-orders" className="flex items-center">
               <Server className="mr-2 h-4 w-4" />
@@ -815,6 +820,10 @@ export default function AdminDashboard() {
 
           <TabsContent value="header-code" className="space-y-6">
             <CustomHeaderCodeSettings />
+          </TabsContent>
+
+          <TabsContent value="vps-management" className="space-y-6">
+            <VpsManagement />
           </TabsContent>
 
           <TabsContent value="vps-orders" className="space-y-6">

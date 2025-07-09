@@ -17,9 +17,11 @@ import {
   Shield,
   CreditCard,
   CheckCircle,
-  Globe
+  Globe,
+  ArrowLeft
 } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
+import EnhancedVpsOrdering from "./enhanced-vps-ordering";
 
 interface VpsPackage {
   id: number;
@@ -170,9 +172,8 @@ function VpsPackageCard({ pkg, isSelected, onSelect }: VpsPackageCardProps) {
 
 export default function VpsPricing() {
   const [selectedPackage, setSelectedPackage] = useState<VpsPackage | null>(null);
-  const [customerEmail, setCustomerEmail] = useState("");
   const [selectedOS, setSelectedOS] = useState("");
-  const [isProcessing, setIsProcessing] = useState(false);
+  const [showOrderingFlow, setShowOrderingFlow] = useState(false);
   const { toast } = useToast();
 
   const { data: packages, isLoading } = useQuery<VpsPackage[]>({
@@ -190,81 +191,23 @@ export default function VpsPricing() {
     }
   };
 
-  const handleCreateSubscription = async () => {
-    if (!selectedPackage || !customerEmail || !selectedOS) {
+  const handleOrderVps = () => {
+    if (!selectedPackage || !selectedOS) {
       toast({
         title: "Missing Information",
-        description: "Please select a package, enter an email, and choose an operating system.",
+        description: "Please select a package and choose an operating system.",
         variant: "destructive",
       });
       return;
     }
-
-    setIsProcessing(true);
     
-    try {
-      // Create VPS subscription
-      const response = await apiRequest("POST", "/api/create-vps-subscription", {
-        packageId: selectedPackage.id,
-        customerEmail,
-        operatingSystem: selectedOS,
-      });
+    setShowOrderingFlow(true);
+  };
 
-      const result = await response.json();
-
-      if (result.clientSecret) {
-        console.log("[VPS Subscription] ✅ VPS subscription created successfully:", {
-          subscriptionId: result.subscriptionId,
-          orderId: result.orderId,
-          packageName: result.packageName
-        });
-        
-        // Store order ID and user account info globally for checkout success redirect
-        (window as any).vpsOrderId = result.orderId;
-        (window as any).vpsUserAccount = result.userAccount;
-        
-        try {
-          // Store VPS subscription data for conversion tracking
-          const vpsData = {
-            type: 'vps',
-            subscriptionInfo: {
-              subscriptionId: result.subscriptionId,
-              orderId: result.orderId,
-              packageName: result.packageName,
-              monthlyPrice: result.monthlyPrice,
-              customerEmail: customerEmail,
-              operatingSystem: selectedOS
-            },
-            userAccount: result.userAccount,
-            timestamp: new Date().toISOString()
-          };
-          
-          console.log("[VPS Subscription] Storing VPS data for conversion tracking");
-          sessionStorage.setItem('vpsSubscriptionData', JSON.stringify(vpsData));
-          
-          // Redirect to conversion tracking page for 5 seconds, then to VPS checkout
-          const checkoutUrl = `/vps-checkout?subscription_id=${result.subscriptionId}&client_secret=${result.clientSecret}&order_id=${result.orderId}`;
-          const conversionUrl = `/conversion?type=vps&destination=${encodeURIComponent(checkoutUrl)}`;
-          console.log(`[VPS Subscription] Redirecting to conversion page: ${conversionUrl}`);
-          window.location.href = conversionUrl;
-        } catch (error) {
-          console.error("[VPS Subscription] ❌ Error setting up conversion tracking:", error);
-          // Fallback to direct checkout redirect
-          window.location.href = `/vps-checkout?subscription_id=${result.subscriptionId}&client_secret=${result.clientSecret}&order_id=${result.orderId}`;
-        }
-      } else {
-        throw new Error("Failed to create subscription");
-      }
-    } catch (error) {
-      console.error("Error creating VPS subscription:", error);
-      toast({
-        title: "Subscription Error",
-        description: "Failed to create VPS subscription. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsProcessing(false);
-    }
+  const handleBackToPackages = () => {
+    setShowOrderingFlow(false);
+    setSelectedPackage(null);
+    setSelectedOS("");
   };
 
   if (isLoading) {
@@ -286,6 +229,17 @@ export default function VpsPricing() {
     );
   }
 
+  // Show enhanced ordering flow if a package is selected and user clicked order
+  if (showOrderingFlow && selectedPackage && selectedOS) {
+    return (
+      <EnhancedVpsOrdering
+        selectedPackage={selectedPackage}
+        selectedOS={selectedOS}
+        onBack={handleBackToPackages}
+      />
+    );
+  }
+
   const osOptions = selectedPackage ? JSON.parse(selectedPackage.osChoices || "[]") : [];
 
   return (
@@ -303,7 +257,7 @@ export default function VpsPricing() {
       </div>
 
       {/* Configuration Form */}
-      {selectedPackage && (
+      {selectedPackage && !showOrderingFlow && (
         <Card className="bg-white/10 backdrop-blur-sm border-white/20">
           <CardHeader>
             <CardTitle className="text-white flex items-center">
@@ -319,21 +273,6 @@ export default function VpsPricing() {
                 <strong>100% Anonymous:</strong> Only email required for billing. No personal information needed.
               </AlertDescription>
             </Alert>
-
-            {/* Email Input */}
-            <div className="space-y-2">
-              <Label htmlFor="email" className="text-white">
-                Email Address (for billing only)
-              </Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="your-email@example.com"
-                value={customerEmail}
-                onChange={(e) => setCustomerEmail(e.target.value)}
-                className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
-              />
-            </div>
 
             {/* OS Selection */}
             <div className="space-y-2">
@@ -368,14 +307,14 @@ export default function VpsPricing() {
               </p>
             </div>
 
-            {/* Create Button */}
+            {/* Order Button */}
             <Button 
-              onClick={handleCreateSubscription}
-              disabled={isProcessing || !customerEmail || !selectedOS}
+              onClick={handleOrderVps}
+              disabled={!selectedOS}
               className="w-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white font-semibold py-3"
             >
               <CreditCard className="mr-2 h-4 w-4" />
-              {isProcessing ? "Processing..." : `Create VPS - $${(selectedPackage.price / 100).toFixed(2)}/month`}
+              Order VPS - ${(selectedPackage.price / 100).toFixed(2)}/month
             </Button>
           </CardContent>
         </Card>

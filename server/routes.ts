@@ -4591,6 +4591,134 @@ ${urls.map(url => `  <url>
     }
   });
 
+  // === Enhanced VPS Authentication Routes ===
+
+  // Check if user exists by email
+  app.post("/api/check-user-email", async (req, res) => {
+    try {
+      const { email } = req.body;
+      
+      if (!email) {
+        return res.status(400).json({ error: "Email is required" });
+      }
+
+      console.log(`[VPS Auth] Checking if email exists: ${email}`);
+      
+      const user = await storage.getUserByEmail(email);
+      
+      if (user) {
+        console.log(`[VPS Auth] User found: ${user.username}`);
+        res.json({ 
+          exists: true, 
+          username: user.username,
+          role: user.role 
+        });
+      } else {
+        console.log(`[VPS Auth] No user found for email: ${email}`);
+        res.json({ exists: false });
+      }
+    } catch (error) {
+      console.error("[VPS Auth] Error checking user email:", error);
+      res.status(500).json({ error: "Failed to check email" });
+    }
+  });
+
+  // Authenticate existing user for VPS ordering
+  app.post("/api/authenticate-for-vps", async (req, res) => {
+    try {
+      const { email, password } = req.body;
+      
+      if (!email || !password) {
+        return res.status(400).json({ error: "Email and password are required" });
+      }
+
+      console.log(`[VPS Auth] Authenticating user for VPS: ${email}`);
+      
+      const user = await storage.getUserByEmail(email);
+      
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      // Verify password using the existing authentication logic
+      const isValidPassword = user.password === password || user.displayPassword === password;
+      
+      if (!isValidPassword) {
+        return res.status(401).json({ error: "Invalid password" });
+      }
+
+      console.log(`[VPS Auth] Authentication successful for: ${user.username}`);
+      
+      res.json({
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        role: user.role,
+        exists: true
+      });
+    } catch (error) {
+      console.error("[VPS Auth] Error authenticating user:", error);
+      res.status(500).json({ error: "Authentication failed" });
+    }
+  });
+
+  // Create new user for VPS ordering
+  app.post("/api/create-vps-user", async (req, res) => {
+    try {
+      const { email, password, name } = req.body;
+      
+      if (!email || !password || !name) {
+        return res.status(400).json({ error: "Email, password, and name are required" });
+      }
+
+      console.log(`[VPS Auth] Creating new user for VPS: ${email}`);
+      
+      // Check if user already exists
+      const existingUser = await storage.getUserByEmail(email);
+      if (existingUser) {
+        return res.status(409).json({ error: "User already exists with this email" });
+      }
+
+      // Generate username from email
+      const baseUsername = email.split('@')[0].toLowerCase().replace(/[^a-z0-9]/g, '');
+      let username = baseUsername;
+      let counter = 1;
+      
+      // Ensure username is unique
+      while (await storage.getUserByUsername(username)) {
+        username = `${baseUsername}${counter}`;
+        counter++;
+      }
+
+      const userData = {
+        username,
+        email,
+        password, // This should be hashed in production
+        displayPassword: password, // Store plain text for display
+        role: 'client' as const,
+        name,
+        isAnonymous: false,
+        userGroupId: 1 // Default to Free group
+      };
+
+      const user = await storage.createUser(userData);
+      
+      console.log(`[VPS Auth] User created successfully: ${user.username}`);
+      
+      res.json({
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        role: user.role,
+        name: user.name,
+        exists: false
+      });
+    } catch (error) {
+      console.error("[VPS Auth] Error creating user:", error);
+      res.status(500).json({ error: "Failed to create user" });
+    }
+  });
+
   // VPS Subscription endpoint
   app.post("/api/create-vps-subscription", async (req, res) => {
     try {
@@ -4806,6 +4934,86 @@ ${urls.map(url => `  <url>
 
   // Add email functionality to VPS subscription endpoint (will be imported by the updated endpoint above)
 
+  // VPS Package Management endpoints (Admin only)
+  app.get("/api/admin/vps-packages", isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUser(req.user.claims.sub);
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      // Get all packages including inactive ones for admin
+      const packages = await db.select().from(vpsPackages).orderBy(vpsPackages.sortOrder);
+      res.json(packages);
+    } catch (error) {
+      console.error("Error fetching VPS packages:", error);
+      res.status(500).json({ message: "Error fetching VPS packages" });
+    }
+  });
+
+  app.post("/api/admin/vps-packages", isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUser(req.user.claims.sub);
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const packageData = req.body;
+      console.log("[VPS Package Creation] Creating package:", packageData);
+      
+      const newPackage = await storage.createVpsPackage(packageData);
+      res.json(newPackage);
+    } catch (error) {
+      console.error("Error creating VPS package:", error);
+      res.status(500).json({ message: "Error creating VPS package" });
+    }
+  });
+
+  app.put("/api/admin/vps-packages/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUser(req.user.claims.sub);
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const id = parseInt(req.params.id);
+      const updates = req.body;
+      console.log(`[VPS Package Update] Updating package ${id}:`, updates);
+      
+      const updatedPackage = await storage.updateVpsPackage(id, updates);
+      if (!updatedPackage) {
+        return res.status(404).json({ message: "VPS package not found" });
+      }
+      
+      res.json(updatedPackage);
+    } catch (error) {
+      console.error("Error updating VPS package:", error);
+      res.status(500).json({ message: "Error updating VPS package" });
+    }
+  });
+
+  app.delete("/api/admin/vps-packages/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUser(req.user.claims.sub);
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const id = parseInt(req.params.id);
+      console.log(`[VPS Package Deletion] Deleting package ${id}`);
+      
+      const deleted = await storage.deleteVpsPackage(id);
+      if (!deleted) {
+        return res.status(404).json({ message: "VPS package not found" });
+      }
+      
+      res.json({ message: "VPS package deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting VPS package:", error);
+      res.status(500).json({ message: "Error deleting VPS package" });
+    }
+  });
+
   // VPS Order Management endpoints
   app.get("/api/vps-orders", isAuthenticated, async (req: any, res) => {
     try {
@@ -4820,6 +5028,155 @@ ${urls.map(url => `  <url>
     } catch (error) {
       console.error("Error fetching VPS orders:", error);
       res.status(500).json({ message: "Error fetching VPS orders" });
+    }
+  });
+
+  // Stripe Settings endpoints (Admin only)
+  app.get("/api/admin/stripe-settings", isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUser(req.user.claims.sub);
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const settings = await storage.getStripeSettings();
+      if (!settings) {
+        // Return default settings if none exist
+        return res.json({
+          publicKey: "",
+          secretKey: "",
+          webhookSecret: "",
+          isTestMode: true
+        });
+      }
+      
+      res.json(settings);
+    } catch (error) {
+      console.error("Error fetching Stripe settings:", error);
+      res.status(500).json({ message: "Error fetching Stripe settings" });
+    }
+  });
+
+  app.put("/api/admin/stripe-settings", isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUser(req.user.claims.sub);
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const settingsData = req.body;
+      console.log("[Stripe Settings] Updating settings");
+      
+      const updatedSettings = await storage.upsertStripeSettings(settingsData);
+      res.json(updatedSettings);
+    } catch (error) {
+      console.error("Error updating Stripe settings:", error);
+      res.status(500).json({ message: "Error updating Stripe settings" });
+    }
+  });
+
+  // Enhanced VPS ordering with user authentication check
+  app.post("/api/check-user-email", async (req, res) => {
+    try {
+      const { email } = req.body;
+      console.log(`[User Check] Checking if email exists: ${email}`);
+      
+      const user = await storage.getUserByEmail(email);
+      
+      if (user) {
+        console.log(`[User Check] Email found - user exists: ${user.id}`);
+        res.json({ 
+          exists: true, 
+          userId: user.id, 
+          username: user.username,
+          isAuthenticated: false // Will need to authenticate
+        });
+      } else {
+        console.log(`[User Check] Email not found - new user`);
+        res.json({ 
+          exists: false,
+          isAuthenticated: false // Will need to create account
+        });
+      }
+    } catch (error) {
+      console.error("Error checking user email:", error);
+      res.status(500).json({ message: "Error checking user email" });
+    }
+  });
+
+  app.post("/api/authenticate-for-vps", async (req, res) => {
+    try {
+      const { email, password } = req.body;
+      console.log(`[VPS Auth] Authenticating user for VPS order: ${email}`);
+      
+      const user = await storage.getUserByEmail(email);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      const { comparePasswords } = await import('./auth.js');
+      const isValid = await comparePasswords(password, user.password);
+      
+      if (!isValid) {
+        return res.status(401).json({ message: "Invalid password" });
+      }
+
+      console.log(`[VPS Auth] Authentication successful for user: ${user.id}`);
+      res.json({ 
+        success: true, 
+        userId: user.id,
+        username: user.username 
+      });
+    } catch (error) {
+      console.error("Error authenticating user for VPS:", error);
+      res.status(500).json({ message: "Authentication failed" });
+    }
+  });
+
+  app.post("/api/create-vps-user", async (req, res) => {
+    try {
+      const { email, password, name } = req.body;
+      console.log(`[VPS User Creation] Creating new user for VPS order: ${email}`);
+      
+      // Check if user already exists
+      const existingUser = await storage.getUserByEmail(email);
+      if (existingUser) {
+        return res.status(400).json({ message: "User already exists" });
+      }
+
+      const { hashPassword, generateUsername, generateRecoveryPhrase } = await import('./auth.js');
+      
+      // Create new user
+      const hashedPassword = await hashPassword(password);
+      const username = generateUsername();
+      const recoveryPhrase = generateRecoveryPhrase();
+      
+      const newUser = await storage.createUser({
+        email,
+        username,
+        password: hashedPassword,
+        displayPassword: password, // Store plain password for display
+        role: 'client',
+        isAnonymous: false,
+        recoveryPhrase,
+        name: name || email.split('@')[0],
+        userGroupId: 1 // Default to Free group
+      });
+
+      console.log(`[VPS User Creation] User created successfully: ${newUser.id}`);
+      res.json({ 
+        success: true, 
+        userId: newUser.id,
+        username: newUser.username,
+        user: {
+          id: newUser.id,
+          email: newUser.email,
+          username: newUser.username
+        }
+      });
+    } catch (error) {
+      console.error("Error creating VPS user:", error);
+      res.status(500).json({ message: "Failed to create user" });
     }
   });
 

@@ -332,6 +332,17 @@ export const vpsOrders = pgTable("vps_orders", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Stripe settings table
+export const stripeSettings = pgTable("stripe_settings", {
+  id: serial("id").primaryKey(),
+  publicKey: varchar("public_key", { length: 255 }),
+  secretKey: varchar("secret_key", { length: 255 }),
+  webhookSecret: varchar("webhook_secret", { length: 255 }),
+  isTestMode: boolean("is_test_mode").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Relations
 export const userGroupsRelations = relations(userGroups, ({ many }) => ({
   users: many(users),
@@ -450,6 +461,18 @@ export const insertVpsInstanceSchema = createInsertSchema(vpsInstances).omit({
   updatedAt: true,
 });
 
+export const insertVpsOrderSchema = createInsertSchema(vpsOrders).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertStripeSettingsSchema = createInsertSchema(stripeSettings).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Types
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -491,6 +514,10 @@ export type InsertVpsPackage = z.infer<typeof insertVpsPackageSchema>;
 export type VpsPackage = typeof vpsPackages.$inferSelect;
 export type InsertVpsInstance = z.infer<typeof insertVpsInstanceSchema>;
 export type VpsInstance = typeof vpsInstances.$inferSelect;
+export type InsertVpsOrder = z.infer<typeof insertVpsOrderSchema>;
+export type VpsOrder = typeof vpsOrders.$inferSelect;
+export type InsertStripeSettings = z.infer<typeof insertStripeSettingsSchema>;
+export type StripeSettings = typeof stripeSettings.$inferSelect;
 
 
 
@@ -550,12 +577,4 @@ export const insertCustomHeaderCodeSchema = createInsertSchema(customHeaderCode)
 export type InsertCustomHeaderCode = z.infer<typeof insertCustomHeaderCodeSchema>;
 export type CustomHeaderCode = typeof customHeaderCode.$inferSelect;
 
-// VPS Order schema
-export const insertVpsOrderSchema = createInsertSchema(vpsOrders).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
 
-export type InsertVpsOrder = z.infer<typeof insertVpsOrderSchema>;
-export type VpsOrder = typeof vpsOrders.$inferSelect;
