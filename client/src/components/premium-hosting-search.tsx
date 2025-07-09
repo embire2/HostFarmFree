@@ -238,20 +238,12 @@ export default function PremiumHostingSearch() {
                   {/* Registration Option */}
                   {result.isAvailable && (
                     <div className="bg-gradient-to-br from-green-500/10 to-emerald-600/10 rounded-lg p-4 border border-green-400/20">
-                      <h5 className="font-semibold text-green-400 mb-2">Domain Registration</h5>
-                      <div className="space-y-2 text-sm">
-                        <div className="flex justify-between">
-                          <span className="text-green-300">Base Price:</span>
-                          <span className="text-white">${(result.registrationPrice / 100).toFixed(2)}</span>
+                      <h5 className="font-semibold text-green-400 mb-3">Domain Registration</h5>
+                      <div className="text-center py-4">
+                        <div className="text-3xl font-bold text-white mb-2">
+                          ${(result.finalRegistrationPrice / 100).toFixed(2)}
                         </div>
-                        <div className="flex justify-between">
-                          <span className="text-green-300">Profit Margin:</span>
-                          <span className="text-white">{result.profitMargin}%</span>
-                        </div>
-                        <div className="flex justify-between font-semibold">
-                          <span className="text-green-400">Your Price:</span>
-                          <span className="text-white">${(result.finalRegistrationPrice / 100).toFixed(2)}</span>
-                        </div>
+                        <p className="text-green-300 text-sm">per year</p>
                       </div>
                       <Button
                         onClick={() => handleOrderDomain(result, 'registration')}
@@ -266,20 +258,12 @@ export default function PremiumHostingSearch() {
                   {/* Transfer Option */}
                   {result.canTransfer && (
                     <div className="bg-gradient-to-br from-blue-500/10 to-cyan-600/10 rounded-lg p-4 border border-blue-400/20">
-                      <h5 className="font-semibold text-blue-400 mb-2">Domain Transfer</h5>
-                      <div className="space-y-2 text-sm">
-                        <div className="flex justify-between">
-                          <span className="text-blue-300">Base Price:</span>
-                          <span className="text-white">${(result.transferPrice / 100).toFixed(2)}</span>
+                      <h5 className="font-semibold text-blue-400 mb-3">Domain Transfer</h5>
+                      <div className="text-center py-4">
+                        <div className="text-3xl font-bold text-white mb-2">
+                          ${(result.finalTransferPrice / 100).toFixed(2)}
                         </div>
-                        <div className="flex justify-between">
-                          <span className="text-blue-300">Profit Margin:</span>
-                          <span className="text-white">{result.profitMargin}%</span>
-                        </div>
-                        <div className="flex justify-between font-semibold">
-                          <span className="text-blue-400">Your Price:</span>
-                          <span className="text-white">${(result.finalTransferPrice / 100).toFixed(2)}</span>
-                        </div>
+                        <p className="text-blue-300 text-sm">transfer + 1 year renewal</p>
                       </div>
                       <Button
                         onClick={() => handleOrderDomain(result, 'transfer')}

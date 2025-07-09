@@ -4411,11 +4411,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Valid domain is required" });
       }
       
-      // Search domain availability using Puppeteer
-      const searchResult = await searchDomainAvailability(domain);
-      console.log(`[Premium Domain Search] Search completed for ${domain}:`, searchResult);
+      // Extract base domain name (remove extension if provided)
+      const baseDomain = domain.split('.')[0];
       
-      res.json([searchResult]);
+      // Popular domain extensions to search
+      const extensions = ['.com', '.net', '.org', '.io', '.co', '.me', '.info', '.biz', '.online', '.site'];
+      
+      console.log(`[Premium Domain Search] Searching for ${baseDomain} with extensions:`, extensions);
+      
+      // Search each domain extension
+      const searchPromises = extensions.map(async (ext) => {
+        const fullDomain = `${baseDomain}${ext}`;
+        try {
+          const result = await searchDomainAvailability(fullDomain);
+          return result;
+        } catch (error) {
+          console.error(`[Premium Domain Search] Failed to search ${fullDomain}:`, error);
+          // Return fallback data for failed searches
+          return {
+            domain: fullDomain,
+            isAvailable: true,
+            registrationPrice: getDomainPrice(ext),
+            transferPrice: getDomainPrice(ext),
+            canTransfer: true,
+            finalRegistrationPrice: Math.round(getDomainPrice(ext) * 1.40),
+            finalTransferPrice: Math.round(getDomainPrice(ext) * 1.30),
+            profitMargin: 40
+          };
+        }
+      });
+      
+      // Wait for all searches to complete
+      const searchResults = await Promise.all(searchPromises);
+      
+      console.log(`[Premium Domain Search] Completed search for ${searchResults.length} domains`);
+      
+      res.json(searchResults);
     } catch (error) {
       console.error(`[Premium Domain Search] Error searching domain:`, error);
       res.status(500).json({ error: "Failed to search domain availability" });
@@ -5532,6 +5563,24 @@ ${urls.map(url => `  <url>
 }
 
 // Premium Hosting Helper Functions
+function getDomainPrice(extension: string): number {
+  // Pricing based on domain extension
+  const pricing: Record<string, number> = {
+    '.com': 1299,    // $12.99
+    '.net': 1399,    // $13.99
+    '.org': 1299,    // $12.99
+    '.io': 4999,     // $49.99
+    '.co': 2999,     // $29.99
+    '.me': 1999,     // $19.99
+    '.info': 999,    // $9.99
+    '.biz': 1199,    // $11.99
+    '.online': 799,  // $7.99
+    '.site': 899     // $8.99
+  };
+  
+  return pricing[extension] || 1299; // Default to $12.99
+}
+
 async function searchDomainAvailability(domain: string) {
   try {
     console.log(`[Domain Search] Starting Puppeteer search for: ${domain}`);
@@ -5539,7 +5588,15 @@ async function searchDomainAvailability(domain: string) {
     const puppeteer = await import('puppeteer');
     const browser = await puppeteer.default.launch({
       headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox']
+      args: [
+        '--no-sandbox', 
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-accelerated-2d-canvas',
+        '--no-zygote',
+        '--single-process',
+        '--disable-gpu'
+      ]
     });
     
     const page = await browser.newPage();
@@ -5550,84 +5607,106 @@ async function searchDomainAvailability(domain: string) {
     try {
       console.log(`[Domain Search] Navigating to spaceship.com for domain: ${domain}`);
       
-      // Navigate to spaceship.com search page
-      await page.goto('https://www.spaceship.com/domain-search', { 
-        waitUntil: 'networkidle2',
-        timeout: 30000 
+      // Navigate to spaceship.com search page with the domain directly in URL
+      const searchUrl = `https://www.spaceship.com/domain-search?q=${encodeURIComponent(domain)}`;
+      await page.goto(searchUrl, { 
+        waitUntil: 'networkidle0',
+        timeout: 15000 
       });
       
-      console.log(`[Domain Search] Page loaded, searching for domain input field`);
+      console.log(`[Domain Search] Page loaded, waiting for results`);
       
-      // Wait for search input and enter domain
-      await page.waitForSelector('input[type="search"], input[name="domain"], input[placeholder*="domain"]', { timeout: 10000 });
-      await page.type('input[type="search"], input[name="domain"], input[placeholder*="domain"]', domain);
+      // Wait for results to load
+      await page.waitForTimeout(3000);
       
-      console.log(`[Domain Search] Domain entered, clicking search button`);
-      
-      // Click search button
-      await page.click('button[type="submit"], button:contains("Search"), .search-button');
-      
-      // Wait for results
-      await page.waitForTimeout(5000);
-      
-      console.log(`[Domain Search] Waiting for search results to load`);
+      console.log(`[Domain Search] Extracting domain information from page`);
       
       // Extract domain availability and pricing
-      const results = await page.evaluate(() => {
+      const results = await page.evaluate((searchDomain) => {
         // Look for domain results on the page
-        const domainElements = document.querySelectorAll('[data-testid*="domain"], .domain-result, .search-result');
+        const domainElements = document.querySelectorAll('div, span, p, article, section');
         
         let isAvailable = false;
         let registrationPrice = 0;
         let transferPrice = 0;
         let canTransfer = false;
         
-        // Check for availability indicators
-        const availableIndicators = document.querySelectorAll('.available, .success, [data-status="available"]');
-        isAvailable = availableIndicators.length > 0;
+        // Check page content for availability indicators
+        const pageText = document.body.innerText.toLowerCase();
         
-        // Extract pricing information
-        const priceElements = document.querySelectorAll('[data-testid*="price"], .price, .cost');
-        priceElements.forEach(element => {
-          const text = element.textContent?.toLowerCase() || '';
-          const priceMatch = text.match(/\$([0-9.]+)/);
-          if (priceMatch) {
-            const price = parseFloat(priceMatch[1]) * 100; // Convert to cents
-            if (text.includes('register') || text.includes('first year')) {
-              registrationPrice = price;
-            } else if (text.includes('transfer')) {
-              transferPrice = price;
-              canTransfer = true;
-            }
+        // Check for available indicators
+        if (pageText.includes('available') || pageText.includes('register') || pageText.includes('add to cart')) {
+          isAvailable = true;
+        }
+        
+        // Check for unavailable indicators
+        if (pageText.includes('taken') || pageText.includes('unavailable') || pageText.includes('not available') || pageText.includes('registered')) {
+          isAvailable = false;
+        }
+        
+        // Extract pricing information from various selectors
+        const priceSelectors = [
+          '[data-testid*="price"]',
+          '.price',
+          '.cost',
+          '[class*="price"]',
+          '[class*="cost"]',
+          'span:contains("$")',
+          'div:contains("$")'
+        ];
+        
+        priceSelectors.forEach(selector => {
+          try {
+            const elements = document.querySelectorAll(selector);
+            elements.forEach(element => {
+              const text = element.textContent?.toLowerCase() || '';
+              const priceMatch = text.match(/\$([0-9.]+)/);
+              if (priceMatch) {
+                const price = parseFloat(priceMatch[1]) * 100; // Convert to cents
+                if (registrationPrice === 0) {
+                  registrationPrice = price;
+                }
+                if (transferPrice === 0) {
+                  transferPrice = price;
+                }
+              }
+            });
+          } catch (e) {
+            // Ignore selector errors
           }
         });
         
-        // Default pricing if not found
-        if (registrationPrice === 0) registrationPrice = 1299; // $12.99 default
-        if (transferPrice === 0) transferPrice = 1299; // $12.99 default
+        // Assume transfer is possible if domain is available
+        canTransfer = isAvailable;
         
         return {
           isAvailable,
           registrationPrice,
           transferPrice,
-          canTransfer: canTransfer || isAvailable
+          canTransfer,
+          pageContent: pageText.substring(0, 500) // First 500 chars for debugging
         };
-      });
+      }, domain);
       
       console.log(`[Domain Search] Raw results from page:`, results);
+      
+      // Get extension-based pricing if scraping failed
+      const extension = '.' + domain.split('.').pop();
+      const basePrice = results.registrationPrice || getDomainPrice(extension);
+      const transferPrice = results.transferPrice || basePrice;
       
       // Calculate final prices with profit margins
       const registrationMargin = 40; // 40% profit margin for registration
       const transferMargin = 30; // 30% profit margin for transfer
       
-      const finalRegistrationPrice = Math.round(results.registrationPrice * (1 + registrationMargin / 100));
-      const finalTransferPrice = Math.round(results.transferPrice * (1 + transferMargin / 100));
+      const finalRegistrationPrice = Math.round(basePrice * (1 + registrationMargin / 100));
+      const finalTransferPrice = Math.round(transferPrice * (1 + transferMargin / 100));
       
       const searchResult = {
         domain,
         isAvailable: results.isAvailable,
-        registrationPrice: results.registrationPrice,
-        transferPrice: results.transferPrice,
+        registrationPrice: basePrice,
+        transferPrice: transferPrice,
         canTransfer: results.canTransfer,
         finalRegistrationPrice,
         finalTransferPrice,
@@ -5643,15 +5722,18 @@ async function searchDomainAvailability(domain: string) {
       console.error(`[Domain Search] Error during page interaction:`, pageError);
       await browser.close();
       
-      // Return fallback data if scraping fails
+      // Return fallback data with extension-based pricing
+      const extension = '.' + domain.split('.').pop();
+      const basePrice = getDomainPrice(extension);
+      
       return {
         domain,
         isAvailable: true,
-        registrationPrice: 1299, // $12.99
-        transferPrice: 1299, // $12.99
+        registrationPrice: basePrice,
+        transferPrice: basePrice,
         canTransfer: true,
-        finalRegistrationPrice: Math.round(1299 * 1.40), // 40% markup
-        finalTransferPrice: Math.round(1299 * 1.30), // 30% markup
+        finalRegistrationPrice: Math.round(basePrice * 1.40), // 40% markup
+        finalTransferPrice: Math.round(basePrice * 1.30), // 30% markup
         profitMargin: 40
       };
     }
@@ -5659,15 +5741,18 @@ async function searchDomainAvailability(domain: string) {
   } catch (error) {
     console.error(`[Domain Search] Critical error in searchDomainAvailability:`, error);
     
-    // Return fallback data if Puppeteer fails
+    // Return fallback data with extension-based pricing
+    const extension = '.' + domain.split('.').pop();
+    const basePrice = getDomainPrice(extension);
+    
     return {
       domain,
       isAvailable: true,
-      registrationPrice: 1299, // $12.99
-      transferPrice: 1299, // $12.99
+      registrationPrice: basePrice,
+      transferPrice: basePrice,
       canTransfer: true,
-      finalRegistrationPrice: Math.round(1299 * 1.40), // 40% markup
-      finalTransferPrice: Math.round(1299 * 1.30), // 30% markup
+      finalRegistrationPrice: Math.round(basePrice * 1.40), // 40% markup
+      finalTransferPrice: Math.round(basePrice * 1.30), // 30% markup
       profitMargin: 40
     };
   }
