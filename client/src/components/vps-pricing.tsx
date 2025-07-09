@@ -213,12 +213,45 @@ export default function VpsPricing() {
       const result = await response.json();
 
       if (result.clientSecret) {
+        console.log("[VPS Subscription] ✅ VPS subscription created successfully:", {
+          subscriptionId: result.subscriptionId,
+          orderId: result.orderId,
+          packageName: result.packageName
+        });
+        
         // Store order ID and user account info globally for checkout success redirect
         (window as any).vpsOrderId = result.orderId;
         (window as any).vpsUserAccount = result.userAccount;
         
-        // Redirect to Stripe checkout
-        window.location.href = `/vps-checkout?subscription_id=${result.subscriptionId}&client_secret=${result.clientSecret}&order_id=${result.orderId}`;
+        try {
+          // Store VPS subscription data for conversion tracking
+          const vpsData = {
+            type: 'vps',
+            subscriptionInfo: {
+              subscriptionId: result.subscriptionId,
+              orderId: result.orderId,
+              packageName: result.packageName,
+              monthlyPrice: result.monthlyPrice,
+              customerEmail: customerEmail,
+              operatingSystem: selectedOS
+            },
+            userAccount: result.userAccount,
+            timestamp: new Date().toISOString()
+          };
+          
+          console.log("[VPS Subscription] Storing VPS data for conversion tracking");
+          sessionStorage.setItem('vpsSubscriptionData', JSON.stringify(vpsData));
+          
+          // Redirect to conversion tracking page for 5 seconds, then to VPS checkout
+          const checkoutUrl = `/vps-checkout?subscription_id=${result.subscriptionId}&client_secret=${result.clientSecret}&order_id=${result.orderId}`;
+          const conversionUrl = `/conversion?type=vps&destination=${encodeURIComponent(checkoutUrl)}`;
+          console.log(`[VPS Subscription] Redirecting to conversion page: ${conversionUrl}`);
+          window.location.href = conversionUrl;
+        } catch (error) {
+          console.error("[VPS Subscription] ❌ Error setting up conversion tracking:", error);
+          // Fallback to direct checkout redirect
+          window.location.href = `/vps-checkout?subscription_id=${result.subscriptionId}&client_secret=${result.clientSecret}&order_id=${result.orderId}`;
+        }
       } else {
         throw new Error("Failed to create subscription");
       }

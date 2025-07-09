@@ -14,6 +14,7 @@ import PluginCheckoutSuccess from "@/pages/plugin-checkout-success";
 import DonationSuccess from "@/pages/donation-success";
 import VpsCheckout from "@/pages/vps-checkout";
 import VpsSuccess from "@/pages/vps-success";
+import Conversion from "@/pages/conversion";
 
 import NotFound from "@/pages/not-found";
 import ApiSettingsPage from "@/pages/api-settings-page";
@@ -47,6 +48,7 @@ function Router() {
           <Route path="/donation-success" component={DonationSuccess} />
           <Route path="/vps-checkout" component={VpsCheckout} />
           <Route path="/vps-success" component={VpsSuccess} />
+          <Route path="/conversion" component={Conversion} />
         </>
       ) : (
         <>
@@ -64,6 +66,7 @@ function Router() {
               <Route path="/donation-success" component={DonationSuccess} />
               <Route path="/vps-checkout" component={VpsCheckout} />
               <Route path="/vps-success" component={VpsSuccess} />
+              <Route path="/conversion" component={Conversion} />
             </>
           ) : (
             <>
@@ -77,6 +80,7 @@ function Router() {
               <Route path="/donation-success" component={DonationSuccess} />
               <Route path="/vps-checkout" component={VpsCheckout} />
               <Route path="/vps-success" component={VpsSuccess} />
+              <Route path="/conversion" component={Conversion} />
             </>
           )}
         </>

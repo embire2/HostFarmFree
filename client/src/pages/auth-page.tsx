@@ -69,21 +69,51 @@ export default function AuthPage() {
     },
   })
 
-  // Handle post-authentication redirect
+  // Handle post-authentication redirect and check for conversion return
   useEffect(() => {
-    if (!isLoading && user) {
-      // Check for pending domain from domain search
-      const pendingDomain = localStorage.getItem('pendingDomain');
-      if (pendingDomain) {
-        localStorage.removeItem('pendingDomain');
-        // Redirect back to home with domain info
-        setLocation('/?domain=' + pendingDomain);
-        return;
+    try {
+      // Check if returning from conversion page with showCredentials parameter
+      const urlParams = new URLSearchParams(window.location.search);
+      const showCredentials = urlParams.get('showCredentials');
+      
+      if (showCredentials === 'true') {
+        console.log("[Auth Page] Returning from conversion tracking, loading stored credentials");
+        const storedCredentials = sessionStorage.getItem('anonymousCredentials');
+        if (storedCredentials) {
+          try {
+            const credentials = JSON.parse(storedCredentials);
+            console.log("[Auth Page] ✅ Retrieved stored credentials for display");
+            setAnonymousSuccess(credentials);
+            // Clean up stored credentials
+            sessionStorage.removeItem('anonymousCredentials');
+            // Clean URL
+            window.history.replaceState({}, '', '/auth');
+            return;
+          } catch (parseError) {
+            console.error("[Auth Page] ❌ Error parsing stored credentials:", parseError);
+            sessionStorage.removeItem('anonymousCredentials');
+          }
+        } else {
+          console.warn("[Auth Page] ⚠️ No stored credentials found after conversion tracking");
+        }
       }
 
-      // Redirect based on user role - both admin and regular users go to home (/)
-      // The Router in App.tsx will handle showing the appropriate dashboard
-      setLocation('/');
+      if (!isLoading && user) {
+        // Check for pending domain from domain search
+        const pendingDomain = localStorage.getItem('pendingDomain');
+        if (pendingDomain) {
+          localStorage.removeItem('pendingDomain');
+          // Redirect back to home with domain info
+          setLocation('/?domain=' + pendingDomain);
+          return;
+        }
+
+        // Redirect based on user role - both admin and regular users go to home (/)
+        // The Router in App.tsx will handle showing the appropriate dashboard
+        setLocation('/');
+      }
+    } catch (error) {
+      console.error("[Auth Page] ❌ Error in useEffect:", error);
     }
   }, [user, isLoading, setLocation]);
 
@@ -107,9 +137,40 @@ export default function AuthPage() {
   }
 
   const onAnonymousRegister = () => {
+    console.log("[Anonymous Registration] Starting anonymous account creation");
     anonymousRegisterMutation.mutate(undefined, {
       onSuccess: (response) => {
-        setAnonymousSuccess(response)
+        try {
+          console.log("[Anonymous Registration] ✅ Account created successfully:", {
+            username: response.username,
+            hasPassword: !!response.password,
+            hasRecoveryPhrase: !!response.recoveryPhrase
+          });
+          
+          // Store credentials temporarily for conversion tracking and success display
+          const credentials = {
+            username: response.username,
+            password: response.password,
+            recoveryPhrase: response.recoveryPhrase,
+            message: response.message,
+            timestamp: new Date().toISOString()
+          };
+          
+          console.log("[Anonymous Registration] Storing credentials in sessionStorage for conversion tracking");
+          sessionStorage.setItem('anonymousCredentials', JSON.stringify(credentials));
+          
+          // Redirect to conversion tracking page for 5 seconds, then back to auth page to show credentials
+          const conversionUrl = `/conversion?type=anonymous&destination=${encodeURIComponent('/auth?showCredentials=true')}`;
+          console.log(`[Anonymous Registration] Redirecting to conversion page: ${conversionUrl}`);
+          setLocation(conversionUrl);
+        } catch (error) {
+          console.error("[Anonymous Registration] ❌ Error handling successful registration:", error);
+          // Fallback to direct success display
+          setAnonymousSuccess(response);
+        }
+      },
+      onError: (error) => {
+        console.error("[Anonymous Registration] ❌ Registration failed:", error);
       }
     })
   }

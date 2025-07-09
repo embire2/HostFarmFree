@@ -79,42 +79,63 @@ export default function DomainSearch({ onSuccess }: DomainSearchProps) {
       return response.json();
     },
     onSuccess: async (data) => {
-      console.log("[Domain Registration] Success:", data);
+      console.log("[Domain Registration] ✅ Registration successful:", data);
       
-      // Track Facebook Pixel purchase event for new account creation
       try {
-        trackPurchase(5.00, 'USD', {
-          content_category: 'hosting',
-          content_name: 'free_hosting_account'
+        // Store registration data for conversion tracking
+        const registrationData = {
+          type: 'anonymous',
+          domain: data.domain,
+          userInfo: {
+            username: data.user.username,
+            password: data.user.password,
+            recoveryPhrase: data.user.recoveryPhrase,
+            email: data.user.email
+          },
+          hostingAccount: {
+            domain: data.domain,
+            status: data.account?.status
+          },
+          timestamp: new Date().toISOString()
+        };
+        
+        console.log("[Domain Registration] Storing registration data for conversion tracking");
+        sessionStorage.setItem('domainRegistrationData', JSON.stringify(registrationData));
+        
+        // Store credentials temporarily for display after conversion
+        sessionStorage.setItem('newCredentials', JSON.stringify({
+          username: data.user.username,
+          password: data.user.password,
+          recoveryPhrase: data.user.recoveryPhrase,
+          domain: data.hostingAccount?.domain || data.domain,
+          registrationTime: Date.now()
+        }));
+        
+        toast({
+          title: "🎉 Account Created Successfully!",
+          description: `Your website ${data.domain} is ready! Redirecting to conversion tracking...`,
         });
-        console.log("[Domain Registration] Facebook Pixel purchase event tracked successfully");
+        
+        // Redirect to conversion tracking page for 5 seconds, then to dashboard
+        const conversionUrl = `/conversion?type=anonymous&destination=${encodeURIComponent('/dashboard')}`;
+        console.log(`[Domain Registration] Redirecting to conversion page: ${conversionUrl}`);
+        setLocation(conversionUrl);
+        
+        setSearchTerm("");
+        setLastSearched("");
+        onSuccess?.();
       } catch (error) {
-        console.warn("[Domain Registration] Failed to track Facebook Pixel purchase event:", error);
+        console.error("[Domain Registration] ❌ Error setting up conversion tracking:", error);
+        // Fallback to original redirect
+        toast({
+          title: "🎉 Account Created Successfully!",
+          description: `Your website ${data.domain} is ready! Redirecting to dashboard...`,
+        });
+        setTimeout(() => {
+          window.location.href = '/dashboard';
+        }, 2000);
+        onSuccess?.();
       }
-      
-      // Store credentials temporarily for display
-      sessionStorage.setItem('newCredentials', JSON.stringify({
-        username: data.user.username,
-        password: data.user.password,
-        recoveryPhrase: data.user.recoveryPhrase,
-        domain: data.hostingAccount.domain,
-        registrationTime: Date.now()
-      }));
-      
-      toast({
-        title: "🎉 Account Created Successfully!",
-        description: `Your website ${data.hostingAccount.domain} is ready! Redirecting to dashboard...`,
-      });
-      
-      setSearchTerm("");
-      setLastSearched("");
-      
-      // Redirect to dashboard immediately - account is already created and ready
-      setTimeout(() => {
-        window.location.href = '/dashboard';
-      }, 2000);
-      
-      onSuccess?.();
     },
     onError: (error: Error) => {
       console.error("[Domain Registration] Error:", error);

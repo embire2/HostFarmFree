@@ -70,15 +70,40 @@ export default function PluginLibraryRegistration() {
       const result = await response.json();
       
       if (response.ok) {
+        console.log("[Plugin Library Registration] ✅ Registration successful:", result);
+        
         toast({
           title: "Registration Successful!",
           description: "Welcome to the WordPress Plugin Library. You can now access premium plugins.",
         });
         
-        // Redirect to plugins page after successful registration
-        setTimeout(() => {
-          setLocation("/plugins");
-        }, 2000);
+        try {
+          // Store registration success data for conversion tracking
+          const registrationData = {
+            type: 'plugin',
+            userInfo: {
+              firstName: data.firstName,
+              lastName: data.lastName,
+              email: data.email,
+              country: data.country
+            },
+            timestamp: new Date().toISOString()
+          };
+          
+          console.log("[Plugin Library Registration] Storing registration data for conversion tracking");
+          sessionStorage.setItem('pluginRegistrationData', JSON.stringify(registrationData));
+          
+          // Redirect to conversion tracking page for 5 seconds, then to plugins
+          const conversionUrl = `/conversion?type=plugin&destination=${encodeURIComponent('/plugins')}`;
+          console.log(`[Plugin Library Registration] Redirecting to conversion page: ${conversionUrl}`);
+          setLocation(conversionUrl);
+        } catch (error) {
+          console.error("[Plugin Library Registration] ❌ Error setting up conversion tracking:", error);
+          // Fallback to original redirect
+          setTimeout(() => {
+            setLocation("/plugins");
+          }, 2000);
+        }
       } else {
         toast({
           title: "Registration Failed",
