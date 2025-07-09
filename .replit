@@ -4,7 +4,7 @@ hidden = [".config", ".git", "generated-icon.png", "node_modules", "dist"]
 
 [nix]
 channel = "stable-24_05"
-packages = ["glib", "gtk3", "libdrm", "nss", "alsa-lib", "xorg.libxcb", "xorg.libXcomposite", "xorg.libXdamage", "xorg.libXrandr", "mesa", "expat"]
+packages = ["glib", "gtk3", "libdrm", "nss", "alsa-lib", "xorg.libxcb", "xorg.libXcomposite", "xorg.libXdamage", "xorg.libXrandr", "mesa", "expat", "libxkbcommon", "xorg.libxkbfile", "xorg.libXext", "xorg.libXfixes", "xorg.libXrender", "xorg.libXtst", "xorg.libXScrnSaver", "at-spi2-atk", "cups", "pango", "gdk-pixbuf"]
 
 [deployment]
 deploymentTarget = "cloudrun"
