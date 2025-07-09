@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Server, Globe, Library, Shield, Zap, CheckCircle, Star } from "lucide-react";
 import DomainSearch from "@/components/domain-search";
 import VpsPricing from "@/components/vps-pricing";
@@ -10,6 +11,12 @@ import PremiumHostingSearch from "@/components/premium-hosting-search";
 
 export default function ThreeSectionServices() {
   const [activeSection, setActiveSection] = useState<"hosting" | "vps" | "plugins" | "premium">("hosting");
+  
+  // TEMPORARY: Disable VPS and Premium Hosting sections (easy to reactivate)
+  const disabledSections = {
+    vps: true,      // Set to false to reactivate VPS
+    premium: true   // Set to false to reactivate Premium Hosting
+  };
 
   const sections = [
     {
@@ -35,6 +42,7 @@ export default function ThreeSectionServices() {
       iconColor: "text-cyan-300",
       titleColor: "text-white",
       descColor: "text-cyan-50",
+      disabled: disabledSections.vps,
     },
     {
       id: "plugins" as const,
@@ -59,6 +67,7 @@ export default function ThreeSectionServices() {
       iconColor: "text-amber-300",
       titleColor: "text-white",
       descColor: "text-amber-50",
+      disabled: disabledSections.premium,
     },
   ];
 
@@ -78,49 +87,85 @@ export default function ThreeSectionServices() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8 space-y-8">
-      {/* Section Navigation */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {sections.map((section) => (
-          <Card
-            key={section.id}
-            className={`cursor-pointer transition-all duration-300 hover:scale-105 ${
-              activeSection === section.id
-                ? `${section.color} ${section.bgColor} shadow-xl shadow-${section.color.split('-')[1]}-500/20`
-                : "border-white/20 bg-white/5 hover:bg-white/10"
-            }`}
-            onClick={() => setActiveSection(section.id)}
-          >
-            <CardHeader className={`text-center ${
-              activeSection === section.id ? section.headerBg : "bg-white/5"
-            } rounded-t-lg`}>
-              <CardTitle className={`text-lg font-bold flex items-center justify-center gap-2 ${
-                activeSection === section.id ? section.titleColor : "text-white"
-              }`}>
-                <span className={activeSection === section.id ? section.iconColor : "text-white"}>
-                  {section.icon}
-                </span>
-                {section.title}
-              </CardTitle>
-              <p className={`text-sm font-medium ${
-                activeSection === section.id ? section.descColor : "text-gray-300"
-              }`}>
-                {section.description}
-              </p>
-            </CardHeader>
-            <CardContent className="pt-2">
-              <div className="flex justify-center">
-                <Badge
-                  variant={activeSection === section.id ? "default" : "secondary"}
-                  className={activeSection === section.id ? "bg-white text-black font-semibold shadow-lg" : "bg-white/20 text-white font-medium hover:bg-white/30"}
-                >
-                  {activeSection === section.id ? "Active" : "Click to view"}
-                </Badge>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+    <TooltipProvider>
+      <div className="max-w-7xl mx-auto px-4 py-8 space-y-8">
+        {/* Section Navigation */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {sections.map((section) => {
+            const isDisabled = (section as any).disabled;
+            
+            const cardContent = (
+              <Card
+                key={section.id}
+                className={`transition-all duration-300 ${
+                  isDisabled 
+                    ? "cursor-not-allowed opacity-40 grayscale hover:grayscale-0 hover:opacity-60 border-gray-500/50 bg-gray-600/20" 
+                    : `cursor-pointer hover:scale-105 ${
+                        activeSection === section.id
+                          ? `${section.color} ${section.bgColor} shadow-xl shadow-${section.color.split('-')[1]}-500/20`
+                          : "border-white/20 bg-white/5 hover:bg-white/10"
+                      }`
+                }`}
+                onClick={() => !isDisabled && setActiveSection(section.id)}
+              >
+                <CardHeader className={`text-center ${
+                  isDisabled 
+                    ? "bg-gray-600/20" 
+                    : activeSection === section.id ? section.headerBg : "bg-white/5"
+                } rounded-t-lg`}>
+                  <CardTitle className={`text-lg font-bold flex items-center justify-center gap-2 ${
+                    isDisabled 
+                      ? "text-gray-400" 
+                      : activeSection === section.id ? section.titleColor : "text-white"
+                  }`}>
+                    <span className={
+                      isDisabled 
+                        ? "text-gray-400" 
+                        : activeSection === section.id ? section.iconColor : "text-white"
+                    }>
+                      {section.icon}
+                    </span>
+                    {section.title}
+                  </CardTitle>
+                  <p className={`text-sm font-medium ${
+                    isDisabled 
+                      ? "text-gray-500" 
+                      : activeSection === section.id ? section.descColor : "text-gray-300"
+                  }`}>
+                    {section.description}
+                  </p>
+                </CardHeader>
+                <CardContent className="pt-2">
+                  <div className="flex justify-center">
+                    <Badge
+                      variant={activeSection === section.id ? "default" : "secondary"}
+                      className={
+                        isDisabled 
+                          ? "bg-gray-600/40 text-gray-400 font-medium cursor-not-allowed"
+                          : activeSection === section.id 
+                            ? "bg-white text-black font-semibold shadow-lg" 
+                            : "bg-white/20 text-white font-medium hover:bg-white/30"
+                      }
+                    >
+                      {isDisabled ? "Coming Soon" : activeSection === section.id ? "Active" : "Click to view"}
+                    </Badge>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+
+            return isDisabled ? (
+              <Tooltip key={section.id}>
+                <TooltipTrigger asChild>
+                  {cardContent}
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Coming Soon</p>
+                </TooltipContent>
+              </Tooltip>
+            ) : cardContent;
+          })}
+        </div>
 
       <Separator className="bg-white/20" />
 
@@ -170,6 +215,7 @@ export default function ThreeSectionServices() {
           </CardContent>
         </Card>
       </div>
-    </div>
+      </div>
+    </TooltipProvider>
   );
 }
