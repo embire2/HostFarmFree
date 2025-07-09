@@ -324,38 +324,41 @@ export default function PremiumHostingSearch() {
       )}
 
       {/* Information Card */}
-      <Card className="bg-gradient-to-br from-amber-500/10 to-orange-500/10 border-amber-400/20">
-        <CardHeader>
-          <CardTitle className="text-amber-400">How Premium Hosting Works</CardTitle>
+      <Card className="bg-gradient-to-br from-amber-500/15 to-orange-500/15 border-amber-400/30 backdrop-blur-sm">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-amber-300 text-xl font-bold flex items-center">
+            <Star className="mr-2 h-5 w-5" />
+            How Premium Hosting Works
+          </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-3 text-amber-100">
-          <div className="flex items-start space-x-3">
-            <div className="bg-amber-500/20 rounded-full p-1 mt-1">
-              <span className="text-amber-400 font-bold text-xs">1</span>
+        <CardContent className="space-y-6">
+          <div className="flex items-start space-x-4">
+            <div className="bg-gradient-to-br from-amber-400 to-amber-500 rounded-full w-8 h-8 flex items-center justify-center shadow-lg flex-shrink-0">
+              <span className="text-black font-bold text-sm">1</span>
             </div>
-            <div>
-              <h4 className="font-semibold text-white">Search & Select</h4>
-              <p className="text-sm text-amber-200">Search for your desired domain and choose registration or transfer.</p>
-            </div>
-          </div>
-          
-          <div className="flex items-start space-x-3">
-            <div className="bg-amber-500/20 rounded-full p-1 mt-1">
-              <span className="text-amber-400 font-bold text-xs">2</span>
-            </div>
-            <div>
-              <h4 className="font-semibold text-white">Order Review</h4>
-              <p className="text-sm text-amber-200">Your order is manually reviewed by our team for quality assurance.</p>
+            <div className="flex-1">
+              <h4 className="font-bold text-white text-lg mb-2">Search & Select</h4>
+              <p className="text-amber-100 leading-relaxed">Search for your desired domain and choose registration or transfer.</p>
             </div>
           </div>
           
-          <div className="flex items-start space-x-3">
-            <div className="bg-amber-500/20 rounded-full p-1 mt-1">
-              <span className="text-amber-400 font-bold text-xs">3</span>
+          <div className="flex items-start space-x-4">
+            <div className="bg-gradient-to-br from-amber-400 to-amber-500 rounded-full w-8 h-8 flex items-center justify-center shadow-lg flex-shrink-0">
+              <span className="text-black font-bold text-sm">2</span>
             </div>
-            <div>
-              <h4 className="font-semibold text-white">Hosting Setup</h4>
-              <p className="text-sm text-amber-200">Once approved, we'll set up your hosting account and provide access details.</p>
+            <div className="flex-1">
+              <h4 className="font-bold text-white text-lg mb-2">Order Review</h4>
+              <p className="text-amber-100 leading-relaxed">Your order is manually reviewed by our team for quality assurance.</p>
+            </div>
+          </div>
+          
+          <div className="flex items-start space-x-4">
+            <div className="bg-gradient-to-br from-amber-400 to-amber-500 rounded-full w-8 h-8 flex items-center justify-center shadow-lg flex-shrink-0">
+              <span className="text-black font-bold text-sm">3</span>
+            </div>
+            <div className="flex-1">
+              <h4 className="font-bold text-white text-lg mb-2">Hosting Setup</h4>
+              <p className="text-amber-100 leading-relaxed">Once approved, we'll set up your hosting account and provide access details.</p>
             </div>
           </div>
         </CardContent>
