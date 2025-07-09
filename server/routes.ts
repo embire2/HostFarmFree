@@ -4953,7 +4953,7 @@ ${urls.map(url => `  <url>
 
   app.post("/api/admin/vps-packages", isAuthenticated, async (req: any, res) => {
     try {
-      const user = await storage.getUser(req.user.claims.sub);
+      const user = await storage.getUser(req.user.id);
       if (!user || user.role !== 'admin') {
         return res.status(403).json({ message: "Admin access required" });
       }
@@ -4971,7 +4971,7 @@ ${urls.map(url => `  <url>
 
   app.put("/api/admin/vps-packages/:id", isAuthenticated, async (req: any, res) => {
     try {
-      const user = await storage.getUser(req.user.claims.sub);
+      const user = await storage.getUser(req.user.id);
       if (!user || user.role !== 'admin') {
         return res.status(403).json({ message: "Admin access required" });
       }
@@ -4994,7 +4994,7 @@ ${urls.map(url => `  <url>
 
   app.delete("/api/admin/vps-packages/:id", isAuthenticated, async (req: any, res) => {
     try {
-      const user = await storage.getUser(req.user.claims.sub);
+      const user = await storage.getUser(req.user.id);
       if (!user || user.role !== 'admin') {
         return res.status(403).json({ message: "Admin access required" });
       }
@@ -5018,7 +5018,7 @@ ${urls.map(url => `  <url>
   app.get("/api/vps-orders", isAuthenticated, async (req: any, res) => {
     try {
       // Only admin users can view all VPS orders
-      const user = await storage.getUser(req.user.claims.sub);
+      const user = await storage.getUser(req.user.id);
       if (!user || user.role !== 'admin') {
         return res.status(403).json({ message: "Admin access required" });
       }
@@ -5034,7 +5034,7 @@ ${urls.map(url => `  <url>
   // Stripe Settings endpoints (Admin only)
   app.get("/api/admin/stripe-settings", isAuthenticated, async (req: any, res) => {
     try {
-      const user = await storage.getUser(req.user.claims.sub);
+      const user = await storage.getUser(req.user.id);
       if (!user || user.role !== 'admin') {
         return res.status(403).json({ message: "Admin access required" });
       }
@@ -5059,7 +5059,7 @@ ${urls.map(url => `  <url>
 
   app.put("/api/admin/stripe-settings", isAuthenticated, async (req: any, res) => {
     try {
-      const user = await storage.getUser(req.user.claims.sub);
+      const user = await storage.getUser(req.user.id);
       if (!user || user.role !== 'admin') {
         return res.status(403).json({ message: "Admin access required" });
       }
