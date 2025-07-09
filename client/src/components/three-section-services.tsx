@@ -2,13 +2,14 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { Server, Globe, Library, Shield, Zap, CheckCircle } from "lucide-react";
+import { Server, Globe, Library, Shield, Zap, CheckCircle, Star } from "lucide-react";
 import DomainSearch from "@/components/domain-search";
 import VpsPricing from "@/components/vps-pricing";
 import PluginLibraryRegistration from "@/components/plugin-library-registration";
+import PremiumHostingSearch from "@/components/premium-hosting-search";
 
 export default function ThreeSectionServices() {
-  const [activeSection, setActiveSection] = useState<"hosting" | "vps" | "plugins">("hosting");
+  const [activeSection, setActiveSection] = useState<"hosting" | "vps" | "plugins" | "premium">("hosting");
 
   const sections = [
     {
@@ -47,6 +48,18 @@ export default function ThreeSectionServices() {
       titleColor: "text-white",
       descColor: "text-fuchsia-50",
     },
+    {
+      id: "premium" as const,
+      title: "Create Premium Hosting Package",
+      icon: <Star className="w-6 h-6" />,
+      description: "Create a hosting package using your own subdomain or register a new domain",
+      color: "border-amber-400",
+      bgColor: "bg-gradient-to-br from-amber-500/40 to-orange-600/40",
+      headerBg: "bg-gradient-to-r from-amber-500/30 to-orange-500/30",
+      iconColor: "text-amber-300",
+      titleColor: "text-white",
+      descColor: "text-amber-50",
+    },
   ];
 
   const renderSectionContent = () => {
@@ -57,6 +70,8 @@ export default function ThreeSectionServices() {
         return <VpsPricing />;
       case "plugins":
         return <PluginLibraryRegistration />;
+      case "premium":
+        return <PremiumHostingSearch />;
       default:
         return <DomainSearch />;
     }
@@ -65,7 +80,7 @@ export default function ThreeSectionServices() {
   return (
     <div className="max-w-7xl mx-auto px-4 py-8 space-y-8">
       {/* Section Navigation */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {sections.map((section) => (
           <Card
             key={section.id}

@@ -343,6 +343,88 @@ export const stripeSettings = pgTable("stripe_settings", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Premium hosting orders table
+export const premiumHostingOrders = pgTable("premium_hosting_orders", {
+  id: serial("id").primaryKey(),
+  customerEmail: varchar("customer_email").notNull(),
+  customerName: varchar("customer_name"),
+  domainName: varchar("domain_name").notNull(),
+  orderType: varchar("order_type").notNull(), // 'registration' | 'transfer'
+  status: varchar("status").notNull().default("pending"), // 'pending' | 'processing' | 'completed' | 'cancelled'
+  
+  // Pricing details
+  domainPrice: integer("domain_price").notNull(), // in cents - original price from spaceship
+  finalPrice: integer("final_price").notNull(), // in cents - with profit margin
+  profitMargin: decimal("profit_margin", { precision: 5, scale: 2 }).notNull(), // percentage
+  
+  // Stripe payment details
+  stripePaymentIntentId: varchar("stripe_payment_intent_id"),
+  stripeCustomerId: varchar("stripe_customer_id"),
+  paymentStatus: varchar("payment_status").notNull().default("pending"), // 'pending' | 'paid' | 'failed'
+  
+  // Domain provider details (spaceship.com)
+  externalOrderId: varchar("external_order_id"), // Order ID from spaceship
+  externalStatus: varchar("external_status"), // Status from spaceship
+  
+  // Admin processing
+  processedBy: integer("processed_by").references(() => users.id),
+  processedAt: timestamp("processed_at"),
+  
+  // Hosting account details (filled by admin after approval)
+  cpanelUsername: varchar("cpanel_username"),
+  cpanelPassword: varchar("cpanel_password"),
+  cpanelUrl: varchar("cpanel_url"),
+  hostingPackageId: integer("hosting_package_id").references(() => hostingPackages.id),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Pending orders table - consolidated for all order types
+export const pendingOrders = pgTable("pending_orders", {
+  id: serial("id").primaryKey(),
+  orderType: varchar("order_type").notNull(), // 'vps' | 'premium_hosting'
+  orderId: integer("order_id").notNull(), // Reference to vpsOrders.id or premiumHostingOrders.id
+  customerEmail: varchar("customer_email").notNull(),
+  customerName: varchar("customer_name"),
+  status: varchar("status").notNull().default("pending"), // 'pending' | 'approved' | 'rejected'
+  
+  // Order details snapshot (JSON for flexibility)
+  orderDetails: text("order_details").notNull(), // JSON string with order specifications
+  
+  // Pricing information
+  totalPrice: integer("total_price").notNull(), // in cents
+  currency: varchar("currency").notNull().default("USD"),
+  
+  // Admin processing
+  processedBy: integer("processed_by").references(() => users.id),
+  processedAt: timestamp("processed_at"),
+  rejectionReason: text("rejection_reason"),
+  adminNotes: text("admin_notes"),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Domain search cache table
+export const domainSearchCache = pgTable("domain_search_cache", {
+  id: serial("id").primaryKey(),
+  domain: varchar("domain").notNull().unique(),
+  isAvailable: boolean("is_available").notNull(),
+  registrationPrice: integer("registration_price"), // in cents - original price from spaceship
+  transferPrice: integer("transfer_price"), // in cents - original price from spaceship
+  canTransfer: boolean("can_transfer").default(false),
+  
+  // Spaceship.com response data
+  spaceshipResponse: text("spaceship_response"), // JSON string with full response
+  
+  // Cache metadata
+  lastChecked: timestamp("last_checked").defaultNow(),
+  expiresAt: timestamp("expires_at").notNull(), // Cache expiration
+  
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Relations
 export const userGroupsRelations = relations(userGroups, ({ many }) => ({
   users: many(users),
@@ -398,6 +480,15 @@ export const vpsPackagesRelations = relations(vpsPackages, ({ many }) => ({
 export const vpsInstancesRelations = relations(vpsInstances, ({ one }) => ({
   user: one(users, { fields: [vpsInstances.userId], references: [users.id] }),
   package: one(vpsPackages, { fields: [vpsInstances.packageId], references: [vpsPackages.id] }),
+}));
+
+export const premiumHostingOrdersRelations = relations(premiumHostingOrders, ({ one }) => ({
+  processedBy: one(users, { fields: [premiumHostingOrders.processedBy], references: [users.id] }),
+  hostingPackage: one(hostingPackages, { fields: [premiumHostingOrders.hostingPackageId], references: [hostingPackages.id] }),
+}));
+
+export const pendingOrdersRelations = relations(pendingOrders, ({ one }) => ({
+  processedBy: one(users, { fields: [pendingOrders.processedBy], references: [users.id] }),
 }));
 
 export const pluginRequestsRelations = relations(pluginRequests, ({ one }) => ({
@@ -473,6 +564,23 @@ export const insertStripeSettingsSchema = createInsertSchema(stripeSettings).omi
   updatedAt: true,
 });
 
+export const insertPremiumHostingOrderSchema = createInsertSchema(premiumHostingOrders).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertPendingOrderSchema = createInsertSchema(pendingOrders).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertDomainSearchCacheSchema = createInsertSchema(domainSearchCache).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Types
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -518,6 +626,15 @@ export type InsertVpsOrder = z.infer<typeof insertVpsOrderSchema>;
 export type VpsOrder = typeof vpsOrders.$inferSelect;
 export type InsertStripeSettings = z.infer<typeof insertStripeSettingsSchema>;
 export type StripeSettings = typeof stripeSettings.$inferSelect;
+
+export type InsertPremiumHostingOrder = z.infer<typeof insertPremiumHostingOrderSchema>;
+export type PremiumHostingOrder = typeof premiumHostingOrders.$inferSelect;
+
+export type InsertPendingOrder = z.infer<typeof insertPendingOrderSchema>;
+export type PendingOrder = typeof pendingOrders.$inferSelect;
+
+export type InsertDomainSearchCache = z.infer<typeof insertDomainSearchCacheSchema>;
+export type DomainSearchCache = typeof domainSearchCache.$inferSelect;
 
 
 

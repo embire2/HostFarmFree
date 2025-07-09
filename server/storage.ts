@@ -17,6 +17,9 @@ import {
   vpsInstances,
   vpsOrders,
   stripeSettings,
+  premiumHostingOrders,
+  pendingOrders,
+  domainSearchCache,
   type User,
   type InsertUser,
   type HostingAccount,
@@ -52,6 +55,12 @@ import {
   type InsertVpsOrder,
   type StripeSettings,
   type InsertStripeSettings,
+  type PremiumHostingOrder,
+  type InsertPremiumHostingOrder,
+  type PendingOrder,
+  type InsertPendingOrder,
+  type DomainSearchCache,
+  type InsertDomainSearchCache,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, ilike, and, sql, max } from "drizzle-orm";
@@ -184,6 +193,25 @@ export interface IStorage {
     totalWebsites: number;
     totalDonations: number;
   }>;
+  
+  // Premium Hosting Order operations
+  createPremiumHostingOrder(order: InsertPremiumHostingOrder): Promise<PremiumHostingOrder>;
+  getPremiumHostingOrders(): Promise<PremiumHostingOrder[]>;
+  getPremiumHostingOrderById(id: number): Promise<PremiumHostingOrder | undefined>;
+  updatePremiumHostingOrder(id: number, updates: Partial<InsertPremiumHostingOrder>): Promise<PremiumHostingOrder | undefined>;
+  
+  // Pending Order operations
+  createPendingOrder(order: InsertPendingOrder): Promise<PendingOrder>;
+  getPendingOrders(): Promise<PendingOrder[]>;
+  getPendingOrderById(id: number): Promise<PendingOrder | undefined>;
+  updatePendingOrder(id: number, updates: Partial<InsertPendingOrder>): Promise<PendingOrder | undefined>;
+  deletePendingOrder(id: number): Promise<boolean>;
+  
+  // Domain Search Cache operations
+  createDomainSearchCache(cache: InsertDomainSearchCache): Promise<DomainSearchCache>;
+  getDomainSearchCacheByDomain(domain: string): Promise<DomainSearchCache | undefined>;
+  updateDomainSearchCache(id: number, updates: Partial<InsertDomainSearchCache>): Promise<DomainSearchCache | undefined>;
+  deleteDomainSearchCache(id: number): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1067,6 +1095,81 @@ export class DatabaseStorage implements IStorage {
       console.error("Error deleting VPS instance:", error);
       return false;
     }
+  }
+
+  // Premium Hosting Order operations
+  async createPremiumHostingOrder(orderData: InsertPremiumHostingOrder): Promise<PremiumHostingOrder> {
+    const [order] = await db.insert(premiumHostingOrders).values(orderData).returning();
+    return order;
+  }
+
+  async getPremiumHostingOrders(): Promise<PremiumHostingOrder[]> {
+    return await db.select().from(premiumHostingOrders).orderBy(desc(premiumHostingOrders.createdAt));
+  }
+
+  async getPremiumHostingOrderById(id: number): Promise<PremiumHostingOrder | undefined> {
+    const [order] = await db.select().from(premiumHostingOrders).where(eq(premiumHostingOrders.id, id));
+    return order;
+  }
+
+  async updatePremiumHostingOrder(id: number, updates: Partial<InsertPremiumHostingOrder>): Promise<PremiumHostingOrder | undefined> {
+    const [order] = await db.update(premiumHostingOrders)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(premiumHostingOrders.id, id))
+      .returning();
+    return order;
+  }
+
+  // Pending Order operations
+  async createPendingOrder(orderData: InsertPendingOrder): Promise<PendingOrder> {
+    const [order] = await db.insert(pendingOrders).values(orderData).returning();
+    return order;
+  }
+
+  async getPendingOrders(): Promise<PendingOrder[]> {
+    return await db.select().from(pendingOrders).orderBy(desc(pendingOrders.createdAt));
+  }
+
+  async getPendingOrderById(id: number): Promise<PendingOrder | undefined> {
+    const [order] = await db.select().from(pendingOrders).where(eq(pendingOrders.id, id));
+    return order;
+  }
+
+  async updatePendingOrder(id: number, updates: Partial<InsertPendingOrder>): Promise<PendingOrder | undefined> {
+    const [order] = await db.update(pendingOrders)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(pendingOrders.id, id))
+      .returning();
+    return order;
+  }
+
+  async deletePendingOrder(id: number): Promise<boolean> {
+    const result = await db.delete(pendingOrders).where(eq(pendingOrders.id, id));
+    return (result.rowCount || 0) > 0;
+  }
+
+  // Domain Search Cache operations
+  async createDomainSearchCache(cacheData: InsertDomainSearchCache): Promise<DomainSearchCache> {
+    const [cache] = await db.insert(domainSearchCache).values(cacheData).returning();
+    return cache;
+  }
+
+  async getDomainSearchCacheByDomain(domain: string): Promise<DomainSearchCache | undefined> {
+    const [cache] = await db.select().from(domainSearchCache).where(eq(domainSearchCache.domain, domain));
+    return cache;
+  }
+
+  async updateDomainSearchCache(id: number, updates: Partial<InsertDomainSearchCache>): Promise<DomainSearchCache | undefined> {
+    const [cache] = await db.update(domainSearchCache)
+      .set(updates)
+      .where(eq(domainSearchCache.id, id))
+      .returning();
+    return cache;
+  }
+
+  async deleteDomainSearchCache(id: number): Promise<boolean> {
+    const result = await db.delete(domainSearchCache).where(eq(domainSearchCache.id, id));
+    return (result.rowCount || 0) > 0;
   }
 }
 

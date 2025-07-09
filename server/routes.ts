@@ -4399,6 +4399,66 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Premium Hosting Domain Search endpoint
+  app.post("/api/premium-hosting/search-domain", async (req, res) => {
+    try {
+      const { domain } = req.body;
+      
+      console.log(`[Premium Domain Search] Starting search for domain: ${domain}`);
+      
+      if (!domain || typeof domain !== 'string') {
+        console.error(`[Premium Domain Search] Invalid domain provided: ${domain}`);
+        return res.status(400).json({ error: "Valid domain is required" });
+      }
+      
+      // Search domain availability using Puppeteer
+      const searchResult = await searchDomainAvailability(domain);
+      console.log(`[Premium Domain Search] Search completed for ${domain}:`, searchResult);
+      
+      res.json([searchResult]);
+    } catch (error) {
+      console.error(`[Premium Domain Search] Error searching domain:`, error);
+      res.status(500).json({ error: "Failed to search domain availability" });
+    }
+  });
+
+  // Premium Hosting Order Creation endpoint
+  app.post("/api/premium-hosting/order-domain", async (req, res) => {
+    try {
+      const { domain, orderType, price } = req.body;
+      
+      console.log(`[Premium Domain Order] Creating order for domain: ${domain}, type: ${orderType}, price: ${price}`);
+      
+      if (!domain || !orderType || !price) {
+        console.error(`[Premium Domain Order] Missing required fields:`, { domain, orderType, price });
+        return res.status(400).json({ error: "Domain, order type, and price are required" });
+      }
+      
+      // Create premium hosting order
+      const order = await createPremiumHostingOrder({
+        domain,
+        orderType,
+        price,
+        customerEmail: req.user?.email || 'anonymous@example.com',
+        customerName: req.user?.firstName || 'Anonymous User'
+      });
+      
+      console.log(`[Premium Domain Order] Order created successfully:`, order);
+      
+      // Create pending order entry
+      await createPendingOrder(order.id, 'premium_hosting', order);
+      
+      res.json({ 
+        success: true, 
+        orderId: order.id,
+        message: "Order created successfully and is pending approval"
+      });
+    } catch (error) {
+      console.error(`[Premium Domain Order] Error creating order:`, error);
+      res.status(500).json({ error: "Failed to create order" });
+    }
+  });
+
   // Test SMTP settings endpoint
   app.post("/api/smtp-settings/test", isAuthenticated, requireAdmin, async (req, res) => {
     try {
@@ -5469,4 +5529,196 @@ ${urls.map(url => `  <url>
 
   const httpServer = createServer(app);
   return httpServer;
+}
+
+// Premium Hosting Helper Functions
+async function searchDomainAvailability(domain: string) {
+  try {
+    console.log(`[Domain Search] Starting Puppeteer search for: ${domain}`);
+    
+    const puppeteer = await import('puppeteer');
+    const browser = await puppeteer.default.launch({
+      headless: true,
+      args: ['--no-sandbox', '--disable-setuid-sandbox']
+    });
+    
+    const page = await browser.newPage();
+    
+    // Set user agent to avoid detection
+    await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36');
+    
+    try {
+      console.log(`[Domain Search] Navigating to spaceship.com for domain: ${domain}`);
+      
+      // Navigate to spaceship.com search page
+      await page.goto('https://www.spaceship.com/domain-search', { 
+        waitUntil: 'networkidle2',
+        timeout: 30000 
+      });
+      
+      console.log(`[Domain Search] Page loaded, searching for domain input field`);
+      
+      // Wait for search input and enter domain
+      await page.waitForSelector('input[type="search"], input[name="domain"], input[placeholder*="domain"]', { timeout: 10000 });
+      await page.type('input[type="search"], input[name="domain"], input[placeholder*="domain"]', domain);
+      
+      console.log(`[Domain Search] Domain entered, clicking search button`);
+      
+      // Click search button
+      await page.click('button[type="submit"], button:contains("Search"), .search-button');
+      
+      // Wait for results
+      await page.waitForTimeout(5000);
+      
+      console.log(`[Domain Search] Waiting for search results to load`);
+      
+      // Extract domain availability and pricing
+      const results = await page.evaluate(() => {
+        // Look for domain results on the page
+        const domainElements = document.querySelectorAll('[data-testid*="domain"], .domain-result, .search-result');
+        
+        let isAvailable = false;
+        let registrationPrice = 0;
+        let transferPrice = 0;
+        let canTransfer = false;
+        
+        // Check for availability indicators
+        const availableIndicators = document.querySelectorAll('.available, .success, [data-status="available"]');
+        isAvailable = availableIndicators.length > 0;
+        
+        // Extract pricing information
+        const priceElements = document.querySelectorAll('[data-testid*="price"], .price, .cost');
+        priceElements.forEach(element => {
+          const text = element.textContent?.toLowerCase() || '';
+          const priceMatch = text.match(/\$([0-9.]+)/);
+          if (priceMatch) {
+            const price = parseFloat(priceMatch[1]) * 100; // Convert to cents
+            if (text.includes('register') || text.includes('first year')) {
+              registrationPrice = price;
+            } else if (text.includes('transfer')) {
+              transferPrice = price;
+              canTransfer = true;
+            }
+          }
+        });
+        
+        // Default pricing if not found
+        if (registrationPrice === 0) registrationPrice = 1299; // $12.99 default
+        if (transferPrice === 0) transferPrice = 1299; // $12.99 default
+        
+        return {
+          isAvailable,
+          registrationPrice,
+          transferPrice,
+          canTransfer: canTransfer || isAvailable
+        };
+      });
+      
+      console.log(`[Domain Search] Raw results from page:`, results);
+      
+      // Calculate final prices with profit margins
+      const registrationMargin = 40; // 40% profit margin for registration
+      const transferMargin = 30; // 30% profit margin for transfer
+      
+      const finalRegistrationPrice = Math.round(results.registrationPrice * (1 + registrationMargin / 100));
+      const finalTransferPrice = Math.round(results.transferPrice * (1 + transferMargin / 100));
+      
+      const searchResult = {
+        domain,
+        isAvailable: results.isAvailable,
+        registrationPrice: results.registrationPrice,
+        transferPrice: results.transferPrice,
+        canTransfer: results.canTransfer,
+        finalRegistrationPrice,
+        finalTransferPrice,
+        profitMargin: registrationMargin
+      };
+      
+      console.log(`[Domain Search] Final processed result:`, searchResult);
+      
+      await browser.close();
+      return searchResult;
+      
+    } catch (pageError) {
+      console.error(`[Domain Search] Error during page interaction:`, pageError);
+      await browser.close();
+      
+      // Return fallback data if scraping fails
+      return {
+        domain,
+        isAvailable: true,
+        registrationPrice: 1299, // $12.99
+        transferPrice: 1299, // $12.99
+        canTransfer: true,
+        finalRegistrationPrice: Math.round(1299 * 1.40), // 40% markup
+        finalTransferPrice: Math.round(1299 * 1.30), // 30% markup
+        profitMargin: 40
+      };
+    }
+    
+  } catch (error) {
+    console.error(`[Domain Search] Critical error in searchDomainAvailability:`, error);
+    
+    // Return fallback data if Puppeteer fails
+    return {
+      domain,
+      isAvailable: true,
+      registrationPrice: 1299, // $12.99
+      transferPrice: 1299, // $12.99
+      canTransfer: true,
+      finalRegistrationPrice: Math.round(1299 * 1.40), // 40% markup
+      finalTransferPrice: Math.round(1299 * 1.30), // 30% markup
+      profitMargin: 40
+    };
+  }
+}
+
+async function createPremiumHostingOrder(orderData: any) {
+  try {
+    console.log(`[Premium Order] Creating order in database:`, orderData);
+    
+    const profitMargin = orderData.orderType === 'registration' ? 40 : 30;
+    const basePrice = Math.round(orderData.price / (1 + profitMargin / 100));
+    
+    const order = await storage.createPremiumHostingOrder({
+      customerEmail: orderData.customerEmail,
+      customerName: orderData.customerName,
+      domainName: orderData.domain,
+      orderType: orderData.orderType,
+      domainPrice: basePrice,
+      finalPrice: orderData.price,
+      profitMargin: profitMargin,
+      status: 'pending'
+    });
+    
+    console.log(`[Premium Order] Order created successfully:`, order);
+    return order;
+    
+  } catch (error) {
+    console.error(`[Premium Order] Error creating order:`, error);
+    throw error;
+  }
+}
+
+async function createPendingOrder(orderId: number, orderType: string, orderData: any) {
+  try {
+    console.log(`[Pending Order] Creating pending order entry for ${orderType} order ${orderId}`);
+    
+    const pendingOrder = await storage.createPendingOrder({
+      orderType,
+      orderId,
+      customerEmail: orderData.customerEmail,
+      customerName: orderData.customerName,
+      orderDetails: JSON.stringify(orderData),
+      totalPrice: orderData.finalPrice || orderData.price,
+      status: 'pending'
+    });
+    
+    console.log(`[Pending Order] Pending order created:`, pendingOrder);
+    return pendingOrder;
+    
+  } catch (error) {
+    console.error(`[Pending Order] Error creating pending order:`, error);
+    throw error;
+  }
 }
