@@ -60,21 +60,18 @@ export default function DomainSearch({ onSuccess }: DomainSearchProps) {
   });
 
   const domainRegistrationMutation = useMutation({
-    mutationFn: async (subdomain: string) => {
-      // Generate device fingerprint data for registration
-      const fingerprint = await useDeviceFingerprint().generateFingerprint();
-      
+    mutationFn: async (data: { subdomain: string; fingerprint: any }) => {
       const response = await apiRequest("POST", "/api/register-domain", {
-        subdomain,
+        subdomain: data.subdomain,
         packageId: 1, // Default to free package
         // Include device fingerprint data for enforcement
-        fingerprintHash: fingerprint.fingerprintHash,
-        macAddress: fingerprint.macAddress,
-        userAgent: fingerprint.userAgent,
-        screenResolution: fingerprint.screenResolution,
-        timezone: fingerprint.timezone,
-        language: fingerprint.language,
-        platformInfo: fingerprint.platformInfo,
+        fingerprintHash: data.fingerprint.fingerprintHash,
+        macAddress: data.fingerprint.macAddress,
+        userAgent: data.fingerprint.userAgent,
+        screenResolution: data.fingerprint.screenResolution,
+        timezone: data.fingerprint.timezone,
+        language: data.fingerprint.language,
+        platformInfo: data.fingerprint.platformInfo,
       });
       return response.json();
     },
@@ -225,9 +222,20 @@ export default function DomainSearch({ onSuccess }: DomainSearchProps) {
       return;
     }
 
-    // Use new integrated domain registration that creates everything at once
-    const subdomain = lastSearched.replace('.hostme.today', '');
-    domainRegistrationMutation.mutate(subdomain);
+    try {
+      // Generate device fingerprint data for registration
+      const fingerprint = await recordFingerprint();
+      const subdomain = lastSearched.replace('.hostme.today', '');
+      
+      domainRegistrationMutation.mutate({ subdomain, fingerprint });
+    } catch (error) {
+      console.error("[Domain Registration] Error generating fingerprint:", error);
+      toast({
+        title: "Registration Error",
+        description: "Failed to generate device fingerprint. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleSignIn = async () => {
@@ -241,9 +249,20 @@ export default function DomainSearch({ onSuccess }: DomainSearchProps) {
       return;
     }
 
-    // For new domain registration, create everything at once
-    const subdomain = lastSearched.replace('.hostme.today', '');
-    domainRegistrationMutation.mutate(subdomain);
+    try {
+      // Generate device fingerprint data for registration
+      const fingerprint = await recordFingerprint();
+      const subdomain = lastSearched.replace('.hostme.today', '');
+      
+      domainRegistrationMutation.mutate({ subdomain, fingerprint });
+    } catch (error) {
+      console.error("[Domain Registration] Error generating fingerprint:", error);
+      toast({
+        title: "Registration Error",
+        description: "Failed to generate device fingerprint. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const isAvailable = lastSearched && searchResult?.available && !isSearching;
