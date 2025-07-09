@@ -4768,13 +4768,16 @@ ${urls.map(url => `  <url>
   });
 
   // Plugin Library Registration
-  app.post("/api/plugin-library-register", async (req, res) => {
+  app.post("/api/plugin-library-register", async (req: any, res) => {
     try {
       const { firstName, lastName, email, country, password } = req.body;
+      
+      console.log(`[Plugin Library Registration] Starting registration for email: ${email}`);
       
       // Check if user already exists
       const existingUser = await storage.getUserByEmail(email);
       if (existingUser) {
+        console.log(`[Plugin Library Registration] User already exists: ${email}`);
         return res.status(400).json({ message: "User with this email already exists" });
       }
       
@@ -4794,6 +4797,24 @@ ${urls.map(url => `  <url>
         isAnonymous: false,
         role: "client",
         displayPassword: password, // Store plain text password for display
+      });
+      
+      console.log(`[Plugin Library Registration] ✓ User created: ${user.username}`);
+      
+      // Automatically log in the newly created user
+      console.log(`[Plugin Library Registration] Authenticating user...`);
+      
+      // Use Promise wrapper for req.login
+      await new Promise<void>((resolve, reject) => {
+        req.login(user, (err) => {
+          if (err) {
+            console.error(`[Plugin Library Registration] Login error:`, err);
+            reject(err);
+          } else {
+            console.log(`[Plugin Library Registration] ✓ User automatically authenticated`);
+            resolve();
+          }
+        });
       });
       
       res.json({ 
