@@ -692,6 +692,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const authHeader = `whm root:${apiSettings.whmApiToken}`;
 
       console.log('[WHM Packages API] Fetching from WHM:', listPkgsUrl);
+      console.log('[WHM Packages API] Using auth header:', authHeader.substring(0, 20) + '...');
 
       const whmResponse = await fetch(listPkgsUrl, {
         method: 'GET',
@@ -702,15 +703,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       if (!whmResponse.ok) {
         console.error('[WHM Packages API] WHM API error:', whmResponse.status);
+        const errorText = await whmResponse.text();
+        console.error('[WHM Packages API] Error response:', errorText.substring(0, 200));
         return res.json({ packages: [] });
       }
 
-      const whmData = await whmResponse.json();
+      const responseText = await whmResponse.text();
+      console.log('[WHM Packages API] Raw response text (first 500 chars):', responseText.substring(0, 500));
+      
+      let whmData;
+      try {
+        whmData = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error('[WHM Packages API] Failed to parse JSON:', parseError);
+        console.error('[WHM Packages API] Response was:', responseText.substring(0, 1000));
+        return res.json({ packages: [] });
+      }
+
       console.log('[WHM Packages API] WHM response received:', {
         status: whmResponse.status,
         hasData: !!whmData?.data,
         hasPackages: !!whmData?.data?.pkg,
-        fullResponse: JSON.stringify(whmData).substring(0, 500) + '...'
+        dataKeys: whmData?.data ? Object.keys(whmData.data) : [],
+        metadataResult: whmData?.metadata?.result
       });
 
       // Extract packages from WHM response
