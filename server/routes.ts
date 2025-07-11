@@ -401,6 +401,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(500).json({ error: "Server configuration incomplete" });
       }
 
+      // Get the hosting package details to find the WHM package name
+      const hostingPackage = await storage.getHostingPackageById(packageId);
+      if (!hostingPackage) {
+        console.error('[Domain Registration API] ERROR: Invalid package ID:', packageId);
+        return res.status(400).json({ error: "Invalid package selected" });
+      }
+
+      console.log('[Domain Registration API] Using hosting package:', hostingPackage.displayName);
+      console.log('[Domain Registration API] WHM package name:', hostingPackage.whmPackageName);
+
       // Generate WHM username (must start with letter for WHM validation)
       const whmUsername = subdomain.match(/^\d/) ? `h${subdomain}` : subdomain;
       const whmPassword = generatePassword();
@@ -413,7 +423,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         username: whmUsername,
         domain: fullDomain,
         password: whmPassword,
-        pkg: '512MB Free Hosting', // Use correct package name
+        pkg: hostingPackage.whmPackageName || '512MB Free Hosting', // Use the package assigned by admin
         contactemail: `admin@${fullDomain}`,
         ip: 'n' // Use shared IP
       });
@@ -1518,7 +1528,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         // Get the hosting package to get the correct WHM package name
         const hostingPackage = await storage.getHostingPackageById(hostingAccount.packageId);
-        const whmPackageName = hostingPackage?.whmPackageName || '512MB Free Hosting';
+        if (!hostingPackage) {
+          console.error(`[Fix WHM Account API] Package not found for ID: ${hostingAccount.packageId}`);
+          return res.status(400).json({ error: "Hosting package not found" });
+        }
+        const whmPackageName = hostingPackage.whmPackageName;
         
         console.log(`[Fix WHM Account API] Using WHM package: ${whmPackageName}`);
 
