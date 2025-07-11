@@ -11,9 +11,12 @@ import fs from "fs";
 
 // Middleware to require admin role
 const requireAdmin = (req: any, res: Response, next: any) => {
+  console.log('RequireAdmin middleware - user:', JSON.stringify(req.user, null, 2));
   if (req.user?.role !== "admin") {
+    console.log('Access denied - user role:', req.user?.role);
     return res.status(403).json({ message: "Admin access required" });
   }
+  console.log('Admin access granted');
   next();
 };
 

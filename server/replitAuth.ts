@@ -142,10 +142,18 @@ export async function setupAuth(app: Express) {
 
 export const isAuthenticated: RequestHandler = async (req, res, next) => {
   const user = req.user as any;
+  
+  console.log('IsAuthenticated middleware - req.isAuthenticated():', req.isAuthenticated());
+  console.log('IsAuthenticated middleware - user:', user ? JSON.stringify(user, null, 2) : 'null');
+  console.log('IsAuthenticated middleware - session:', req.session?.id || 'no session');
 
-  if (!req.isAuthenticated() || !user.expires_at) {
+  if (!req.isAuthenticated() || !user) {
+    console.log('Authentication failed - isAuthenticated:', req.isAuthenticated(), 'user exists:', !!user);
     return res.status(401).json({ message: "Unauthorized" });
   }
+  
+  console.log('✓ Authentication successful - user ID:', user.id, 'role:', user.role);
+  next();
 
   const now = Math.floor(Date.now() / 1000);
   if (now <= user.expires_at) {

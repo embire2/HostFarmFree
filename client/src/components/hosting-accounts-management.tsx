@@ -592,11 +592,15 @@ export default function HostingAccountsManagement() {
                         <SelectValue placeholder="Select a package" />
                       </SelectTrigger>
                       <SelectContent>
-                        {hostingPackages.map((pkg: any) => (
-                          <SelectItem key={pkg.id} value={pkg.id.toString()}>
-                            {pkg.displayName} - {pkg.price === 0 ? "Free" : `$${pkg.price}/month`}
-                          </SelectItem>
-                        ))}
+                        {hostingPackages && hostingPackages.length > 0 ? (
+                          hostingPackages.map((pkg: any) => (
+                            <SelectItem key={pkg.id} value={pkg.id.toString()}>
+                              {pkg.displayName} - {pkg.price === 0 ? "Free" : `$${pkg.price}/month`}
+                            </SelectItem>
+                          ))
+                        ) : (
+                          <SelectItem value="" disabled>No packages available</SelectItem>
+                        )}
                       </SelectContent>
                     </Select>
                   </div>
@@ -612,11 +616,15 @@ export default function HostingAccountsManagement() {
                       <SelectValue placeholder="Select an existing user or create anonymous account" />
                     </SelectTrigger>
                     <SelectContent>
-                      {allUsers.map((user: any) => (
-                        <SelectItem key={user.id} value={user.id.toString()}>
-                          {user.username} ({user.email || "No email"})
-                        </SelectItem>
-                      ))}
+                      {allUsers && allUsers.length > 0 ? (
+                        allUsers.map((user: any) => (
+                          <SelectItem key={user.id} value={user.id.toString()}>
+                            {user.username} ({user.email || "No email"})
+                          </SelectItem>
+                        ))
+                      ) : (
+                        <SelectItem value="" disabled>No users available</SelectItem>
+                      )}
                     </SelectContent>
                   </Select>
                   <p className="text-sm text-muted-foreground mt-1">
