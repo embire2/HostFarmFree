@@ -88,6 +88,7 @@ export interface IStorage {
   // Plugin operations
   createPlugin(plugin: InsertPlugin): Promise<Plugin>;
   getPlugins(category?: string, search?: string): Promise<Plugin[]>;
+  getAllPlugins(): Promise<Plugin[]>;
   getPublicPlugins(): Promise<Plugin[]>;
   getPluginById(id: number): Promise<Plugin | undefined>;
   getPluginBySlug(slug: string): Promise<Plugin | undefined>;
@@ -181,6 +182,7 @@ export interface IStorage {
   
   // Custom Header Code operations
   getCustomHeaderCodes(): Promise<CustomHeaderCode[]>;
+  getActiveCustomHeaderCodes(): Promise<CustomHeaderCode[]>;
   getCustomHeaderCodeById(id: number): Promise<CustomHeaderCode | undefined>;
   createCustomHeaderCode(code: InsertCustomHeaderCode): Promise<CustomHeaderCode>;
   updateCustomHeaderCode(id: number, updates: Partial<InsertCustomHeaderCode>): Promise<CustomHeaderCode | undefined>;
@@ -455,6 +457,12 @@ export class DatabaseStorage implements IStorage {
       .from(pluginDownloads)
       .where(eq(pluginDownloads.userId, userId))
       .orderBy(desc(pluginDownloads.downloadedAt));
+  }
+
+  async getAllPlugins(): Promise<Plugin[]> {
+    return await db.select().from(plugins)
+      .where(eq(plugins.isActive, true))
+      .orderBy(desc(plugins.downloadCount));
   }
 
   // Donation operations
@@ -889,6 +897,14 @@ export class DatabaseStorage implements IStorage {
     return await db
       .select()
       .from(customHeaderCode)
+      .orderBy(customHeaderCode.position, customHeaderCode.createdAt);
+  }
+
+  async getActiveCustomHeaderCodes(): Promise<CustomHeaderCode[]> {
+    return await db
+      .select()
+      .from(customHeaderCode)
+      .where(eq(customHeaderCode.isActive, true))
       .orderBy(customHeaderCode.position, customHeaderCode.createdAt);
   }
 
