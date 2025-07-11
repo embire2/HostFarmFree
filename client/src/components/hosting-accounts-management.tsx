@@ -212,6 +212,28 @@ export default function HostingAccountsManagement() {
     },
   });
 
+  // Fix broken WHM account mutation
+  const fixWhmAccountMutation = useMutation({
+    mutationFn: async (accountId: number) => {
+      const res = await apiRequest("POST", `/api/admin/recreate-whm-account/${accountId}`);
+      return await res.json();
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/hosting-accounts"] });
+      toast({
+        title: "WHM Account Fixed Successfully",
+        description: `${data.domain} has been recreated on the WHM server with username: ${data.username}`,
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Fix Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
   // Search for subdomain availability with debouncing
   const searchSubdomainAvailability = (subdomain: string) => {
     // Clear previous timeout
@@ -839,6 +861,25 @@ export default function HostingAccountsManagement() {
                             <Settings className="h-3 w-3 mr-1" />
                             cPanel
                           </Button>
+                          
+                          {/* Fix WHM Account Button - Show if account has WHM issues */}
+                          {(!account.whmData || account.whmData?.error) && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="h-7 px-2 text-orange-600 hover:text-orange-700 hover:bg-orange-50 border-orange-200"
+                              disabled={fixWhmAccountMutation.isPending}
+                              onClick={() => fixWhmAccountMutation.mutate(account.id)}
+                              title="Fix missing WHM account"
+                            >
+                              {fixWhmAccountMutation.isPending ? (
+                                <Loader2 className="h-3 w-3 animate-spin" />
+                              ) : (
+                                <RefreshCw className="h-3 w-3" />
+                              )}
+                              <span className="ml-1 text-xs">Fix</span>
+                            </Button>
+                          )}
                           
                           <Button
                             size="sm"
