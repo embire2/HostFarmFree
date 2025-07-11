@@ -215,19 +215,32 @@ export default function HostingAccountsManagement() {
   // Fix broken WHM account mutation
   const fixWhmAccountMutation = useMutation({
     mutationFn: async (accountId: number) => {
-      const res = await apiRequest("POST", `/api/admin/recreate-whm-account/${accountId}`);
-      return await res.json();
+      console.log(`[Frontend] Starting WHM account fix for account ID: ${accountId}`);
+      const res = await apiRequest("POST", `/api/admin/fix-whm-account/${accountId}`);
+      const data = await res.json();
+      console.log(`[Frontend] Fix WHM account response:`, data);
+      return data;
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/hosting-accounts"] });
-      toast({
-        title: "WHM Account Fixed Successfully",
-        description: `${data.domain} has been recreated on the WHM server with username: ${data.username}`,
-      });
+      
+      // Show success message with credentials if available
+      if (data.credentials) {
+        toast({
+          title: "WHM Account Fixed Successfully!",
+          description: `Account ${data.account?.domain} now has cPanel credentials. Username: ${data.credentials.username}`,
+        });
+      } else {
+        toast({
+          title: "WHM Account Fixed",
+          description: `Successfully fixed WHM account for ${data.account?.domain || 'the hosting account'}`,
+        });
+      }
     },
     onError: (error: Error) => {
+      console.error("[Frontend] Fix WHM account error:", error);
       toast({
-        title: "Fix Failed",
+        title: "Failed to Fix WHM Account",
         description: error.message,
         variant: "destructive",
       });

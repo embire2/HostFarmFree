@@ -694,6 +694,199 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Fix WHM account - recreate missing WHM account for existing database record
+  app.post("/api/admin/fix-whm-account/:accountId", isAuthenticated, requireAdmin, async (req, res) => {
+    try {
+      const accountId = parseInt(req.params.accountId);
+      console.log(`[Fix WHM Account API] ===== START FIX WHM ACCOUNT =====`);
+      console.log(`[Fix WHM Account API] Account ID: ${accountId}`);
+
+      if (!accountId || isNaN(accountId)) {
+        console.log(`[Fix WHM Account API] Error: Invalid account ID`);
+        return res.status(400).json({ 
+          success: false,
+          message: "Invalid account ID",
+          error: "Account ID must be a valid number"
+        });
+      }
+
+      // Get the hosting account
+      const hostingAccount = await storage.getHostingAccountById(accountId);
+      if (!hostingAccount) {
+        console.log(`[Fix WHM Account API] Error: Account not found`);
+        return res.status(404).json({ 
+          success: false,
+          message: "Hosting account not found",
+          error: "Account does not exist"
+        });
+      }
+
+      console.log(`[Fix WHM Account API] Found account: ${hostingAccount.domain}`);
+      console.log(`[Fix WHM Account API] Current status: ${hostingAccount.status}`);
+      console.log(`[Fix WHM Account API] Has cPanel credentials: ${!!hostingAccount.cpanelUsername}`);
+
+      // Get user information
+      const user = await storage.getUser(hostingAccount.userId);
+      if (!user) {
+        console.log(`[Fix WHM Account API] Error: User not found`);
+        return res.status(404).json({ 
+          success: false,
+          message: "Account owner not found",
+          error: "User does not exist"
+        });
+      }
+
+      console.log(`[Fix WHM Account API] Account owner: ${user.username}`);
+
+      // Get API settings for WHM integration
+      const apiSettings = await storage.getApiSettings();
+      if (!apiSettings || !apiSettings.whmServerUrl || !apiSettings.whmApiToken) {
+        console.log(`[Fix WHM Account API] Error: WHM API settings not configured`);
+        return res.status(500).json({ 
+          success: false,
+          message: "WHM API settings not configured",
+          error: "Server configuration incomplete"
+        });
+      }
+
+      // Generate username for WHM (same logic as account creation)
+      const subdomain = hostingAccount.domain.replace('.hostme.today', '');
+      let whmUsername = subdomain;
+      
+      // Ensure username starts with a letter (WHM requirement)
+      if (/^\d/.test(whmUsername)) {
+        whmUsername = 'h' + whmUsername;
+      }
+      
+      // Limit to 16 characters for cPanel
+      if (whmUsername.length > 16) {
+        whmUsername = whmUsername.substring(0, 16);
+      }
+
+      console.log(`[Fix WHM Account API] Generated WHM username: ${whmUsername}`);
+
+      // Create account on WHM server
+      try {
+        const whmUrl = apiSettings.whmServerUrl.replace(/\/+$/, '');
+        const createAccountUrl = `${whmUrl}:2087/json-api/createacct`;
+        const authHeader = `whm root:${apiSettings.whmApiToken}`;
+
+        const whmPassword = Math.random().toString(36).slice(-8) + 'A1!';
+        console.log(`[Fix WHM Account API] Creating WHM account with username: ${whmUsername}`);
+
+        const whmFormData = new URLSearchParams({
+          username: whmUsername,
+          password: whmPassword,
+          domain: hostingAccount.domain,
+          email: user.email || `${whmUsername}@${hostingAccount.domain}`,
+          plan: 'free-starter',
+          ip: 'n', // Use shared IP
+          cgi: '1',
+          frontpage: '0',
+          hasagreestotearms: '1'
+        });
+
+        const whmResponse = await fetch(createAccountUrl, {
+          method: 'POST',
+          headers: {
+            'Authorization': authHeader,
+            'Content-Type': 'application/x-www-form-urlencoded'
+          },
+          body: whmFormData
+        });
+
+        const whmData = await whmResponse.json();
+        console.log(`[Fix WHM Account API] WHM response:`, {
+          status: whmResponse.status,
+          ok: whmResponse.ok,
+          data: whmData
+        });
+
+        // Check if WHM account creation was successful
+        let success = false;
+        if (whmResponse.ok && whmData) {
+          // Check multiple success indicators
+          if (whmData.status === 1 || 
+              (whmData.result && whmData.result.status === 1) ||
+              (whmData.result && Array.isArray(whmData.result) && whmData.result.some(r => r.status === 1)) ||
+              (whmData.metadata && whmData.metadata.result === 1)) {
+            success = true;
+          }
+        }
+
+        if (success) {
+          // Update the database with WHM credentials
+          const updatedAccount = await storage.updateHostingAccount(accountId, {
+            cpanelUsername: whmUsername,
+            cpanelPassword: whmPassword,
+            status: 'active',
+            whmAccountId: whmUsername
+          });
+
+          console.log(`[Fix WHM Account API] ✓ Successfully fixed WHM account`);
+          console.log(`[Fix WHM Account API] ===== END FIX WHM ACCOUNT (SUCCESS) =====`);
+
+          return res.json({
+            success: true,
+            message: `Successfully fixed WHM account for ${hostingAccount.domain}`,
+            account: updatedAccount,
+            credentials: {
+              username: whmUsername,
+              password: whmPassword,
+              domain: hostingAccount.domain
+            }
+          });
+        } else {
+          console.log(`[Fix WHM Account API] WHM account creation failed`);
+          console.log(`[Fix WHM Account API] ===== END FIX WHM ACCOUNT (FAILED) =====`);
+
+          return res.status(500).json({
+            success: false,
+            message: `Failed to create WHM account for ${hostingAccount.domain}`,
+            error: "WHM account creation failed",
+            debug: {
+              whmResponse: whmData,
+              username: whmUsername
+            }
+          });
+        }
+
+      } catch (whmError) {
+        console.error(`[Fix WHM Account API] WHM API error:`, whmError);
+        console.log(`[Fix WHM Account API] ===== END FIX WHM ACCOUNT (ERROR) =====`);
+
+        return res.status(500).json({
+          success: false,
+          message: `Failed to connect to WHM server`,
+          error: whmError.message,
+          debug: {
+            username: whmUsername,
+            errorType: whmError.constructor.name
+          }
+        });
+      }
+
+    } catch (error) {
+      console.error(`[Fix WHM Account API] ===== CRITICAL ERROR IN FIX WHM ACCOUNT =====`);
+      console.error(`[Fix WHM Account API] Error type:`, error?.constructor?.name);
+      console.error(`[Fix WHM Account API] Error message:`, error?.message);
+      console.error(`[Fix WHM Account API] Full error object:`, error);
+      console.error(`[Fix WHM Account API] Stack trace:`, error?.stack);
+      console.error(`[Fix WHM Account API] Account ID:`, req.params.accountId);
+      console.error(`[Fix WHM Account API] ===== END CRITICAL ERROR =====`);
+      
+      res.status(500).json({ 
+        success: false,
+        message: "Failed to fix WHM account due to internal error",
+        error: error?.message || "Unknown error",
+        debug: {
+          errorType: error?.constructor?.name,
+          timestamp: new Date().toISOString()
+        }
+      });
+    }
+  });
+
   // Create and return the HTTP server (required for Vite HMR)
   const server = createServer(app);
   return server;

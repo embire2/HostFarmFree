@@ -80,6 +80,7 @@ export interface IStorage {
   // Hosting account operations
   createHostingAccount(account: InsertHostingAccount): Promise<HostingAccount>;
   getHostingAccountsByUserId(userId: number): Promise<HostingAccount[]>;
+  getHostingAccountById(id: number): Promise<HostingAccount | undefined>;
   getHostingAccountByDomain(domain: string): Promise<HostingAccount | undefined>;
   updateHostingAccountUsage(id: number, diskUsage: number, bandwidthUsed: number): Promise<void>;
   updateHostingAccount(id: number, updates: Partial<InsertHostingAccount>): Promise<HostingAccount | undefined>;
@@ -301,6 +302,15 @@ export class DatabaseStorage implements IStorage {
       .from(hostingAccounts)
       .where(eq(hostingAccounts.userId, userId))
       .orderBy(desc(hostingAccounts.createdAt));
+  }
+
+  async getHostingAccountById(id: number): Promise<HostingAccount | undefined> {
+    const [account] = await db
+      .select()
+      .from(hostingAccounts)
+      .where(eq(hostingAccounts.id, id))
+      .limit(1);
+    return account;
   }
 
   async getHostingAccountByDomain(domain: string): Promise<HostingAccount | undefined> {
