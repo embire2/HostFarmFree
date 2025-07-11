@@ -99,7 +99,20 @@ export async function setupAuth(app: Express) {
   }
 
   passport.serializeUser((user: Express.User, cb) => cb(null, user));
-  passport.deserializeUser((user: Express.User, cb) => cb(null, user));
+  passport.deserializeUser(async (serializedUser: Express.User, cb) => {
+    try {
+      // Load the complete user data from database to get the role
+      const user = await storage.getUser((serializedUser as any).id);
+      if (user) {
+        // Merge the session data with the database user data
+        cb(null, { ...serializedUser, ...user });
+      } else {
+        cb(null, serializedUser);
+      }
+    } catch (error) {
+      cb(error, null);
+    }
+  });
 
   app.get("/api/login", (req, res, next) => {
     passport.authenticate(`replitauth:${req.hostname}`, {

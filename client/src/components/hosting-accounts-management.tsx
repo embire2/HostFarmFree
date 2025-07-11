@@ -476,7 +476,8 @@ export default function HostingAccountsManagement() {
   };
 
   const getTotalAccountsCount = () => {
-    return clientAccounts.reduce((total, client) => total + client.hostingAccounts.length, 0);
+    if (!clientAccounts || !Array.isArray(clientAccounts)) return 0;
+    return clientAccounts.reduce((total, client) => total + (client.hostingAccounts?.length || 0), 0);
   };
 
   if (isLoading) {
