@@ -511,6 +511,189 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // cPanel login endpoint
+  app.post("/api/cpanel-login", isAuthenticated, async (req, res) => {
+    try {
+      const { domain } = req.body;
+      console.log(`[cPanel Login API] ===== START CPANEL LOGIN =====`);
+      console.log(`[cPanel Login API] Requested domain: ${domain}`);
+      console.log(`[cPanel Login API] User ID: ${req.user?.id}, Role: ${req.user?.role}`);
+
+      if (!domain) {
+        console.log(`[cPanel Login API] Error: No domain provided`);
+        return res.status(400).json({ 
+          success: false,
+          message: "Domain is required",
+          error: "Missing domain parameter"
+        });
+      }
+
+      // Find the hosting account for this domain
+      let hostingAccount;
+      if (req.user?.role === 'admin') {
+        // Admin can access any account by domain
+        console.log(`[cPanel Login API] Admin access - searching for account by domain`);
+        const allUsers = await storage.getAllUsers();
+        for (const user of allUsers) {
+          const userAccounts = await storage.getHostingAccountsByUserId(user.id);
+          const foundAccount = userAccounts.find(acc => acc.domain === domain);
+          if (foundAccount) {
+            hostingAccount = foundAccount;
+            console.log(`[cPanel Login API] Found account for domain ${domain}, owner: ${user.username}`);
+            break;
+          }
+        }
+      } else {
+        // Regular user can only access their own accounts
+        console.log(`[cPanel Login API] User access - searching user's accounts`);
+        const userAccounts = await storage.getHostingAccountsByUserId(req.user.id);
+        hostingAccount = userAccounts.find(acc => acc.domain === domain);
+        if (hostingAccount) {
+          console.log(`[cPanel Login API] Found user's account for domain ${domain}`);
+        }
+      }
+
+      if (!hostingAccount) {
+        console.log(`[cPanel Login API] Error: No hosting account found for domain ${domain}`);
+        return res.status(404).json({ 
+          success: false,
+          message: `No hosting account found for domain: ${domain}`,
+          error: "Account not found"
+        });
+      }
+
+      console.log(`[cPanel Login API] Account status: ${hostingAccount.status}`);
+      console.log(`[cPanel Login API] Has cpanelUsername: ${!!hostingAccount.cpanelUsername}`);
+      console.log(`[cPanel Login API] Has cpanelPassword: ${!!hostingAccount.cpanelPassword}`);
+
+      // Check if account has cPanel credentials
+      if (!hostingAccount.cpanelUsername || !hostingAccount.cpanelPassword) {
+        console.log(`[cPanel Login API] Error: Account missing cPanel credentials`);
+        return res.status(400).json({ 
+          success: false,
+          message: `cPanel credentials not available for ${domain}`,
+          error: "Missing cPanel credentials",
+          debug: {
+            accountId: hostingAccount.id,
+            status: hostingAccount.status,
+            hasCpanelUsername: !!hostingAccount.cpanelUsername,
+            hasCpanelPassword: !!hostingAccount.cpanelPassword
+          }
+        });
+      }
+
+      // Generate cPanel auto-login URL
+      const apiSettings = await storage.getApiSettings();
+      if (!apiSettings || !apiSettings.whmServerUrl || !apiSettings.whmApiToken) {
+        console.log(`[cPanel Login API] Error: WHM API settings not configured`);
+        return res.status(500).json({ 
+          success: false,
+          message: "Server configuration incomplete - contact administrator",
+          error: "WHM API settings missing"
+        });
+      }
+
+      console.log(`[cPanel Login API] Attempting cPanel auto-login for user: ${hostingAccount.cpanelUsername}`);
+
+      // Try to create a WHM session for auto-login
+      try {
+        const whmUrl = apiSettings.whmServerUrl.replace(/\/+$/, '');
+        const createSessionUrl = `${whmUrl}:2087/json-api/create_user_session`;
+        const authHeader = `whm root:${apiSettings.whmApiToken}`;
+
+        console.log(`[cPanel Login API] Making WHM create_user_session request to: ${createSessionUrl}`);
+
+        const sessionResponse = await fetch(createSessionUrl, {
+          method: 'POST',
+          headers: {
+            'Authorization': authHeader,
+            'Content-Type': 'application/x-www-form-urlencoded'
+          },
+          body: new URLSearchParams({
+            user: hostingAccount.cpanelUsername,
+            service: 'cpaneld'
+          })
+        });
+
+        const sessionData = await sessionResponse.json();
+        console.log(`[cPanel Login API] WHM session response:`, {
+          status: sessionResponse.status,
+          ok: sessionResponse.ok,
+          data: sessionData
+        });
+
+        if (sessionResponse.ok && sessionData.data && sessionData.data.url) {
+          // Auto-login successful
+          const loginUrl = sessionData.data.url;
+          console.log(`[cPanel Login API] ✓ Auto-login URL generated: ${loginUrl}`);
+          console.log(`[cPanel Login API] ===== END CPANEL LOGIN (SUCCESS) =====`);
+
+          return res.json({
+            success: true,
+            message: `Opening cPanel for ${domain}`,
+            loginUrl: loginUrl,
+            username: hostingAccount.cpanelUsername,
+            autoLogin: true
+          });
+        } else {
+          // Auto-login failed, fall back to manual login
+          console.log(`[cPanel Login API] Auto-login failed, providing manual login info`);
+          const cpanelUrl = `${whmUrl}:2083`;
+          
+          console.log(`[cPanel Login API] ===== END CPANEL LOGIN (MANUAL FALLBACK) =====`);
+          return res.json({
+            success: true,
+            message: `Manual cPanel login required for ${domain}`,
+            loginUrl: cpanelUrl,
+            username: hostingAccount.cpanelUsername,
+            autoLogin: false,
+            debug: {
+              whmResponse: sessionData,
+              fallbackReason: "WHM auto-login failed"
+            }
+          });
+        }
+      } catch (whmError) {
+        console.error(`[cPanel Login API] WHM API error:`, whmError);
+        
+        // Fall back to manual login
+        const cpanelUrl = `${apiSettings.whmServerUrl.replace(/\/+$/, '')}:2083`;
+        console.log(`[cPanel Login API] ===== END CPANEL LOGIN (ERROR FALLBACK) =====`);
+        
+        return res.json({
+          success: true,
+          message: `Manual cPanel login for ${domain}`,
+          loginUrl: cpanelUrl,
+          username: hostingAccount.cpanelUsername,
+          autoLogin: false,
+          debug: {
+            error: whmError.message,
+            fallbackReason: "WHM API connection failed"
+          }
+        });
+      }
+
+    } catch (error) {
+      console.error(`[cPanel Login API] ===== CRITICAL ERROR IN CPANEL LOGIN =====`);
+      console.error(`[cPanel Login API] Error type:`, error?.constructor?.name);
+      console.error(`[cPanel Login API] Error message:`, error?.message);
+      console.error(`[cPanel Login API] Full error object:`, error);
+      console.error(`[cPanel Login API] Stack trace:`, error?.stack);
+      console.error(`[cPanel Login API] Request body:`, req.body);
+      console.error(`[cPanel Login API] ===== END CRITICAL ERROR =====`);
+      
+      res.status(500).json({ 
+        success: false,
+        message: "cPanel login failed due to internal error",
+        error: error?.message || "Unknown error",
+        debug: {
+          errorType: error?.constructor?.name,
+          timestamp: new Date().toISOString()
+        }
+      });
+    }
+  });
+
   // Create and return the HTTP server (required for Vite HMR)
   const server = createServer(app);
   return server;

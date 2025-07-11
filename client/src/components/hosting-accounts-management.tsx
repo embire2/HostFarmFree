@@ -334,9 +334,22 @@ export default function HostingAccountsManagement() {
   const handleCpanelLogin = async (domain: string) => {
     try {
       console.log(`[Frontend] Starting cPanel login for domain: ${domain}`);
+      console.log(`[Frontend] Making request to /api/cpanel-login with domain: ${domain}`);
       
       const res = await apiRequest("POST", "/api/cpanel-login", { domain });
-      const data = await res.json();
+      console.log(`[Frontend] Response status: ${res.status}, ok: ${res.ok}`);
+      console.log(`[Frontend] Response headers:`, Object.fromEntries(res.headers.entries()));
+      
+      let data;
+      try {
+        const responseText = await res.text();
+        console.log(`[Frontend] Raw response text:`, responseText);
+        data = JSON.parse(responseText);
+        console.log(`[Frontend] Parsed response data:`, data);
+      } catch (parseError) {
+        console.error(`[Frontend] Failed to parse response as JSON:`, parseError);
+        throw new Error(`Invalid response format: ${parseError.message}`);
+      }
       
       console.log(`[Frontend] cPanel login response:`, {
         status: res.status,
@@ -356,11 +369,12 @@ export default function HostingAccountsManagement() {
           description: data.message || "Opening cPanel in a new tab...",
         });
       } else {
-        const errorMessage = data.message || data.debug || "Failed to generate cPanel login URL";
+        const errorMessage = data.message || data.debug || data.error || "Failed to generate cPanel login URL";
         console.error(`[Frontend] cPanel login failed:`, {
           status: res.status,
           message: data.message,
           debug: data.debug,
+          error: data.error,
           fullResponse: data
         });
         
@@ -382,13 +396,21 @@ export default function HostingAccountsManagement() {
       }
     } catch (error) {
       console.error("[Frontend] cPanel login error:", error);
+      console.error("[Frontend] Error type:", typeof error);
+      console.error("[Frontend] Error constructor:", error.constructor.name);
       
       // Extract detailed error information
       let errorMessage = "Could not access cPanel";
       if (error instanceof Error) {
+        console.error("[Frontend] Error message:", error.message);
+        console.error("[Frontend] Error stack:", error.stack);
         errorMessage = error.message;
       } else if (typeof error === 'object' && error !== null) {
+        console.error("[Frontend] Error object keys:", Object.keys(error));
         errorMessage = JSON.stringify(error);
+      } else {
+        console.error("[Frontend] Error value:", error);
+        errorMessage = String(error);
       }
       
       toast({
