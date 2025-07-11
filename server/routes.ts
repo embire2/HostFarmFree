@@ -674,6 +674,80 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get WHM packages (live from WHM API)
+  app.get("/api/admin/whm-packages", isAuthenticated, requireAdmin, async (req, res) => {
+    try {
+      console.log('[WHM Packages API] ===== START WHM PACKAGES FETCH =====');
+      
+      // Get API settings
+      const apiSettings = await storage.getApiSettings();
+      if (!apiSettings?.whmApiUrl || !apiSettings?.whmApiToken) {
+        console.log('[WHM Packages API] WHM API not configured');
+        return res.json({ packages: [] });
+      }
+
+      // Call WHM API to list packages
+      const baseUrl = apiSettings.whmApiUrl.replace(/\/+$/, '');
+      const listPkgsUrl = `${baseUrl}/listpkgs?api.version=1`;
+      const authHeader = `whm root:${apiSettings.whmApiToken}`;
+
+      console.log('[WHM Packages API] Fetching from WHM:', listPkgsUrl);
+
+      const whmResponse = await fetch(listPkgsUrl, {
+        method: 'GET',
+        headers: {
+          'Authorization': authHeader
+        }
+      });
+
+      if (!whmResponse.ok) {
+        console.error('[WHM Packages API] WHM API error:', whmResponse.status);
+        return res.json({ packages: [] });
+      }
+
+      const whmData = await whmResponse.json();
+      console.log('[WHM Packages API] WHM response received:', {
+        status: whmResponse.status,
+        hasData: !!whmData?.data,
+        hasPackages: !!whmData?.data?.pkg
+      });
+
+      // Extract packages from WHM response
+      const packages = [];
+      if (whmData?.data?.pkg && Array.isArray(whmData.data.pkg)) {
+        for (const pkg of whmData.data.pkg) {
+          packages.push({
+            name: pkg.name,
+            displayname: pkg.name, // WHM uses 'name' not 'displayname'
+            diskquota: pkg.quota || 0,
+            bwlimit: pkg.bwlimit || 0,
+            maxpop: pkg.maxpop || 0,
+            maxsql: pkg.maxsql || 0,
+            maxsub: pkg.maxsub || 0,
+            maxftp: pkg.maxftp || 0,
+            maxaddon: pkg.maxaddon || 0,
+            maxpark: pkg.maxpark || 0,
+            maxlst: pkg.maxlst || 0,
+            feature_list: pkg.featurelist || 'default',
+            ip: pkg.ip || 'shared'
+          });
+        }
+      }
+
+      console.log(`[WHM Packages API] ✓ Successfully retrieved ${packages.length} packages from WHM`);
+      console.log('[WHM Packages API] ===== END WHM PACKAGES FETCH =====');
+      
+      res.json({ packages });
+
+    } catch (error) {
+      console.error('[WHM Packages API] ===== CRITICAL ERROR IN WHM PACKAGES FETCH =====');
+      console.error('[WHM Packages API] Error:', error);
+      console.error('[WHM Packages API] ===== END CRITICAL ERROR =====');
+      
+      res.json({ packages: [] });
+    }
+  });
+
   // API Settings
   app.get("/api/api-settings", isAuthenticated, requireAdmin, async (req, res) => {
     try {
