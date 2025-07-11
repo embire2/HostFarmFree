@@ -545,6 +545,10 @@ export class DatabaseStorage implements IStorage {
     await db.delete(hostingPackages).where(eq(hostingPackages.id, id));
   }
 
+  async deleteHostingPackage(id: number): Promise<void> {
+    await db.delete(hostingPackages).where(eq(hostingPackages.id, id));
+  }
+
   async getNextHostingPackageSortOrder(): Promise<number> {
     try {
       // Use raw SQL to avoid type casting issues with Neon serverless

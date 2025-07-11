@@ -674,6 +674,78 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Create new package
+  app.post("/api/admin/packages", isAuthenticated, requireAdmin, async (req, res) => {
+    try {
+      console.log('[Admin Packages API] Creating new package:', req.body);
+      const newPackage = await storage.createHostingPackage(req.body);
+      console.log('[Admin Packages API] ✓ Package created successfully:', newPackage.id);
+      res.json(newPackage);
+    } catch (error) {
+      console.error("[Admin Packages API] Error creating package:", error);
+      res.status(500).json({ message: "Failed to create package" });
+    }
+  });
+
+  // Update package
+  app.put("/api/admin/packages/:id", isAuthenticated, requireAdmin, async (req, res) => {
+    try {
+      const packageId = parseInt(req.params.id);
+      console.log(`[Admin Packages API] Updating package ${packageId}:`, req.body);
+      const updatedPackage = await storage.updateHostingPackage(packageId, req.body);
+      console.log('[Admin Packages API] ✓ Package updated successfully');
+      res.json(updatedPackage);
+    } catch (error) {
+      console.error("[Admin Packages API] Error updating package:", error);
+      res.status(500).json({ message: "Failed to update package" });
+    }
+  });
+
+  // Delete package
+  app.delete("/api/admin/packages/:id", isAuthenticated, requireAdmin, async (req, res) => {
+    try {
+      const packageId = parseInt(req.params.id);
+      console.log(`[Admin Packages API] Deleting package ${packageId}`);
+      await storage.deleteHostingPackage(packageId);
+      console.log('[Admin Packages API] ✓ Package deleted successfully');
+      res.json({ success: true });
+    } catch (error) {
+      console.error("[Admin Packages API] Error deleting package:", error);
+      res.status(500).json({ message: "Failed to delete package" });
+    }
+  });
+
+  // Duplicate package
+  app.post("/api/admin/packages/:id/duplicate", isAuthenticated, requireAdmin, async (req, res) => {
+    try {
+      const packageId = parseInt(req.params.id);
+      console.log(`[Admin Packages API] Duplicating package ${packageId}`);
+      
+      // Get the original package
+      const originalPackage = await storage.getHostingPackageById(packageId);
+      if (!originalPackage) {
+        return res.status(404).json({ message: "Package not found" });
+      }
+      
+      // Create a copy with a new name
+      const duplicatedData = {
+        ...originalPackage,
+        name: `${originalPackage.name}-copy`,
+        displayName: `${originalPackage.displayName} (Copy)`,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+      delete (duplicatedData as any).id;
+      
+      const newPackage = await storage.createHostingPackage(duplicatedData);
+      console.log('[Admin Packages API] ✓ Package duplicated successfully:', newPackage.id);
+      res.json(newPackage);
+    } catch (error) {
+      console.error("[Admin Packages API] Error duplicating package:", error);
+      res.status(500).json({ message: "Failed to duplicate package" });
+    }
+  });
+
   // Get WHM packages (live from WHM API)
   app.get("/api/admin/whm-packages", isAuthenticated, requireAdmin, async (req, res) => {
     try {
@@ -756,6 +828,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
           console.log(`[WHM Packages API] Processing ${packageList.length} packages`);
           for (const pkg of packageList) {
             console.log('[WHM Packages API] Processing package:', pkg.name || 'unnamed');
+            console.log('[WHM Packages API] Package data:', {
+              QUOTA: pkg.QUOTA,
+              BWLIMIT: pkg.BWLIMIT,
+              MAXPOP: pkg.MAXPOP,
+              MAXSQL: pkg.MAXSQL,
+              MAXSUB: pkg.MAXSUB,
+              MAXFTP: pkg.MAXFTP,
+              MAXADDON: pkg.MAXADDON,
+              MAXPARK: pkg.MAXPARK
+            });
             
             // Helper function to convert WHM values to numbers
             const parseWhmValue = (value: any): number => {
