@@ -336,6 +336,8 @@ Changelog:
 - July 11, 2025. CRITICAL cPanel URL FIX: Fixed duplicated paths in cPanel login URL construction
 - July 11, 2025. Fixed URL extraction logic to properly remove port and path components from WHM API URL
 - July 11, 2025. cPanel login now generates correct URLs: :2087/json-api/create_user_session for auto-login, :2083 for manual login
+- July 11, 2025. MAJOR FIX: Replaced regex-based URL parsing with proper JavaScript URL constructor for accurate base URL extraction
+- July 11, 2025. Fixed persistent URL duplication issue in cPanel login URL construction
 ```
 
 # User Preferences
