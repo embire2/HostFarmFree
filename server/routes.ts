@@ -571,18 +571,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Record device fingerprint if provided
       if (fingerprintHash) {
-        await storage.recordDeviceFingerprint({
-          fingerprintHash,
-          userId: newUser.id,
-          macAddress,
-          userAgent,
-          screenResolution,
-          timezone,
-          language,
-          platformInfo
-        });
-        console.log('[Domain Registration API] ✓ Device fingerprint recorded');
+        try {
+          await storage.createDeviceFingerprint({
+            fingerprintHash,
+            userId: newUser.id,
+            macAddress: macAddress || null,
+            userAgent: userAgent || '',
+            screenResolution: screenResolution || '',
+            timezone: timezone || '',
+            language: language || '',
+            platformInfo: platformInfo || ''
+          });
+          console.log('[Domain Registration API] ✓ Device fingerprint recorded');
+        } catch (fingerprintError) {
+          console.error('[Domain Registration API] Failed to record device fingerprint:', fingerprintError);
+          // Don't fail the entire registration for fingerprint errors
+        }
       }
+
+      // Set up user session for automatic login
+      req.login(newUser, (err) => {
+        if (err) {
+          console.error('[Domain Registration API] Failed to login user automatically:', err);
+        } else {
+          console.log('[Domain Registration API] ✓ User automatically logged in');
+        }
+      });
 
       console.log('[Domain Registration API] ✅ Registration completed successfully');
       console.log('[Domain Registration API] ===== END DOMAIN REGISTRATION =====');
@@ -596,14 +610,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
           username: newUser.username,
           email: newUser.email,
           password: password,
+          displayPassword: password,
           recoveryPhrase: recoveryPhrase,
           isAnonymous: true
         },
         account: {
           id: hostingAccount.id,
           domain: fullDomain,
+          subdomain: subdomain,
           status: 'active',
-          cpanelUsername: whmUsername
+          cpanelUsername: whmUsername,
+          cpanelPassword: whmPassword
+        },
+        credentials: {
+          username: whmUsername,
+          password: whmPassword,
+          domain: fullDomain,
+          cpanelUrl: `https://${fullDomain}:2083`
         },
         message: `Account created successfully for ${fullDomain}`
       });
