@@ -709,29 +709,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('[WHM Packages API] WHM response received:', {
         status: whmResponse.status,
         hasData: !!whmData?.data,
-        hasPackages: !!whmData?.data?.pkg
+        hasPackages: !!whmData?.data?.pkg,
+        fullResponse: JSON.stringify(whmData).substring(0, 500) + '...'
       });
 
       // Extract packages from WHM response
       const packages = [];
-      if (whmData?.data?.pkg && Array.isArray(whmData.data.pkg)) {
-        for (const pkg of whmData.data.pkg) {
-          packages.push({
-            name: pkg.name,
-            displayname: pkg.name, // WHM uses 'name' not 'displayname'
-            diskquota: pkg.quota || 0,
-            bwlimit: pkg.bwlimit || 0,
-            maxpop: pkg.maxpop || 0,
-            maxsql: pkg.maxsql || 0,
-            maxsub: pkg.maxsub || 0,
-            maxftp: pkg.maxftp || 0,
-            maxaddon: pkg.maxaddon || 0,
-            maxpark: pkg.maxpark || 0,
-            maxlst: pkg.maxlst || 0,
-            feature_list: pkg.featurelist || 'default',
-            ip: pkg.ip || 'shared'
-          });
+      
+      // Check different possible response structures
+      let packageList = null;
+      if (whmData?.data?.pkg) {
+        packageList = whmData.data.pkg;
+        console.log('[WHM Packages API] Found packages at data.pkg');
+      } else if (whmData?.metadata?.result && whmData?.data) {
+        // Sometimes WHM returns packages directly in data
+        packageList = whmData.data;
+        console.log('[WHM Packages API] Found packages at data (direct)');
+      }
+
+      console.log('[WHM Packages API] Package list type:', typeof packageList);
+      console.log('[WHM Packages API] Is array?', Array.isArray(packageList));
+      
+      if (packageList) {
+        // If it's an object with package names as keys, convert to array
+        if (!Array.isArray(packageList) && typeof packageList === 'object') {
+          console.log('[WHM Packages API] Converting object to array');
+          packageList = Object.values(packageList);
         }
+        
+        if (Array.isArray(packageList)) {
+          console.log(`[WHM Packages API] Processing ${packageList.length} packages`);
+          for (const pkg of packageList) {
+            console.log('[WHM Packages API] Processing package:', pkg.name || 'unnamed');
+            packages.push({
+              name: pkg.name || pkg.pkgname || 'unknown',
+              displayname: pkg.name || pkg.pkgname || 'unknown',
+              diskquota: pkg.quota || pkg.diskquota || 0,
+              bwlimit: pkg.bwlimit || 0,
+              maxpop: pkg.maxpop || 0,
+              maxsql: pkg.maxsql || 0,
+              maxsub: pkg.maxsub || 0,
+              maxftp: pkg.maxftp || 0,
+              maxaddon: pkg.maxaddon || 0,
+              maxpark: pkg.maxpark || 0,
+              maxlst: pkg.maxlst || 0,
+              feature_list: pkg.featurelist || 'default',
+              ip: pkg.ip || 'shared'
+            });
+          }
+        } else {
+          console.log('[WHM Packages API] packageList is not an array:', packageList);
+        }
+      } else {
+        console.log('[WHM Packages API] No package list found in response');
       }
 
       console.log(`[WHM Packages API] ✓ Successfully retrieved ${packages.length} packages from WHM`);
