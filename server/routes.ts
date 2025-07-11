@@ -307,11 +307,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      // Check if domain already exists
+      // Check if domain already exists in our database
       const existingAccount = await storage.getHostingAccountByDomain(fullDomain);
       if (existingAccount) {
-        console.error('[Domain Registration API] ERROR: Domain already taken:', fullDomain);
-        return res.status(400).json({ error: "Domain is already taken" });
+        console.log('[Domain Registration API] Found existing account for domain:', fullDomain);
+        console.log('[Domain Registration API] Existing account status:', existingAccount.status);
+        console.log('[Domain Registration API] Existing account ID:', existingAccount.id);
+        
+        // If the account is in error status, we can try to clean it up
+        if (existingAccount.status === 'error') {
+          console.log('[Domain Registration API] Existing account is in error status, attempting cleanup...');
+          
+          // Try to remove from WHM first
+          const apiSettings = await storage.getApiSettings();
+          if (apiSettings && apiSettings.whmApiUrl && apiSettings.whmApiToken && existingAccount.cpanelUsername) {
+            try {
+              const terminateUrl = `${apiSettings.whmApiUrl}/removeacct`;
+              const terminateData = new URLSearchParams({
+                user: existingAccount.cpanelUsername,
+                keepdns: '0'
+              });
+              
+              console.log('[Domain Registration API] Attempting to remove WHM account:', existingAccount.cpanelUsername);
+              const terminateResponse = await fetch(terminateUrl, {
+                method: 'POST',
+                headers: {
+                  'Authorization': `whm root:${apiSettings.whmApiToken}`,
+                  'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: terminateData
+              });
+              
+              const terminateResult = await terminateResponse.json();
+              console.log('[Domain Registration API] WHM cleanup response:', JSON.stringify(terminateResult, null, 2));
+            } catch (cleanupError) {
+              console.error('[Domain Registration API] Failed to cleanup WHM account:', cleanupError);
+            }
+          }
+          
+          // Delete the error account from our database
+          await storage.deleteHostingAccount(existingAccount.id);
+          console.log('[Domain Registration API] ✓ Cleaned up error account from database');
+          
+          // Also delete the associated user if it's an anonymous user
+          const existingUser = await storage.getUser(existingAccount.userId);
+          if (existingUser && existingUser.isAnonymous) {
+            await storage.deleteUser(existingAccount.userId);
+            console.log('[Domain Registration API] ✓ Cleaned up associated anonymous user');
+          }
+        } else {
+          // Account exists and is not in error status
+          console.error('[Domain Registration API] ERROR: Domain already taken by active account:', fullDomain);
+          return res.status(400).json({ error: "Domain is already taken" });
+        }
       }
 
       // Generate anonymous user credentials
@@ -380,17 +428,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       const whmData = await whmResponse.json();
-      console.log('[Domain Registration API] WHM response:', whmData);
+      console.log('[Domain Registration API] WHM response:', JSON.stringify(whmData, null, 2));
 
       // Check if WHM account creation was successful
       const isSuccess = whmData.metadata?.result === 1 || 
                        (whmData.data && Array.isArray(whmData.data) && whmData.data.some((item: any) => item.status === 1)) ||
                        (whmData.result && whmData.result[0]?.status === 1);
 
+      // Check for specific error cases
+      const errorMessage = whmData.result?.[0]?.statusmsg || whmData.metadata?.reason || '';
+      const isDomainExists = errorMessage.includes('already exists');
+
       if (!isSuccess) {
-        const errorMsg = whmData.metadata?.reason || whmData.data?.result?.[0]?.statusmsg || 'WHM account creation failed';
-        console.error('[Domain Registration API] WHM account creation failed:', errorMsg);
-        return res.status(500).json({ error: `Hosting account creation failed: ${errorMsg}` });
+        console.error('[Domain Registration API] WHM account creation failed:', errorMessage);
+        
+        // If domain already exists in WHM, try to check if we can recover the account
+        if (isDomainExists) {
+          console.log('[Domain Registration API] Domain already exists in WHM, checking if we can recover...');
+          
+          // Check if there's already a hosting account in our database with error status
+          const existingErrorAccount = await storage.getHostingAccountByDomain(fullDomain);
+          if (existingErrorAccount && existingErrorAccount.status === 'error') {
+            console.log('[Domain Registration API] Found existing error account, will clean up and retry');
+            // Delete the error account from our database
+            await storage.deleteHostingAccount(existingErrorAccount.id);
+            // Try to remove from WHM too
+            try {
+              const terminateUrl = `${apiSettings.whmApiUrl}/removeacct`;
+              const terminateData = new URLSearchParams({
+                user: existingErrorAccount.cpanelUsername || whmUsername,
+                keepdns: '0'
+              });
+              await fetch(terminateUrl, {
+                method: 'POST',
+                headers: {
+                  'Authorization': `whm root:${apiSettings.whmApiToken}`,
+                  'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: terminateData
+              });
+              console.log('[Domain Registration API] Removed existing WHM account');
+            } catch (cleanupError) {
+              console.error('[Domain Registration API] Failed to cleanup WHM account:', cleanupError);
+            }
+          }
+          
+          return res.status(400).json({ 
+            error: `Domain ${fullDomain} already exists. Please choose a different subdomain.`,
+            domainExists: true 
+          });
+        }
+        
+        return res.status(500).json({ error: `Hosting account creation failed: ${errorMessage}` });
       }
 
       console.log('[Domain Registration API] ✓ WHM account created successfully');
@@ -408,13 +497,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
         isAnonymous: true
       };
 
-      const newUser = await storage.createUser(userData);
-      console.log('[Domain Registration API] ✓ User account created with ID:', newUser.id);
+      let newUser;
+      try {
+        newUser = await storage.createUser(userData);
+        console.log('[Domain Registration API] ✓ User account created with ID:', newUser.id);
+      } catch (userError) {
+        console.error('[Domain Registration API] Failed to create user account:', userError);
+        // If user creation fails but WHM account was created, we have a problem
+        // Try to clean up the WHM account
+        try {
+          const terminateUrl = `${apiSettings.whmApiUrl}/removeacct`;
+          const terminateData = new URLSearchParams({
+            user: whmUsername,
+            keepdns: '0'
+          });
+          await fetch(terminateUrl, {
+            method: 'POST',
+            headers: {
+              'Authorization': `whm root:${apiSettings.whmApiToken}`,
+              'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: terminateData
+          });
+          console.log('[Domain Registration API] Cleaned up WHM account after user creation failure');
+        } catch (cleanupError) {
+          console.error('[Domain Registration API] Failed to cleanup WHM account:', cleanupError);
+        }
+        throw userError;
+      }
 
       // Create hosting account record in database
       const hostingAccountData = {
         userId: newUser.id,
         domain: fullDomain,
+        subdomain: subdomain, // Add the required subdomain field
         packageId: packageId,
         status: 'active',
         diskUsage: 0,
@@ -423,8 +539,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
         cpanelPassword: whmPassword
       };
 
-      const hostingAccount = await storage.createHostingAccount(hostingAccountData);
-      console.log('[Domain Registration API] ✓ Hosting account record created with ID:', hostingAccount.id);
+      let hostingAccount;
+      try {
+        hostingAccount = await storage.createHostingAccount(hostingAccountData);
+        console.log('[Domain Registration API] ✓ Hosting account record created with ID:', hostingAccount.id);
+      } catch (accountError) {
+        console.error('[Domain Registration API] Failed to create hosting account record:', accountError);
+        // Clean up the user we just created
+        await storage.deleteUser(newUser.id);
+        // Try to clean up the WHM account too
+        try {
+          const terminateUrl = `${apiSettings.whmApiUrl}/removeacct`;
+          const terminateData = new URLSearchParams({
+            user: whmUsername,
+            keepdns: '0'
+          });
+          await fetch(terminateUrl, {
+            method: 'POST',
+            headers: {
+              'Authorization': `whm root:${apiSettings.whmApiToken}`,
+              'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: terminateData
+          });
+          console.log('[Domain Registration API] Cleaned up WHM account after hosting account creation failure');
+        } catch (cleanupError) {
+          console.error('[Domain Registration API] Failed to cleanup WHM account:', cleanupError);
+        }
+        throw accountError;
+      }
 
       // Record device fingerprint if provided
       if (fingerprintHash) {
