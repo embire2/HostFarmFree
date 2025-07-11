@@ -768,12 +768,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Create account on WHM server
       try {
-        const whmUrl = apiSettings.whmApiUrl.replace(/\/+$/, '').replace(':2087/json-api/', '');
-        const createAccountUrl = `${whmUrl}:2087/json-api/createacct`;
+        const baseUrl = apiSettings.whmApiUrl.replace(/\/+$/, '');
+        const createAccountUrl = `${baseUrl}/createacct?api.version=1`;
         const authHeader = `whm root:${apiSettings.whmApiToken}`;
 
         const whmPassword = Math.random().toString(36).slice(-8) + 'A1!';
         console.log(`[Fix WHM Account API] Creating WHM account with username: ${whmUsername}`);
+        console.log(`[Fix WHM Account API] Using URL: ${createAccountUrl}`);
 
         const whmFormData = new URLSearchParams({
           username: whmUsername,
@@ -787,16 +788,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
           hasagreestotearms: '1'
         });
 
+        console.log(`[Fix WHM Account API] Making request with Authorization: ${authHeader}`);
         const whmResponse = await fetch(createAccountUrl, {
           method: 'POST',
           headers: {
             'Authorization': authHeader,
             'Content-Type': 'application/x-www-form-urlencoded'
           },
-          body: whmFormData
+          body: whmFormData.toString()
         });
 
-        const whmData = await whmResponse.json();
+        console.log(`[Fix WHM Account API] Response status: ${whmResponse.status}`);
+        console.log(`[Fix WHM Account API] Response headers:`, Object.fromEntries(whmResponse.headers.entries()));
+        
+        const responseText = await whmResponse.text();
+        console.log(`[Fix WHM Account API] Raw response: ${responseText.substring(0, 500)}...`);
+        
+        let whmData;
+        try {
+          whmData = JSON.parse(responseText);
+        } catch (parseError) {
+          console.error(`[Fix WHM Account API] Failed to parse JSON response:`, parseError);
+          console.error(`[Fix WHM Account API] Response was: ${responseText}`);
+          throw new Error(`WHM API returned invalid JSON: ${responseText.substring(0, 100)}...`);
+        }
         console.log(`[Fix WHM Account API] WHM response:`, {
           status: whmResponse.status,
           ok: whmResponse.ok,
@@ -806,13 +821,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Check if WHM account creation was successful
         let success = false;
         if (whmResponse.ok && whmData) {
-          // Check multiple success indicators
-          if (whmData.status === 1 || 
-              (whmData.result && whmData.result.status === 1) ||
-              (whmData.result && Array.isArray(whmData.result) && whmData.result.some(r => r.status === 1)) ||
-              (whmData.metadata && whmData.metadata.result === 1)) {
+          // Check multiple success indicators like the working account creation endpoint
+          if (whmData.metadata && whmData.metadata.result === 1) {
             success = true;
           }
+        }
+
+        if (!success) {
+          const errorMsg = whmData?.metadata?.reason || whmData?.data?.result?.[0]?.statusmsg || 'Unknown WHM error';
+          console.log(`[Fix WHM Account API] WHM account creation failed: ${errorMsg}`);
+          console.log(`[Fix WHM Account API] ===== END FIX WHM ACCOUNT (WHM ERROR) =====`);
+          
+          return res.status(500).json({
+            success: false,
+            message: `Failed to create WHM account: ${errorMsg}`,
+            error: errorMsg,
+            debug: {
+              whmResponse: whmData,
+              accountId: accountId,
+              domain: hostingAccount.domain,
+              username: whmUsername
+            }
+          });
         }
 
         if (success) {
