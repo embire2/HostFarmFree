@@ -45,7 +45,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Admin user management
   app.get("/api/admin/users", isAuthenticated, requireAdmin, async (req, res) => {
     try {
+      console.log('[Admin Users API] Starting user fetch...');
       const users = await storage.getAllUsers();
+      console.log(`[Admin Users API] ✓ Successfully fetched ${users.length} users`);
       res.json(users);
     } catch (error) {
       console.error('Error fetching users:', error);
@@ -68,7 +70,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Admin hosting accounts with WHM data
   app.get("/api/admin/hosting-accounts", isAuthenticated, requireAdmin, async (req, res) => {
     try {
+      console.log('[Admin Hosting Accounts API] Starting hosting accounts fetch...');
       const allUsers = await storage.getAllUsers();
+      console.log(`[Admin Hosting Accounts API] Found ${allUsers.length} total users`);
+      
       const clientAccounts = [];
       
       for (const user of allUsers) {
@@ -81,9 +86,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
+      console.log(`[Admin Hosting Accounts API] ✓ Successfully fetched ${clientAccounts.length} clients with hosting accounts`);
       res.json(clientAccounts);
     } catch (error) {
-      console.error('Error fetching admin hosting accounts:', error);
+      console.error('[Admin Hosting Accounts API] Error fetching admin hosting accounts:', error);
       res.status(500).json({ message: "Internal server error" });
     }
   });
@@ -261,10 +267,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get hosting packages
   app.get("/api/admin/packages", isAuthenticated, requireAdmin, async (req, res) => {
     try {
+      console.log('[Admin Packages API] Starting package fetch...');
       const packages = await storage.getHostingPackages();
+      console.log(`[Admin Packages API] ✓ Successfully fetched ${packages.length} packages`);
       res.json(packages);
     } catch (error) {
-      console.error('Error fetching packages:', error);
+      console.error('[Admin Packages API] Error fetching packages:', error);
       res.status(500).json({ message: "Internal server error" });
     }
   });

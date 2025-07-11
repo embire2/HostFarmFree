@@ -602,7 +602,7 @@ export default function HostingAccountsManagement() {
                             </SelectItem>
                           ))
                         ) : (
-                          <SelectItem value="" disabled>No packages available</SelectItem>
+                          <SelectItem value="no-packages" disabled>No packages available</SelectItem>
                         )}
                       </SelectContent>
                     </Select>
@@ -626,7 +626,7 @@ export default function HostingAccountsManagement() {
                           </SelectItem>
                         ))
                       ) : (
-                        <SelectItem value="" disabled>No users available</SelectItem>
+                        <SelectItem value="no-users" disabled>No users available</SelectItem>
                       )}
                     </SelectContent>
                   </Select>
@@ -706,7 +706,7 @@ export default function HostingAccountsManagement() {
       </Card>
 
       {/* Client Accounts Grid */}
-      {clientAccounts.length === 0 ? (
+      {!clientAccounts || clientAccounts.length === 0 ? (
         <Card>
           <CardContent className="text-center py-12">
             <Server className="mx-auto h-12 w-12 text-gray-400 mb-4" />
@@ -716,7 +716,7 @@ export default function HostingAccountsManagement() {
         </Card>
       ) : (
         <div className="grid grid-cols-1 gap-6">
-          {clientAccounts.map((client) => (
+          {(clientAccounts || []).map((client) => (
             <Card key={client.user.id} className="overflow-hidden">
               <CardHeader className="bg-gray-50 border-b">
                 <div className="flex items-center justify-between">

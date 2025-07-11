@@ -153,14 +153,26 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
   }
   
   console.log('✓ Authentication successful - user ID:', user.id, 'role:', user.role);
-
-  const now = Math.floor(Date.now() / 1000);
-  if (now <= user.expires_at) {
+  console.log('IsAuthenticated middleware - checking token expiry...');
+  
+  // Skip token refresh logic for local users (they don't have OIDC tokens)
+  if (!user.expires_at || !user.refresh_token) {
+    console.log('✓ Local user or no token expiry, proceeding...');
     return next();
   }
 
+  const now = Math.floor(Date.now() / 1000);
+  console.log('IsAuthenticated middleware - now:', now, 'expires_at:', user.expires_at);
+  
+  if (now <= user.expires_at) {
+    console.log('✓ Token still valid, proceeding...');
+    return next();
+  }
+
+  console.log('IsAuthenticated middleware - token expired, attempting refresh...');
   const refreshToken = user.refresh_token;
   if (!refreshToken) {
+    console.log('✗ No refresh token available');
     return res.status(401).json({ message: "Unauthorized" });
   }
 
@@ -168,8 +180,10 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
     const config = await getOidcConfig();
     const tokenResponse = await client.refreshTokenGrant(config, refreshToken);
     updateUserSession(user, tokenResponse);
+    console.log('✓ Token refreshed successfully');
     return next();
   } catch (error) {
+    console.log('✗ Token refresh failed:', error);
     return res.status(401).json({ message: "Unauthorized" });
   }
 };
