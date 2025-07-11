@@ -806,6 +806,134 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Plugin file download endpoint
+  app.get("/api/plugins/:id/download", async (req, res) => {
+    try {
+      const pluginId = parseInt(req.params.id);
+      console.log('[Plugin Download] Request for plugin ID:', pluginId);
+      
+      const plugin = await storage.getPluginById(pluginId);
+      if (!plugin) {
+        console.error('[Plugin Download] Plugin not found:', pluginId);
+        return res.status(404).json({ message: "Plugin not found" });
+      }
+
+      console.log('[Plugin Download] Plugin found:', plugin.name);
+      console.log('[Plugin Download] File path:', plugin.filePath);
+
+      // Construct full path from project root
+      const filePath = path.join(process.cwd(), plugin.filePath);
+      console.log('[Plugin Download] Full file path:', filePath);
+
+      // Check if file exists
+      if (!fs.existsSync(filePath)) {
+        console.error('[Plugin Download] File not found:', filePath);
+        return res.status(404).json({ message: "Plugin file not found" });
+      }
+
+      // Increment download count
+      await storage.incrementPluginDownloads(pluginId);
+
+      // Record download if user is authenticated
+      if ((req as any).isAuthenticated && (req as any).isAuthenticated()) {
+        await storage.recordPluginDownload(pluginId, (req as any).user.id);
+      }
+
+      // Set proper headers for file download
+      res.setHeader('Content-Disposition', `attachment; filename="${plugin.fileName}"`);
+      res.setHeader('Content-Type', 'application/zip');
+      
+      // Stream the file
+      const fileStream = fs.createReadStream(filePath);
+      fileStream.pipe(res);
+      
+      console.log('[Plugin Download] ✓ Download started for:', plugin.name);
+    } catch (error) {
+      console.error('[Plugin Download] Error:', error);
+      res.status(500).json({ message: "Failed to download plugin" });
+    }
+  });
+
+  // Plugin POST download endpoint (for authenticated tracking)
+  app.post("/api/plugins/:id/download", isAuthenticated, async (req: any, res) => {
+    try {
+      const pluginId = parseInt(req.params.id);
+      const plugin = await storage.getPluginById(pluginId);
+      
+      if (!plugin) {
+        return res.status(404).json({ message: "Plugin not found" });
+      }
+
+      // Record the download
+      await storage.recordPluginDownload(pluginId, req.user.id);
+      await storage.incrementPluginDownloads(pluginId);
+
+      res.json({ 
+        success: true, 
+        message: "Download recorded",
+        downloadUrl: `/api/plugins/${pluginId}/download`
+      });
+    } catch (error) {
+      console.error('Error recording plugin download:', error);
+      res.status(500).json({ message: "Failed to record download" });
+    }
+  });
+
+  // Plugin image serving endpoint
+  app.get("/api/plugins/image/*", async (req, res) => {
+    try {
+      // Extract the image path from URL
+      const imagePath = req.params[0];
+      console.log('[Plugin Image] Request for image:', imagePath);
+      
+      if (!imagePath) {
+        return res.status(404).json({ message: "Image path not provided" });
+      }
+
+      // Security check - ensure path doesn't escape plugins directory
+      const normalizedPath = path.normalize(imagePath);
+      if (normalizedPath.includes('..')) {
+        console.error('[Plugin Image] Invalid path attempted:', normalizedPath);
+        return res.status(403).json({ message: "Invalid image path" });
+      }
+
+      // Construct full path
+      const fullPath = path.join(process.cwd(), 'plugins', normalizedPath);
+      console.log('[Plugin Image] Full image path:', fullPath);
+
+      // Check if file exists
+      if (!fs.existsSync(fullPath)) {
+        console.error('[Plugin Image] Image not found:', fullPath);
+        return res.status(404).json({ message: "Image not found" });
+      }
+
+      // Determine content type based on extension
+      const ext = path.extname(fullPath).toLowerCase();
+      const contentTypes: Record<string, string> = {
+        '.jpg': 'image/jpeg',
+        '.jpeg': 'image/jpeg',
+        '.png': 'image/png',
+        '.gif': 'image/gif',
+        '.webp': 'image/webp'
+      };
+
+      const contentType = contentTypes[ext] || 'application/octet-stream';
+      
+      // Set headers
+      res.setHeader('Content-Type', contentType);
+      res.setHeader('Cache-Control', 'public, max-age=3600'); // Cache for 1 hour
+      
+      // Stream the image
+      const imageStream = fs.createReadStream(fullPath);
+      imageStream.pipe(res);
+      
+      console.log('[Plugin Image] ✓ Serving image:', normalizedPath);
+    } catch (error) {
+      console.error('[Plugin Image] Error:', error);
+      res.status(500).json({ message: "Failed to serve image" });
+    }
+  });
+
   // Plugin Library Registration
   app.post("/api/plugin-library-register", async (req, res) => {
     try {
