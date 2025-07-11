@@ -342,6 +342,10 @@ Changelog:
 - July 11, 2025. Updated WHM API call to use correct format: api.version=1&user=username&service=cpaneld for proper cPanel auto-login functionality
 - July 11, 2025. DOMAIN SEARCH FIX: Fixed domain search endpoint mismatch - updated frontend to use correct /api/check-domain-availability endpoint
 - July 11, 2025. Fixed domain search functionality - search now properly calls the backend API to check domain availability
+- July 11, 2025. CRITICAL MISSING ENDPOINT FIX: Created comprehensive /api/register-domain endpoint for anonymous account creation
+- July 11, 2025. Implemented complete domain registration flow that creates WHM accounts first, then user accounts with proper credential generation
+- July 11, 2025. Added device fingerprint enforcement, domain availability checking, and comprehensive error handling to registration endpoint
+- July 11, 2025. Fixed account creation order flow - users can now successfully register anonymous accounts with hosting
 ```
 
 # User Preferences

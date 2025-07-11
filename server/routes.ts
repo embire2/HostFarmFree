@@ -263,6 +263,224 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Integrated domain registration endpoint - creates WHM account first, then user account
+  app.post("/api/register-domain", async (req, res) => {
+    try {
+      const { 
+        subdomain, 
+        packageId = 1,
+        fingerprintHash,
+        macAddress,
+        userAgent,
+        screenResolution,
+        timezone,
+        language,
+        platformInfo
+      } = req.body;
+
+      console.log('[Domain Registration API] ===== START DOMAIN REGISTRATION =====');
+      console.log('[Domain Registration API] Received registration data:', {
+        subdomain,
+        packageId,
+        fingerprintHash: fingerprintHash?.substring(0, 10) + '...',
+        deviceInfo: { userAgent, screenResolution, timezone, language }
+      });
+
+      if (!subdomain) {
+        console.error('[Domain Registration API] ERROR: Missing subdomain');
+        return res.status(400).json({ error: "Subdomain is required" });
+      }
+
+      const fullDomain = `${subdomain}.hostme.today`;
+
+      // Check device limits if fingerprint provided
+      if (fingerprintHash) {
+        const deviceCount = await storage.getDeviceCountByFingerprint(fingerprintHash);
+        const maxDevices = 2; // Default limit for free users
+        
+        if (deviceCount >= maxDevices) {
+          console.error('[Domain Registration API] ERROR: Device registration limit exceeded');
+          return res.status(400).json({ 
+            error: "Device registration limit exceeded. You can only register accounts from 2 devices.",
+            deviceLimitReached: true
+          });
+        }
+      }
+
+      // Check if domain already exists
+      const existingAccount = await storage.getHostingAccountByDomain(fullDomain);
+      if (existingAccount) {
+        console.error('[Domain Registration API] ERROR: Domain already taken:', fullDomain);
+        return res.status(400).json({ error: "Domain is already taken" });
+      }
+
+      // Generate anonymous user credentials
+      const generateUsername = () => {
+        const prefixes = ['user', 'host', 'web', 'site', 'my'];
+        const randomPrefix = prefixes[Math.floor(Math.random() * prefixes.length)];
+        const randomNum = Math.floor(Math.random() * 100000);
+        return `${randomPrefix}${randomNum}`;
+      };
+
+      const generatePassword = () => {
+        const charset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
+        let password = '';
+        for (let i = 0; i < 12; i++) {
+          password += charset.charAt(Math.floor(Math.random() * charset.length));
+        }
+        return password;
+      };
+
+      const generateRecoveryPhrase = () => {
+        const words = ['apple', 'banana', 'cherry', 'dragon', 'eagle', 'forest', 'garden', 'happy', 'island', 'jungle'];
+        const phrase = [];
+        for (let i = 0; i < 4; i++) {
+          phrase.push(words[Math.floor(Math.random() * words.length)]);
+        }
+        return phrase.join('-');
+      };
+
+      const username = generateUsername();
+      const password = generatePassword();
+      const recoveryPhrase = generateRecoveryPhrase();
+
+      console.log('[Domain Registration API] Generated credentials for user:', username);
+
+      // First, create the WHM hosting account
+      const apiSettings = await storage.getApiSettings();
+      if (!apiSettings || !apiSettings.whmApiUrl || !apiSettings.whmApiToken) {
+        console.error('[Domain Registration API] ERROR: WHM API settings not configured');
+        return res.status(500).json({ error: "Server configuration incomplete" });
+      }
+
+      // Generate WHM username (must start with letter for WHM validation)
+      const whmUsername = subdomain.match(/^\d/) ? `h${subdomain}` : subdomain;
+      const whmPassword = generatePassword();
+
+      console.log('[Domain Registration API] Creating WHM account:', whmUsername);
+
+      // Create WHM hosting account
+      const createAccountUrl = `${apiSettings.whmApiUrl}/createacct`;
+      const formData = new URLSearchParams({
+        username: whmUsername,
+        domain: fullDomain,
+        password: whmPassword,
+        pkg: '512MB Free Hosting', // Use correct package name
+        contactemail: `admin@${fullDomain}`,
+        ip: 'n' // Use shared IP
+      });
+
+      const whmResponse = await fetch(createAccountUrl, {
+        method: 'POST',
+        headers: {
+          'Authorization': `whm root:${apiSettings.whmApiToken}`,
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: formData
+      });
+
+      const whmData = await whmResponse.json();
+      console.log('[Domain Registration API] WHM response:', whmData);
+
+      // Check if WHM account creation was successful
+      const isSuccess = whmData.metadata?.result === 1 || 
+                       (whmData.data && Array.isArray(whmData.data) && whmData.data.some((item: any) => item.status === 1)) ||
+                       (whmData.result && whmData.result[0]?.status === 1);
+
+      if (!isSuccess) {
+        const errorMsg = whmData.metadata?.reason || whmData.data?.result?.[0]?.statusmsg || 'WHM account creation failed';
+        console.error('[Domain Registration API] WHM account creation failed:', errorMsg);
+        return res.status(500).json({ error: `Hosting account creation failed: ${errorMsg}` });
+      }
+
+      console.log('[Domain Registration API] ✓ WHM account created successfully');
+
+      // Create user account in local database
+      const userData = {
+        username,
+        email: `admin@${fullDomain}`,
+        firstName: 'Anonymous',
+        lastName: 'User',
+        password: password,
+        displayPassword: password,
+        recoveryPhrase: recoveryPhrase,
+        role: 'client' as const,
+        isAnonymous: true
+      };
+
+      const newUser = await storage.createUser(userData);
+      console.log('[Domain Registration API] ✓ User account created with ID:', newUser.id);
+
+      // Create hosting account record in database
+      const hostingAccountData = {
+        userId: newUser.id,
+        domain: fullDomain,
+        packageId: packageId,
+        status: 'active',
+        diskUsage: 0,
+        bandwidthUsage: 0,
+        cpanelUsername: whmUsername,
+        cpanelPassword: whmPassword
+      };
+
+      const hostingAccount = await storage.createHostingAccount(hostingAccountData);
+      console.log('[Domain Registration API] ✓ Hosting account record created with ID:', hostingAccount.id);
+
+      // Record device fingerprint if provided
+      if (fingerprintHash) {
+        await storage.recordDeviceFingerprint({
+          fingerprintHash,
+          userId: newUser.id,
+          macAddress,
+          userAgent,
+          screenResolution,
+          timezone,
+          language,
+          platformInfo
+        });
+        console.log('[Domain Registration API] ✓ Device fingerprint recorded');
+      }
+
+      console.log('[Domain Registration API] ✅ Registration completed successfully');
+      console.log('[Domain Registration API] ===== END DOMAIN REGISTRATION =====');
+
+      // Return success response with user and hosting account data
+      res.json({
+        success: true,
+        domain: fullDomain,
+        user: {
+          id: newUser.id,
+          username: newUser.username,
+          email: newUser.email,
+          password: password,
+          recoveryPhrase: recoveryPhrase,
+          isAnonymous: true
+        },
+        account: {
+          id: hostingAccount.id,
+          domain: fullDomain,
+          status: 'active',
+          cpanelUsername: whmUsername
+        },
+        message: `Account created successfully for ${fullDomain}`
+      });
+
+    } catch (error) {
+      console.error('[Domain Registration API] ===== CRITICAL ERROR IN DOMAIN REGISTRATION =====');
+      console.error('[Domain Registration API] Error type:', error?.constructor?.name);
+      console.error('[Domain Registration API] Error message:', error?.message);
+      console.error('[Domain Registration API] Full error object:', error);
+      console.error('[Domain Registration API] Stack trace:', error?.stack);
+      console.error('[Domain Registration API] Request body was:', req.body);
+      console.error('[Domain Registration API] ===== END CRITICAL ERROR =====');
+      
+      res.status(500).json({ 
+        error: "Registration failed due to internal error",
+        details: error?.message
+      });
+    }
+  });
+
   // Get hosting packages
   app.get("/api/admin/packages", isAuthenticated, requireAdmin, async (req, res) => {
     try {
