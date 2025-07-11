@@ -743,10 +743,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log(`[Fix WHM Account API] Error: WHM API settings not configured`);
         return res.status(500).json({ 
           success: false,
-          message: "WHM API settings not configured",
-          error: "Server configuration incomplete"
+          message: "Please configure WHM API settings in Admin Dashboard → API Settings tab",
+          error: "WHM API settings not configured"
         });
       }
+
+      console.log(`[Fix WHM Account API] Using WHM API: ${apiSettings.whmServerUrl}`);
 
       // Generate username for WHM (same logic as account creation)
       const subdomain = hostingAccount.domain.replace('.hostme.today', '');
