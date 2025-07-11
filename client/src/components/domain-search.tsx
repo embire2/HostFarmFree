@@ -119,7 +119,8 @@ export default function DomainSearch({ onSuccess }: DomainSearchProps) {
         // Redirect to conversion tracking page for 5 seconds, then to dashboard
         const conversionUrl = `/conversion?type=anonymous&destination=${encodeURIComponent('/dashboard')}`;
         console.log(`[Domain Registration] Redirecting to conversion page: ${conversionUrl}`);
-        setLocation(conversionUrl);
+        // Use window.location.href to ensure session cookies are maintained
+        window.location.href = conversionUrl;
         
         setSearchTerm("");
         setLastSearched("");

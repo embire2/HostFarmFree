@@ -14,24 +14,26 @@ export default function Dashboard() {
   useEffect(() => {
     // Check if user is coming from registration/conversion flow
     const isFromConversion = window.location.pathname === '/dashboard' && 
-                           document.referrer.includes('/conversion');
+                           (document.referrer.includes('/conversion') || 
+                            window.location.search.includes('from=conversion'));
     
     if (isFromConversion) {
       console.log("[Dashboard] User coming from conversion, forcing auth refresh");
       // Force refresh user data
       queryClient.invalidateQueries({ queryKey: ['/api/user'] });
+      queryClient.refetchQueries({ queryKey: ['/api/user'] });
     }
 
     // If we're done loading and still not authenticated, wait longer for auth to process
     // This is especially important for users coming from registration/conversion flow
     if (!isLoading && !isAuthenticated) {
       const timeoutId = setTimeout(() => {
-        // If still not authenticated after 5 seconds, redirect to home
+        // If still not authenticated after 8 seconds, redirect to home
         if (!isAuthenticated) {
           console.log("[Dashboard] User not authenticated after timeout, redirecting to home");
           setLocation("/");
         }
-      }, 5000);
+      }, 8000); // Increased timeout to allow for session refresh
 
       return () => clearTimeout(timeoutId);
     }

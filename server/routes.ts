@@ -589,21 +589,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      // Set up user session for automatic login
-      req.login(newUser, (err) => {
-        if (err) {
-          console.error('[Domain Registration API] Failed to login user automatically:', err);
-        } else {
-          console.log('[Domain Registration API] ✓ User automatically logged in');
-          // Force session save to ensure persistence
-          req.session.save((saveErr) => {
-            if (saveErr) {
-              console.error('[Domain Registration API] Failed to save session:', saveErr);
-            } else {
-              console.log('[Domain Registration API] ✓ Session saved successfully');
-            }
-          });
-        }
+      // Set up user session for automatic login - make it synchronous
+      await new Promise<void>((resolve, reject) => {
+        req.login(newUser, (err) => {
+          if (err) {
+            console.error('[Domain Registration API] Failed to login user automatically:', err);
+            reject(err);
+          } else {
+            console.log('[Domain Registration API] ✓ User automatically logged in');
+            // Force session save to ensure persistence
+            req.session.save((saveErr) => {
+              if (saveErr) {
+                console.error('[Domain Registration API] Failed to save session:', saveErr);
+                reject(saveErr);
+              } else {
+                console.log('[Domain Registration API] ✓ Session saved successfully');
+                console.log('[Domain Registration API] Session ID:', req.session.id);
+                resolve();
+              }
+            });
+          }
+        });
       });
 
       console.log('[Domain Registration API] ✅ Registration completed successfully');

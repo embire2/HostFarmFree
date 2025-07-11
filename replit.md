@@ -351,6 +351,14 @@ Changelog:
 - July 11, 2025. Added automatic user session login after registration for seamless dashboard access
 - July 11, 2025. Enhanced registration response with complete credentials and cPanel access information
 - July 11, 2025. Comprehensive cleanup of all failed test accounts and WHM entries for clean testing environment
+- July 11, 2025. CRITICAL SESSION FIX: Fixed authentication session persistence across conversion page redirects
+- July 11, 2025. Changed session configuration to saveUninitialized: true to ensure new sessions are saved
+- July 11, 2025. Made session cookies secure only in production, added sameSite: 'lax' for redirect support
+- July 11, 2025. Fixed all redirects to use window.location.href instead of wouter setLocation for cookie persistence
+- July 11, 2025. Made user login and session save synchronous to ensure completion before redirect
+- July 11, 2025. Added query parameter tracking (from=conversion) to help dashboard identify conversion flow users
+- July 11, 2025. Increased dashboard authentication timeout to 8 seconds for better session recovery
+- July 11, 2025. Enhanced auth refresh logic in dashboard to force query refresh for conversion users
 ```
 
 # User Preferences

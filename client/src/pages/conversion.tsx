@@ -79,7 +79,11 @@ export default function Conversion() {
           if (newCount <= 0) {
             console.log(`[Conversion Page] Countdown complete, redirecting to: ${destination}`);
             clearInterval(timer);
-            setLocation(destination);
+            // Use window.location.href with query param to ensure session cookies are maintained
+            const finalUrl = destination.includes('?') ? 
+              `${destination}&from=conversion` : 
+              `${destination}?from=conversion`;
+            window.location.href = finalUrl;
             return 0;
           }
           return newCount;
