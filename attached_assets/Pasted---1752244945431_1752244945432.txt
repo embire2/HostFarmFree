@@ -1,0 +1,287 @@
+
+      /////////////////////
+   ///////////////////////////
+  ////////@@@@@@@//////////////
+  ////////@@@@@@@//////////////
+  ////////@@@@@@@//////////////        Curious and driven?
+  ///////////////@@@@@@@///////        Work with us!
+  ///////////////@@@@@@@///////
+  ///////////////@@@@@@@///////        https://join.replit.com/hack.with.us
+  ////////@@@@@@@//////////////
+  ////////@@@@@@@//////////////
+  ////////@@@@@@#//////////////
+   ///////////////////////////
+      /////////////////////
+      
+_app-267dfd4c30de00ad.js:38 [LaunchDarkly] LaunchDarkly client initialized
+75Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.Understand this error
+framework-6cba3a63b1b6f3a4.js:1 Unrecognized feature: 'ambient-light-sensor'.
+_ @ framework-6cba3a63b1b6f3a4.js:1Understand this warning
+framework-6cba3a63b1b6f3a4.js:1 Unrecognized feature: 'battery'.
+_ @ framework-6cba3a63b1b6f3a4.js:1Understand this warning
+framework-6cba3a63b1b6f3a4.js:1 Unrecognized feature: 'execution-while-not-rendered'.
+_ @ framework-6cba3a63b1b6f3a4.js:1Understand this warning
+framework-6cba3a63b1b6f3a4.js:1 Unrecognized feature: 'execution-while-out-of-viewport'.
+_ @ framework-6cba3a63b1b6f3a4.js:1Understand this warning
+framework-6cba3a63b1b6f3a4.js:1 Unrecognized feature: 'layout-animations'.
+_ @ framework-6cba3a63b1b6f3a4.js:1Understand this warning
+framework-6cba3a63b1b6f3a4.js:1 Unrecognized feature: 'legacy-image-formats'.
+_ @ framework-6cba3a63b1b6f3a4.js:1Understand this warning
+framework-6cba3a63b1b6f3a4.js:1 Unrecognized feature: 'navigation-override'.
+_ @ framework-6cba3a63b1b6f3a4.js:1Understand this warning
+framework-6cba3a63b1b6f3a4.js:1 Unrecognized feature: 'oversized-images'.
+_ @ framework-6cba3a63b1b6f3a4.js:1Understand this warning
+framework-6cba3a63b1b6f3a4.js:1 Unrecognized feature: 'publickey-credentials'.
+_ @ framework-6cba3a63b1b6f3a4.js:1Understand this warning
+framework-6cba3a63b1b6f3a4.js:1 Unrecognized feature: 'speaker-selection'.
+_ @ framework-6cba3a63b1b6f3a4.js:1Understand this warning
+framework-6cba3a63b1b6f3a4.js:1 Unrecognized feature: 'unoptimized-images'.
+_ @ framework-6cba3a63b1b6f3a4.js:1Understand this warning
+framework-6cba3a63b1b6f3a4.js:1 Unrecognized feature: 'unsized-media'.
+_ @ framework-6cba3a63b1b6f3a4.js:1Understand this warning
+framework-6cba3a63b1b6f3a4.js:1 Unrecognized feature: 'pointer-lock'.
+_ @ framework-6cba3a63b1b6f3a4.js:1Understand this warning
+framework-6cba3a63b1b6f3a4.js:1 Allow attribute will take precedence over 'allowfullscreen'.
+_ @ framework-6cba3a63b1b6f3a4.js:1Understand this warning
+framework-6cba3a63b1b6f3a4.js:1 Allow attribute will take precedence over 'allowpaymentrequest'.
+_ @ framework-6cba3a63b1b6f3a4.js:1Understand this warning
+6HostFarmFree:1 Uncaught (in promise) Error: A listener indicated an asynchronous response by returning true, but the message channel closed before a response was receivedUnderstand this error
+_app-267dfd4c30de00ad.js:38 task queue exceeded allotted deadline by 110ms
+(anonymous) @ _app-267dfd4c30de00ad.js:38Understand this warning
+_app-267dfd4c30de00ad.js:38 task queue exceeded allotted deadline by 55ms
+(anonymous) @ _app-267dfd4c30de00ad.js:38Understand this warning
+www.google-analytics.com/collect?v=1&_v=j101&aip=1&a=914150991&t=event&ni=0&_s=97&dl=https%3A%2F%2Freplit.com%2Ft%2Fopenweb%2Frepls%2FHostFarmFree&dp=%2Ft%2Fopenweb%2Frepls%2FHostFarmFree&ul=en-us&de=UTF-8&dt=replEnvironmentDesktop&sd=24-bit&sr=1098x618&vp=2196x898&je=0&ec=All&ea=Agent%20Used&ev=0&_u=SCCAgEAjQAAAAGgCIAD~&jid=672971209&gjid=472844888&cid=717095244.1741870153&tid=UA-25629695-1&_gid=1199027708.1748087730&z=1793047688:1 
+            
+            
+           Failed to load resource: net::ERR_CONNECTION_CLOSEDUnderstand this error
+www.google-analytics.com/collect?v=1&_v=j101&aip=1&a=914150991&t=event&ni=0&_s=98&dl=https%3A%2F%2Freplit.com%2Ft%2Fopenweb%2Frepls%2FHostFarmFree&dp=%2Ft%2Fopenweb%2Frepls%2FHostFarmFree&ul=en-us&de=UTF-8&dt=replEnvironmentDesktop&sd=24-bit&sr=1098x618&vp=2196x898&je=0&ec=All&ea=Visual%20Selector%20Enabled&ev=0&_u=SCCAgEAjQAAAAGgCIAD~&jid=&gjid=&cid=717095244.1741870153&tid=UA-25629695-1&_gid=1199027708.1748087730&z=455970582:1 
+            
+            
+           Failed to load resource: net::ERR_CONNECTION_CLOSEDUnderstand this error
+7HostFarmFree:1 Uncaught (in promise) Error: A listener indicated an asynchronous response by returning true, but the message channel closed before a response was receivedUnderstand this error
+_app-267dfd4c30de00ad.js:38 task queue exceeded allotted deadline by 50ms
+(anonymous) @ _app-267dfd4c30de00ad.js:38Understand this warning
+_app-267dfd4c30de00ad.js:38 task queue exceeded allotted deadline by 110ms
+(anonymous) @ _app-267dfd4c30de00ad.js:38Understand this warning
+_app-267dfd4c30de00ad.js:38 task queue exceeded allotted deadline by 111ms
+(anonymous) @ _app-267dfd4c30de00ad.js:38Understand this warning
+_app-267dfd4c30de00ad.js:38 task queue exceeded allotted deadline by 110ms
+(anonymous) @ _app-267dfd4c30de00ad.js:38Understand this warning
+_app-267dfd4c30de00ad.js:38 task queue exceeded allotted deadline by 93ms
+(anonymous) @ _app-267dfd4c30de00ad.js:38Understand this warning
+_app-267dfd4c30de00ad.js:38 task queue exceeded allotted deadline by 103ms
+(anonymous) @ _app-267dfd4c30de00ad.js:38Understand this warning
+HostFarmFree:1 Access to XMLHttpRequest at 'https://events.launchdarkly.com/events/bulk/62b35a865152ab14c5942820' from origin 'https://replit.com' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.Understand this error
+events.launchdarkly.com/events/bulk/62b35a865152ab14c5942820:1 
+            
+            
+           Failed to load resource: net::ERR_FAILEDUnderstand this error
+HostFarmFree:1 Access to XMLHttpRequest at 'https://events.launchdarkly.com/events/bulk/62b35a865152ab14c5942820' from origin 'https://replit.com' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.Understand this error
+events.launchdarkly.com/events/bulk/62b35a865152ab14c5942820:1 
+            
+            
+           Failed to load resource: net::ERR_FAILEDUnderstand this error
+HostFarmFree:1 Access to XMLHttpRequest at 'https://events.launchdarkly.com/events/bulk/62b35a865152ab14c5942820' from origin 'https://replit.com' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.Understand this error
+events.launchdarkly.com/events/bulk/62b35a865152ab14c5942820:1 
+            
+            
+           Failed to load resource: net::ERR_FAILEDUnderstand this error
+events.launchdarkly.com/events/bulk/62b35a865152ab14c5942820:1 
+            
+            
+           Failed to load resource: the server responded with a status of 404 ()Understand this error
+_app-267dfd4c30de00ad.js:38 [LaunchDarkly] Received error 404 for event posting - giving up permanently
+(anonymous) @ _app-267dfd4c30de00ad.js:38Understand this error
+/t/openweb:1 Uncaught (in promise) Error: A listener indicated an asynchronous response by returning true, but the message channel closed before a response was receivedUnderstand this error
+2656-d565d67dc4552321.js:1 WebSocket connection to 'wss://eval.worf.platform.replit.com/wsv2/v2.public.Q2dZSWhkYSt3d1lTQmdpazhyN0RCaUlFZDI5eVpqQUFPcE1DQ2lRek1XVXhPVGhoTkMwd1pqSmpMVFE1TXprdE9EbGlZUzFsWXpGa056a3lNekUwT1dRU0EyNXBlQm9XY21Wd2JHbDBMWEpsY0d3dFptbHNaWE10ZDI5eVppSVBVbVZ6Wld4c1pYSnpVRzl5ZEdGc0tnbHRjbUpsWlhCcFpURkNUZ29YY21Wd2JHbDBMWEpsY0d3dFlteHZZMnR6TFhkdmNtWVNGWEpsY0d4cGRDMXlaWEJzTFcxbGRHRXRkMjl5WmhvY2NtVndiR2wwTFcxaGNtZGhjbWx1WlMxaWJHOWphM010ZDI5eVprb0hDTXZ0cFJNUUFWQUFXZ2hsZUhCc2IzSmxjbG9QYVc1MFpXNTBYMkoxYzJsdVpYTnpXaEp2Ym1KdllYSmthVzVuWDJwdllsOWxibWRhR205dVltOWhjbVJwYm1kZmNtOXNaVjltY21WbGJHRnVZMlZ5Y2dvS0JqUnNhRzl5TUJBQ2VBQlNJd2dCRUlDQWdJQkFHUUFBQUFBQUFDQkFJUUFBQUFBQUFDQkFLSUNBZ0lDQUNEQUNZQUJxRUFqTDdhVVRFZ2x0Y21KbFpYQnBaVEdDQVFJcUFKb0JDZ29JTUM0d0xqRTBPRGlnQVFFPZugVm5h-PXUTaotcEsiNTILdUBUy2GM5Qq8QV2OWI3IjrT4XbAg8nCShO_4GYPzKETjCNm0lYh33sgzaYfVKAw.Q2dad2NtOWtPak1pQ25KbGNHeHBkQzVqYjIwPQ' failed: WebSocket is closed before the connection is established.
+cleanupSocket @ 2656-d565d67dc4552321.js:1Understand this warning
+stallwart.build.js:1 stallwart: failed ping 1
+7ResellersPortal:1 Uncaught (in promise) Error: A listener indicated an asynchronous response by returning true, but the message channel closed before a response was receivedUnderstand this error
+about:srcdoc:1 An iframe which has both allow-scripts and allow-same-origin for its sandbox attribute can escape its sandboxing.Understand this warning
+ cdn.tailwindcss.com should not be used in production. To use Tailwind CSS in production, install it as a PostCSS plugin or use the Tailwind CLI: https://tailwindcss.com/docs/installation
+(anonymous) @ cdn.tailwindcss.com/:64Understand this warning
+2/new:1 Uncaught (in promise) Error: A listener indicated an asynchronous response by returning true, but the message channel closed before a response was receivedUnderstand this error
+o1151714.ingest.sentry.io/api/6318792/envelope/?sentry_key=8aa91189a4274b5a8c9b7b01d46ea360&sentry_version=7&sentry_client=sentry.javascript.browser%2F7.112.0:1 
+            
+            
+           Failed to load resource: net::ERR_CONNECTION_CLOSEDUnderstand this error
+3ResellersWallet:1 Uncaught (in promise) Error: A listener indicated an asynchronous response by returning true, but the message channel closed before a response was receivedUnderstand this error
+about:srcdoc:1 An iframe which has both allow-scripts and allow-same-origin for its sandbox attribute can escape its sandboxing.Understand this warning
+ cdn.tailwindcss.com should not be used in production. To use Tailwind CSS in production, install it as a PostCSS plugin or use the Tailwind CLI: https://tailwindcss.com/docs/installation
+(anonymous) @ cdn.tailwindcss.com/:64Understand this warning
+/ai/auth:1 
+            
+            
+           Failed to load resource: the server responded with a status of 400 ()Understand this error
+/ai/auth:1 
+            
+            
+           Failed to load resource: the server responded with a status of 400 ()Understand this error
+/ai/auth:1 
+            
+            
+           Failed to load resource: the server responded with a status of 400 ()Understand this error
+/ai/auth:1 
+            
+            
+           Failed to load resource: the server responded with a status of 400 ()Understand this error
+7940-cca555fc0acfb46f.js:1 Uncaught (in promise) Error: Unable to connect. Please try again later.
+    at onRetriesExceeded (7940-cca555fc0acfb46f.js:1:53245)
+    at 9303-ca1069e7c5f3fa3e.js:1:25911
+    at u.dispatchEvent (9119-d641216ff0390e30.js:1:79553)
+    at d.protocolError (9119-d641216ff0390e30.js:1:80097)
+    at d.connect (9119-d641216ff0390e30.js:1:12163)
+    at d.tryReconnecting (9119-d641216ff0390e30.js:1:8624)
+    at d.onConnectingFailed (9119-d641216ff0390e30.js:1:9167)
+    at Object.onConnectionFailed (9119-d641216ff0390e30.js:1:13125)
+    at 9119-d641216ff0390e30.js:1:67746Understand this error
+_app-267dfd4c30de00ad.js:38 WARN: A component changed from uncontrolled to controlled.
+(anonymous) @ _app-267dfd4c30de00ad.js:38Understand this warning
+_app-267dfd4c30de00ad.js:25 WebSocket connection to 'wss://replit.com/graphql_subscriptions' failed: 
+(anonymous) @ _app-267dfd4c30de00ad.js:25Understand this error
+_app-267dfd4c30de00ad.js:25 WebSocket connection to 'wss://replit.com/graphql_subscriptions' failed: 
+(anonymous) @ _app-267dfd4c30de00ad.js:25Understand this error
+_app-267dfd4c30de00ad.js:25 WebSocket connection to 'wss://replit.com/graphql_subscriptions' failed: 
+(anonymous) @ _app-267dfd4c30de00ad.js:25Understand this error
+/data/repls/daab579b-17ce-4ecb-8192-bbb4343508d6/get_connection_metadata:1 
+            
+            
+           Failed to load resource: net::ERR_NAME_NOT_RESOLVEDUnderstand this error
+graphql:1 
+            
+            
+           Failed to load resource: net::ERR_CERT_AUTHORITY_INVALIDUnderstand this error
+graphql:1 
+            
+            
+           Failed to load resource: net::ERR_CERT_AUTHORITY_INVALIDUnderstand this error
+graphql:1 
+            
+            
+           Failed to load resource: net::ERR_CERT_AUTHORITY_INVALIDUnderstand this error
+_app-267dfd4c30de00ad.js:25 WebSocket connection to 'wss://replit.com/graphql_subscriptions' failed: 
+(anonymous) @ _app-267dfd4c30de00ad.js:25Understand this error
+_app-267dfd4c30de00ad.js:25 WebSocket connection to 'wss://replit.com/graphql_subscriptions' failed: 
+(anonymous) @ _app-267dfd4c30de00ad.js:25Understand this error
+graphql:1 
+            
+            
+           Failed to load resource: net::ERR_NAME_NOT_RESOLVEDUnderstand this error
+api.sorryapp.com/v1/pages/27c7b5fc:1 
+            
+            
+           Failed to load resource: net::ERR_NAME_NOT_RESOLVEDUnderstand this error
+graphql:1 
+            
+            
+           Failed to load resource: net::ERR_NAME_NOT_RESOLVEDUnderstand this error
+graphql:1 
+            
+            
+           Failed to load resource: net::ERR_NAME_NOT_RESOLVEDUnderstand this error
+_app-267dfd4c30de00ad.js:25 WebSocket connection to 'wss://replit.com/graphql_subscriptions' failed: 
+(anonymous) @ _app-267dfd4c30de00ad.js:25Understand this error
+graphql:1 
+            
+            
+           Failed to load resource: net::ERR_NAME_NOT_RESOLVEDUnderstand this error
+graphql:1 
+            
+            
+           Failed to load resource: net::ERR_NAME_NOT_RESOLVEDUnderstand this error
+graphql:1 
+            
+            
+           Failed to load resource: net::ERR_NAME_NOT_RESOLVEDUnderstand this error
+attached_assets/image_1752078580674.png:1 
+            
+            
+           Failed to load resource: the server responded with a status of 404 ()Understand this error
+attached_assets/image_1752078141471.png:1 
+            
+            
+           Failed to load resource: the server responded with a status of 404 ()Understand this error
+attached_assets/image_1752078317272.png:1 
+            
+            
+           Failed to load resource: the server responded with a status of 404 ()Understand this error
+attached_assets/image_1752076582130.png:1 
+            
+            
+           Failed to load resource: the server responded with a status of 404 ()Understand this error
+3HostFarmFree:1 Uncaught (in promise) Error: A listener indicated an asynchronous response by returning true, but the message channel closed before a response was receivedUnderstand this error
+_app-267dfd4c30de00ad.js:38 task queue exceeded allotted deadline by 46ms
+(anonymous) @ _app-267dfd4c30de00ad.js:38Understand this warning
+_app-267dfd4c30de00ad.js:38 task queue exceeded allotted deadline by 137ms
+(anonymous) @ _app-267dfd4c30de00ad.js:38Understand this warning
+_app-267dfd4c30de00ad.js:38 task queue exceeded allotted deadline by 66ms
+(anonymous) @ _app-267dfd4c30de00ad.js:38Understand this warning
+Grammarly-check.js:1 [Violation] Permissions policy violation: unload is not allowed in this document.
+(anonymous) @ Grammarly-check.js:1Understand this error
+_app-267dfd4c30de00ad.js:38 task queue exceeded allotted deadline by 46ms
+(anonymous) @ _app-267dfd4c30de00ad.js:38Understand this warning
+_app-267dfd4c30de00ad.js:38 task queue exceeded allotted deadline by 111ms
+(anonymous) @ _app-267dfd4c30de00ad.js:38Understand this warning
+_app-267dfd4c30de00ad.js:38 task queue exceeded allotted deadline by 110ms
+(anonymous) @ _app-267dfd4c30de00ad.js:38Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'ambient-light-sensor'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'battery'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'execution-while-not-rendered'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'execution-while-out-of-viewport'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'layout-animations'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'legacy-image-formats'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'navigation-override'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'oversized-images'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'publickey-credentials'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'speaker-selection'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'unoptimized-images'.Understand this warning
+workspace_iframe.html:32 Unrecognized feature: 'unsized-media'.Understand this warning
+workspace_iframe.html:32 Allow attribute will take precedence over 'allowfullscreen'.Understand this warning
+workspace_iframe.html:32 Allow attribute will take precedence over 'allowpaymentrequest'.Understand this warning
+da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/api/admin/fix-whm-account/121:1 
+            
+            
+           Failed to load resource: the server responded with a status of 500 (Internal Server Error)Understand this error
+da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/api/admin/fix-whm-account/121:1 
+            
+            
+           Failed to load resource: the server responded with a status of 500 (Internal Server Error)Understand this error
+da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/api/admin/fix-whm-account/121:1 
+            
+            
+           Failed to load resource: the server responded with a status of 500 (Internal Server Error)Understand this error
+da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/api/admin/fix-whm-account/121:1 
+            
+            
+           Failed to load resource: the server responded with a status of 500 (Internal Server Error)Understand this error
+Console.js:61 [Custom Header Code] Starting injection process. Found 0 header codes.
+Console.js:61 [Custom Header Code] No active header codes found. Skipping injection.
+Console.js:61 [Custom Header Code] Starting injection process. Found 1 header codes.
+Console.js:61 [Custom Header Code] Processing 1 codes for direct injection.
+Console.js:61 [Custom Header Code] ✓ Injected (1/1): Facebook Pixel (ID: 1)
+Console.js:61 [Custom Header Code] 🎯 Facebook Pixel detected and injected!
+Console.js:61 [Custom Header Code] Facebook Pixel Code Preview: <!-- Meta Pixel Code -->
+<script>
+!function(f,b,e,v,n,t,s)
+{if(f.fbq)return;n=f.fbq=function(){n.cal...
+Console.js:61 [Custom Header Code] ✅ All codes injected successfully! Added directly to document head.
+Console.js:61 [Custom Header Code] 🔍 Verification: Found 3 injected codes in DOM.
+Console.js:61 [Custom Header Code] 🎯 Facebook Pixel Scripts - External: 1, Inline: 2
+Console.js:61 [Custom Header Code] ✅ Facebook Pixel fbq function is available and ready!
+Console.js:61 [Custom Header Code] Facebook Pixel Queue: No queue
+Console.js:61 [Custom Header Code] ✅ Facebook Pixel is fully loaded and initialized!
+Console.js:61 [Custom Header Code] 🎯 Final Facebook Pixel Check:
+Console.js:61 [Custom Header Code] - fbq available: function
+Console.js:61 [Custom Header Code] - fbq loaded: true
+Console.js:61 [Custom Header Code] - fbq version: 2.9.215
+Console.js:61 [Custom Header Code] ✅ Facebook Pixel PageView event sent successfully!
+Console.js:61 [Frontend] Starting WHM account fix for account ID: 121
+da0c4f98-a71f-421e-8ad4-6404a90dd946-00-1tj1y99nuwezh.kirk.replit.dev/api/admin/fix-whm-account/121:1 
+            
+            
+           Failed to load resource: the server responded with a status of 500 (Internal Server Error)Understand this error
+Console.js:61 [Frontend] Fix WHM account error: Error: 500: {"success":false,"message":"WHM API settings not configured","error":"Server configuration incomplete"}
+    at throwIfResNotOk (queryClient.ts:6:11)
+    at async apiRequest (queryClient.ts:25:3)
+    at async Object.mutationFn (hosting-accounts-management.tsx:219:19)
+Mt.forEach.n.<computed> @ Console.js:61Understand this error

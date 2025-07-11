@@ -583,7 +583,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Generate cPanel auto-login URL
       const apiSettings = await storage.getApiSettings();
-      if (!apiSettings || !apiSettings.whmServerUrl || !apiSettings.whmApiToken) {
+      if (!apiSettings || !apiSettings.whmApiUrl || !apiSettings.whmApiToken) {
         console.log(`[cPanel Login API] Error: WHM API settings not configured`);
         return res.status(500).json({ 
           success: false,
@@ -596,7 +596,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Try to create a WHM session for auto-login
       try {
-        const whmUrl = apiSettings.whmServerUrl.replace(/\/+$/, '');
+        const whmUrl = apiSettings.whmApiUrl.replace(/\/+$/, '').replace(':2087/json-api/', '');
         const createSessionUrl = `${whmUrl}:2087/json-api/create_user_session`;
         const authHeader = `whm root:${apiSettings.whmApiToken}`;
 
@@ -656,7 +656,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.error(`[cPanel Login API] WHM API error:`, whmError);
         
         // Fall back to manual login
-        const cpanelUrl = `${apiSettings.whmServerUrl.replace(/\/+$/, '')}:2083`;
+        const cpanelUrl = `${apiSettings.whmApiUrl.replace(/\/+$/, '').replace(':2087/json-api/', '')}:2083`;
         console.log(`[cPanel Login API] ===== END CPANEL LOGIN (ERROR FALLBACK) =====`);
         
         return res.json({
@@ -739,7 +739,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Get API settings for WHM integration
       const apiSettings = await storage.getApiSettings();
-      if (!apiSettings || !apiSettings.whmServerUrl || !apiSettings.whmApiToken) {
+      if (!apiSettings || !apiSettings.whmApiUrl || !apiSettings.whmApiToken) {
         console.log(`[Fix WHM Account API] Error: WHM API settings not configured`);
         return res.status(500).json({ 
           success: false,
@@ -748,7 +748,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      console.log(`[Fix WHM Account API] Using WHM API: ${apiSettings.whmServerUrl}`);
+      console.log(`[Fix WHM Account API] Using WHM API: ${apiSettings.whmApiUrl}`);
 
       // Generate username for WHM (same logic as account creation)
       const subdomain = hostingAccount.domain.replace('.hostme.today', '');
@@ -768,7 +768,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Create account on WHM server
       try {
-        const whmUrl = apiSettings.whmServerUrl.replace(/\/+$/, '');
+        const whmUrl = apiSettings.whmApiUrl.replace(/\/+$/, '').replace(':2087/json-api/', '');
         const createAccountUrl = `${whmUrl}:2087/json-api/createacct`;
         const authHeader = `whm root:${apiSettings.whmApiToken}`;
 
