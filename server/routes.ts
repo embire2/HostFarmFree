@@ -301,11 +301,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Plugin routes
   app.get("/api/plugins", async (req, res) => {
     try {
+      console.log('[Plugin API] ===== START PLUGIN FETCH =====');
+      console.log('[Plugin API] Fetching all plugins from storage...');
+      
       const plugins = await storage.getAllPlugins();
+      
+      console.log('[Plugin API] ✓ Successfully retrieved plugins count:', plugins?.length || 0);
+      console.log('[Plugin API] ===== END PLUGIN FETCH =====');
       res.json(plugins);
     } catch (error) {
-      console.error('Error fetching plugins:', error);
-      res.status(500).json({ message: "Internal server error" });
+      console.error('[Plugin API] ===== CRITICAL ERROR IN PLUGIN FETCH =====');
+      console.error('[Plugin API] Error type:', error?.constructor?.name);
+      console.error('[Plugin API] Error message:', error?.message);
+      console.error('[Plugin API] Full error object:', error);
+      console.error('[Plugin API] Stack trace:', error?.stack);
+      console.error('[Plugin API] ===== END CRITICAL ERROR =====');
+      res.status(500).json({ message: "Internal server error", details: error?.message });
     }
   });
 
@@ -325,33 +336,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { fingerprintHash } = req.body;
       
-      console.log('[Device Limits API] Received request with body:', req.body);
-      console.log('[Device Limits API] Checking device count for fingerprint:', fingerprintHash ? fingerprintHash.substring(0, 10) + '...' : 'undefined');
+      console.log('[Device Limits API] ===== START DEVICE LIMITS CHECK =====');
+      console.log('[Device Limits API] Received request body:', req.body);
+      console.log('[Device Limits API] Fingerprint hash provided:', fingerprintHash ? `${fingerprintHash.substring(0, 10)}...` : 'undefined');
       
       if (!fingerprintHash) {
+        console.error('[Device Limits API] ERROR: No fingerprint hash provided');
         return res.status(400).json({ error: "Fingerprint hash is required" });
       }
 
-      const deviceCount = await storage.getDeviceCount(fingerprintHash);
+      console.log('[Device Limits API] Calling storage.getDeviceCountByFingerprint...');
+      const deviceCount = await storage.getDeviceCountByFingerprint(fingerprintHash);
       const maxDevices = 2; // Default limit
       
-      console.log('[Device Limits API] Device count:', deviceCount);
+      console.log('[Device Limits API] ✓ Successfully retrieved device count:', deviceCount);
       console.log('[Device Limits API] Max devices allowed:', maxDevices);
       
       const canRegister = deviceCount < maxDevices;
       
       const result = {
         canRegister,
-        currentDevices: deviceCount.toString(),
+        currentDevices: deviceCount,
         maxDevices
       };
       
-      console.log('[Device Limits API] Returning result:', result);
+      console.log('[Device Limits API] ✓ Computed result:', result);
+      console.log('[Device Limits API] ===== END DEVICE LIMITS CHECK =====');
       res.json(result);
 
     } catch (error) {
-      console.error('[Device Limits API] Error:', error);
-      res.status(500).json({ error: "Failed to check device limits" });
+      console.error('[Device Limits API] ===== CRITICAL ERROR IN DEVICE LIMITS CHECK =====');
+      console.error('[Device Limits API] Error type:', error?.constructor?.name);
+      console.error('[Device Limits API] Error message:', error?.message);
+      console.error('[Device Limits API] Full error object:', error);
+      console.error('[Device Limits API] Stack trace:', error?.stack);
+      console.error('[Device Limits API] ===== END CRITICAL ERROR =====');
+      res.status(500).json({ error: "Failed to check device limits", details: error?.message });
     }
   });
 
@@ -375,6 +395,108 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error fetching plugin downloads:', error);
       res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Plugin Library Registration
+  app.post("/api/plugin-library-register", async (req, res) => {
+    try {
+      const { firstName, lastName, email, country, password } = req.body;
+      
+      console.log('[Plugin Library Registration API] ===== START PLUGIN LIBRARY REGISTRATION =====');
+      console.log('[Plugin Library Registration API] Received registration data:', {
+        firstName,
+        lastName, 
+        email,
+        country,
+        passwordProvided: !!password
+      });
+
+      // Validate required fields
+      if (!firstName || !lastName || !email || !country || !password) {
+        console.error('[Plugin Library Registration API] ERROR: Missing required fields');
+        return res.status(400).json({ 
+          message: "All fields are required",
+          missing: {
+            firstName: !firstName,
+            lastName: !lastName,
+            email: !email,
+            country: !country,
+            password: !password
+          }
+        });
+      }
+
+      // Validate email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        console.error('[Plugin Library Registration API] ERROR: Invalid email format:', email);
+        return res.status(400).json({ message: "Invalid email format" });
+      }
+
+      // Check if user already exists with this email
+      console.log('[Plugin Library Registration API] Checking if user exists with email:', email);
+      const existingUser = await storage.getUserByEmail(email);
+      if (existingUser) {
+        console.error('[Plugin Library Registration API] ERROR: User already exists with email:', email);
+        return res.status(400).json({ message: "User with this email already exists" });
+      }
+
+      // Generate username from email or name
+      const username = email.split('@')[0] + Math.random().toString(36).substring(2, 7);
+      console.log('[Plugin Library Registration API] Generated username:', username);
+
+      // Create user account
+      console.log('[Plugin Library Registration API] Creating new user account...');
+      const userData = {
+        username,
+        email,
+        firstName,
+        lastName,
+        password, // Will be hashed in storage
+        displayPassword: password, // Store for display purposes
+        country,
+        role: "client" as const,
+        isAnonymous: false
+      };
+
+      const newUser = await storage.createUser(userData);
+      console.log('[Plugin Library Registration API] ✓ Successfully created user with ID:', newUser.id);
+
+      // Remove password from response
+      const responseUser = {
+        id: newUser.id,
+        username: newUser.username,
+        email: newUser.email,
+        firstName: newUser.firstName,
+        lastName: newUser.lastName,
+        role: newUser.role,
+        isAnonymous: newUser.isAnonymous,
+        displayPassword: password
+      };
+
+      console.log('[Plugin Library Registration API] ✓ Registration completed successfully');
+      console.log('[Plugin Library Registration API] ===== END PLUGIN LIBRARY REGISTRATION =====');
+
+      res.json({
+        success: true,
+        message: "Plugin library registration successful",
+        user: responseUser
+      });
+
+    } catch (error) {
+      console.error('[Plugin Library Registration API] ===== CRITICAL ERROR IN PLUGIN LIBRARY REGISTRATION =====');
+      console.error('[Plugin Library Registration API] Error type:', error?.constructor?.name);
+      console.error('[Plugin Library Registration API] Error message:', error?.message);
+      console.error('[Plugin Library Registration API] Full error object:', error);
+      console.error('[Plugin Library Registration API] Stack trace:', error?.stack);
+      console.error('[Plugin Library Registration API] Request body was:', req.body);
+      console.error('[Plugin Library Registration API] ===== END CRITICAL ERROR =====');
+      
+      res.status(500).json({ 
+        message: "Registration failed due to internal error",
+        details: error?.message
+      });
     }
   });
 
