@@ -756,20 +756,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
           console.log(`[WHM Packages API] Processing ${packageList.length} packages`);
           for (const pkg of packageList) {
             console.log('[WHM Packages API] Processing package:', pkg.name || 'unnamed');
+            
+            // Helper function to convert WHM values to numbers
+            const parseWhmValue = (value: any): number => {
+              if (value === 'unlimited' || value === 'UNLIMITED') return -1; // -1 represents unlimited
+              const parsed = parseInt(value);
+              return isNaN(parsed) ? 0 : parsed;
+            };
+            
             packages.push({
               name: pkg.name || pkg.pkgname || 'unknown',
               displayname: pkg.name || pkg.pkgname || 'unknown',
-              diskquota: pkg.quota || pkg.diskquota || 0,
-              bwlimit: pkg.bwlimit || 0,
-              maxpop: pkg.maxpop || 0,
-              maxsql: pkg.maxsql || 0,
-              maxsub: pkg.maxsub || 0,
-              maxftp: pkg.maxftp || 0,
-              maxaddon: pkg.maxaddon || 0,
-              maxpark: pkg.maxpark || 0,
-              maxlst: pkg.maxlst || 0,
-              feature_list: pkg.featurelist || 'default',
-              ip: pkg.ip || 'shared'
+              diskquota: parseWhmValue(pkg.QUOTA || pkg.quota || pkg.diskquota),
+              bwlimit: parseWhmValue(pkg.BWLIMIT || pkg.bwlimit),
+              maxpop: parseWhmValue(pkg.MAXPOP || pkg.maxpop),
+              maxsql: parseWhmValue(pkg.MAXSQL || pkg.maxsql),
+              maxsub: parseWhmValue(pkg.MAXSUB || pkg.maxsub),
+              maxftp: parseWhmValue(pkg.MAXFTP || pkg.maxftp),
+              maxaddon: parseWhmValue(pkg.MAXADDON || pkg.maxaddon),
+              maxpark: parseWhmValue(pkg.MAXPARK || pkg.maxpark),
+              maxlst: parseWhmValue(pkg.MAXLST || pkg.maxlst),
+              feature_list: pkg.FEATURELIST || pkg.featurelist || 'default',
+              ip: pkg.IP || pkg.ip || 'shared'
             });
           }
         } else {
