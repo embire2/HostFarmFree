@@ -599,22 +599,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Extract base URL properly - parse the full URL to get just the protocol and host
         const apiUrl = new URL(apiSettings.whmApiUrl);
         const baseUrl = `${apiUrl.protocol}//${apiUrl.hostname}`;
-        const createSessionUrl = `${baseUrl}:2087/json-api/create_user_session`;
+        
+        // Create the correct WHM API URL with query parameters
+        const createSessionUrl = `${baseUrl}:2087/json-api/create_user_session?api.version=1&user=${hostingAccount.cpanelUsername}&service=cpaneld`;
         const authHeader = `whm root:${apiSettings.whmApiToken}`;
 
         console.log(`[cPanel Login API] Base URL extracted: ${baseUrl}`);
         console.log(`[cPanel Login API] Making WHM create_user_session request to: ${createSessionUrl}`);
 
         const sessionResponse = await fetch(createSessionUrl, {
-          method: 'POST',
+          method: 'GET',
           headers: {
-            'Authorization': authHeader,
-            'Content-Type': 'application/x-www-form-urlencoded'
-          },
-          body: new URLSearchParams({
-            user: hostingAccount.cpanelUsername,
-            service: 'cpaneld'
-          })
+            'Authorization': authHeader
+          }
         });
 
         const sessionData = await sessionResponse.json();
