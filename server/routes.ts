@@ -776,12 +776,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log(`[Fix WHM Account API] Creating WHM account with username: ${whmUsername}`);
         console.log(`[Fix WHM Account API] Using URL: ${createAccountUrl}`);
 
+        // Get the hosting package to get the correct WHM package name
+        const hostingPackage = await storage.getHostingPackageById(hostingAccount.packageId);
+        const whmPackageName = hostingPackage?.whmPackageName || '512MB Free Hosting';
+        
+        console.log(`[Fix WHM Account API] Using WHM package: ${whmPackageName}`);
+
         const whmFormData = new URLSearchParams({
           username: whmUsername,
           password: whmPassword,
           domain: hostingAccount.domain,
           email: user.email || `${whmUsername}@${hostingAccount.domain}`,
-          plan: 'free-starter',
+          plan: whmPackageName,
           ip: 'n', // Use shared IP
           cgi: '1',
           frontpage: '0',

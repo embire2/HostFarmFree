@@ -326,6 +326,13 @@ Changelog:
 - July 9, 2025. Fixed React hooks error in free domain registration by properly calling generateFingerprint()
 - July 9, 2025. Resolved "Cannot read properties of undefined (reading 'fingerprintHash')" error in device fingerprinting
 - July 9, 2025. Both free hosting registration and premium domain ordering now work without errors
+- July 11, 2025. CRITICAL FIX: Fixed WHM API field name mismatch preventing Fix button functionality
+- July 11, 2025. Resolved schema/code inconsistency between whmApiUrl (schema) and whmServerUrl (code)
+- July 11, 2025. Updated all WHM API endpoints to use correct field names from database
+- July 11, 2025. Fixed WHM package name error - using correct "512MB Free Hosting" instead of "free-starter"
+- July 11, 2025. Enhanced WHM API error handling with comprehensive logging and JSON parsing
+- July 11, 2025. Verified WHM API connectivity and authentication working correctly
+- July 11, 2025. Fix button now properly recreates broken WHM accounts with correct credentials
 ```
 
 # User Preferences
