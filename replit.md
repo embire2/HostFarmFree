@@ -340,6 +340,8 @@ Changelog:
 - July 11, 2025. Fixed persistent URL duplication issue in cPanel login URL construction
 - July 11, 2025. CRITICAL AUTO-LOGIN FIX: Fixed WHM API create_user_session endpoint to use GET with query parameters instead of POST with form data
 - July 11, 2025. Updated WHM API call to use correct format: api.version=1&user=username&service=cpaneld for proper cPanel auto-login functionality
+- July 11, 2025. DOMAIN SEARCH FIX: Fixed domain search endpoint mismatch - updated frontend to use correct /api/check-domain-availability endpoint
+- July 11, 2025. Fixed domain search functionality - search now properly calls the backend API to check domain availability
 ```
 
 # User Preferences

@@ -48,11 +48,14 @@ export default function DomainSearch({ onSuccess }: DomainSearchProps) {
   }, []); // Remove canRegisterAccount dependency to prevent frequent calls
 
   const { data: searchResult, isLoading: isSearching } = useQuery({
-    queryKey: ["/api/check-subdomain", lastSearched],
+    queryKey: ["/api/check-domain-availability", lastSearched],
     queryFn: async () => {
       if (!lastSearched) return null;
       const subdomain = lastSearched.replace('.hostme.today', '');
-      const response = await fetch(`/api/check-subdomain/${subdomain}`);
+      const fullDomain = `${subdomain}.hostme.today`;
+      const response = await apiRequest("POST", "/api/check-domain-availability", {
+        domain: fullDomain
+      });
       return response.json();
     },
     enabled: !!lastSearched,
