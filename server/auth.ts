@@ -63,28 +63,7 @@ function generateRecoveryPhrase(): string {
 }
 
 export function setupAuth(app: Express) {
-  const PostgresSessionStore = connectPg(session);
-  
-  const sessionSettings: session.SessionOptions = {
-    secret: process.env.SESSION_SECRET || "fallback-secret-for-dev",
-    resave: false,
-    saveUninitialized: false,
-    store: new PostgresSessionStore({
-      conString: process.env.DATABASE_URL,
-      createTableIfMissing: true,
-      tableName: "sessions",
-    }),
-    cookie: {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 1 week
-    },
-  };
-
-  app.set("trust proxy", 1);
-  app.use(session(sessionSettings));
-  app.use(passport.initialize());
-  app.use(passport.session());
+  // Session and passport are already initialized by replitAuth.ts, just configure local strategy
 
   passport.use(
     new LocalStrategy(async (username, password, done) => {
@@ -108,15 +87,7 @@ export function setupAuth(app: Express) {
     }),
   );
 
-  passport.serializeUser((user, done) => done(null, user.id));
-  passport.deserializeUser(async (id: number, done) => {
-    try {
-      const user = await storage.getUser(id);
-      done(null, user);
-    } catch (error) {
-      done(error);
-    }
-  });
+  // Serialization is already handled by replitAuth.ts
 
   // Anonymous registration endpoint
   app.post("/api/register-anonymous", async (req, res, next) => {
@@ -245,7 +216,7 @@ export function setupAuth(app: Express) {
     }
   });
 
-  app.post("/api/login", passport.authenticate("local"), (req, res) => {
+  app.post("/api/auth/login", passport.authenticate("local"), (req, res) => {
     const user = req.user as SelectUser;
     res.status(200).json({ 
       id: user.id, 

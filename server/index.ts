@@ -1,7 +1,8 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
-import { setupAuth } from "./replitAuth";
+import { setupAuth as setupReplitAuth } from "./replitAuth";
+import { setupAuth as setupLocalAuth } from "./auth";
 
 const app = express();
 app.use(express.json());
@@ -39,7 +40,8 @@ app.use((req, res, next) => {
 
 (async () => {
   // Initialize authentication middleware before routes
-  await setupAuth(app);
+  await setupReplitAuth(app);
+  setupLocalAuth(app); // Add local authentication endpoints
   
   const server = await registerRoutes(app);
 
