@@ -1455,6 +1455,208 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get hosting account statistics from WHM API
+  app.get("/api/hosting-accounts/:id/stats", isAuthenticated, async (req: any, res) => {
+    try {
+      const accountId = parseInt(req.params.id);
+      console.log(`[Hosting Stats API] ===== START HOSTING STATS FETCH =====`);
+      console.log(`[Hosting Stats API] Account ID: ${accountId}`);
+      console.log(`[Hosting Stats API] User ID: ${req.user?.id}`);
+
+      // Get the hosting account
+      const hostingAccount = await storage.getHostingAccountById(accountId);
+      if (!hostingAccount) {
+        console.log(`[Hosting Stats API] Account not found`);
+        return res.status(404).json({ 
+          success: false,
+          message: "Hosting account not found",
+          source: 'error'
+        });
+      }
+
+      // Check if user owns this account (unless admin)
+      if (req.user.role !== 'admin' && hostingAccount.userId !== req.user.id) {
+        console.log(`[Hosting Stats API] Unauthorized access attempt`);
+        return res.status(403).json({ 
+          success: false,
+          message: "Unauthorized access",
+          source: 'error'
+        });
+      }
+
+      // Get API settings
+      const apiSettings = await storage.getApiSettings();
+      if (!apiSettings?.whmApiUrl || !apiSettings?.whmApiToken) {
+        console.log(`[Hosting Stats API] WHM API not configured, returning default stats`);
+        return res.json({
+          source: 'default',
+          error: 'WHM API not configured',
+          diskUsage: 0,
+          diskLimit: 5120,
+          bandwidthUsed: 0,
+          bandwidthLimit: 10240,
+          emailAccounts: 0,
+          emailLimit: 10,
+          databases: 0,
+          databaseLimit: 5,
+          subdomains: 0,
+          subdomainLimit: 10,
+          ftpAccounts: 0,
+          ftpAccountLimit: 5,
+          addonDomains: 0,
+          addonDomainLimit: 0,
+          parkDomains: 0,
+          parkDomainLimit: 0,
+          lastUpdate: new Date().toISOString()
+        });
+      }
+
+      // Generate the correct username from domain
+      const subdomain = hostingAccount.domain.replace('.hostme.today', '');
+      let whmUsername = subdomain;
+      
+      // Ensure username starts with a letter (WHM requirement)
+      if (/^\d/.test(whmUsername)) {
+        whmUsername = 'h' + whmUsername;
+      }
+      
+      // Limit to 16 characters for cPanel
+      if (whmUsername.length > 16) {
+        whmUsername = whmUsername.substring(0, 16);
+      }
+
+      console.log(`[Hosting Stats API] Using WHM username: ${whmUsername}`);
+
+      try {
+        // Call WHM API to get account information
+        const baseUrl = apiSettings.whmApiUrl.replace(/\/+$/, '');
+        const accountSummaryUrl = `${baseUrl}/accountsummary?api.version=1&user=${whmUsername}`;
+        const authHeader = `whm root:${apiSettings.whmApiToken}`;
+
+        console.log(`[Hosting Stats API] Fetching from WHM: ${accountSummaryUrl}`);
+
+        const whmResponse = await fetch(accountSummaryUrl, {
+          method: 'GET',
+          headers: {
+            'Authorization': authHeader
+          }
+        });
+
+        if (!whmResponse.ok) {
+          console.log(`[Hosting Stats API] WHM API error: ${whmResponse.status}`);
+          throw new Error(`WHM API returned ${whmResponse.status}`);
+        }
+
+        const whmData = await whmResponse.json();
+        console.log(`[Hosting Stats API] WHM response received:`, {
+          status: whmResponse.status,
+          hasData: !!whmData?.data,
+          hasAcctInfo: !!whmData?.data?.acct
+        });
+
+        if (whmData?.data?.acct && whmData.data.acct.length > 0) {
+          const acctInfo = whmData.data.acct[0];
+          console.log(`[Hosting Stats API] ✓ Successfully retrieved WHM data for ${whmUsername}`);
+
+          // Extract all available stats from WHM response
+          const stats = {
+            source: 'whm_api',
+            // Disk usage (convert from MB strings to numbers)
+            diskUsage: parseInt(acctInfo.diskused?.replace('M', '') || '0'),
+            diskLimit: acctInfo.disklimit === 'unlimited' ? 999999 : parseInt(acctInfo.disklimit?.replace('M', '') || '5120'),
+            
+            // Bandwidth (already in MB)
+            bandwidthUsed: parseInt(acctInfo.diskused || '0'), // WHM often reports disk as bandwidth
+            bandwidthLimit: acctInfo.bwlimit === 'unlimited' ? 999999 : parseInt(acctInfo.bwlimit || '10240'),
+            
+            // Email accounts
+            emailAccounts: parseInt(acctInfo.email_quota?.used || '0'),
+            emailLimit: acctInfo.maxpop === 'unlimited' ? 999 : parseInt(acctInfo.maxpop || '10'),
+            
+            // Databases
+            databases: parseInt(acctInfo.mysql_disk_usage ? '1' : '0'), // Estimate based on usage
+            databaseLimit: acctInfo.maxsql === 'unlimited' ? 999 : parseInt(acctInfo.maxsql || '5'),
+            
+            // Subdomains
+            subdomains: parseInt(acctInfo.subdomains_used || '0'),
+            subdomainLimit: acctInfo.maxsub === 'unlimited' ? 999 : parseInt(acctInfo.maxsub || '10'),
+            
+            // FTP accounts
+            ftpAccounts: parseInt(acctInfo.ftpaccounts || '0'),
+            ftpAccountLimit: acctInfo.maxftp === 'unlimited' ? 999 : parseInt(acctInfo.maxftp || '5'),
+            
+            // Addon domains
+            addonDomains: parseInt(acctInfo.addondomains_used || '0'),
+            addonDomainLimit: acctInfo.maxaddon === 'unlimited' ? 999 : parseInt(acctInfo.maxaddon || '0'),
+            
+            // Parked domains
+            parkDomains: parseInt(acctInfo.parkeddomains_used || '0'),
+            parkDomainLimit: acctInfo.maxpark === 'unlimited' ? 999 : parseInt(acctInfo.maxpark || '0'),
+            
+            // Additional info
+            ip: acctInfo.ip || 'Shared',
+            packageName: acctInfo.plan || 'Unknown',
+            suspended: acctInfo.suspended === 1 || acctInfo.suspendreason !== 'not suspended',
+            suspendReason: acctInfo.suspendreason,
+            lastUpdate: new Date().toISOString(),
+            
+            // Include raw data for debugging
+            _raw: acctInfo
+          };
+
+          console.log(`[Hosting Stats API] Returning comprehensive WHM stats`);
+          console.log(`[Hosting Stats API] ===== END HOSTING STATS FETCH (SUCCESS) =====`);
+          return res.json(stats);
+        } else {
+          console.log(`[Hosting Stats API] No account data in WHM response`);
+          throw new Error('No account data returned from WHM');
+        }
+
+      } catch (whmError) {
+        console.error(`[Hosting Stats API] WHM API error:`, whmError);
+        console.log(`[Hosting Stats API] Falling back to database values`);
+        
+        // Return database values as fallback
+        const fallbackStats = {
+          source: 'database_fallback',
+          error: `WHM API error: ${whmError.message}`,
+          diskUsage: hostingAccount.diskUsage || 0,
+          diskLimit: hostingAccount.diskLimit || 5120,
+          bandwidthUsed: hostingAccount.bandwidthUsed || 0,
+          bandwidthLimit: hostingAccount.bandwidthLimit || 10240,
+          emailAccounts: 0,
+          emailLimit: 10,
+          databases: 0,
+          databaseLimit: 5,
+          subdomains: 0,
+          subdomainLimit: 10,
+          ftpAccounts: 0,
+          ftpAccountLimit: 5,
+          addonDomains: 0,
+          addonDomainLimit: 0,
+          parkDomains: 0,
+          parkDomainLimit: 0,
+          lastUpdate: new Date().toISOString()
+        };
+
+        console.log(`[Hosting Stats API] ===== END HOSTING STATS FETCH (FALLBACK) =====`);
+        return res.json(fallbackStats);
+      }
+
+    } catch (error) {
+      console.error(`[Hosting Stats API] ===== CRITICAL ERROR IN STATS FETCH =====`);
+      console.error(`[Hosting Stats API] Error:`, error);
+      console.error(`[Hosting Stats API] ===== END CRITICAL ERROR =====`);
+      
+      res.status(500).json({ 
+        success: false,
+        message: "Failed to fetch hosting statistics",
+        error: error?.message || "Unknown error",
+        source: 'error'
+      });
+    }
+  });
+
   // Create and return the HTTP server (required for Vite HMR)
   const server = createServer(app);
   return server;

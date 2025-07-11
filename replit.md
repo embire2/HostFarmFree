@@ -359,6 +359,14 @@ Changelog:
 - July 11, 2025. Added query parameter tracking (from=conversion) to help dashboard identify conversion flow users
 - July 11, 2025. Increased dashboard authentication timeout to 8 seconds for better session recovery
 - July 11, 2025. Enhanced auth refresh logic in dashboard to force query refresh for conversion users
+- July 11, 2025. CRITICAL PASSWORD FIX: Fixed anonymous user login by handling both hashed and plain text passwords in comparePasswords function
+- July 11, 2025. PLUGIN LIBRARY FIX: Added proper plugin download and image serving endpoints to fix missing images and broken downloads
+- July 11, 2025. Updated all plugin image URLs in database from /static/plugins/ to /api/plugins/image/ format
+- July 11, 2025. Fixed plugin download functionality to trigger actual file downloads after recording statistics
+- July 11, 2025. MAJOR WHM STATS FIX: Implemented comprehensive hosting account statistics endpoint that pulls ALL data from WHM API
+- July 11, 2025. Added complete WHM accountsummary API integration with real-time data for disk, bandwidth, email, databases, subdomains, FTP, addon/parked domains
+- July 11, 2025. Stats endpoint now displays Live WHM Data vs Database Cache vs Default Values indicators
+- July 11, 2025. Enhanced client dashboard to show comprehensive hosting statistics including all resource limits and usage
 ```
 
 # User Preferences
