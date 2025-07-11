@@ -333,6 +333,9 @@ Changelog:
 - July 11, 2025. Enhanced WHM API error handling with comprehensive logging and JSON parsing
 - July 11, 2025. Verified WHM API connectivity and authentication working correctly
 - July 11, 2025. Fix button now properly recreates broken WHM accounts with correct credentials
+- July 11, 2025. CRITICAL cPanel URL FIX: Fixed duplicated paths in cPanel login URL construction
+- July 11, 2025. Fixed URL extraction logic to properly remove port and path components from WHM API URL
+- July 11, 2025. cPanel login now generates correct URLs: :2087/json-api/create_user_session for auto-login, :2083 for manual login
 ```
 
 # User Preferences

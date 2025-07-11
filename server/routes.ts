@@ -596,8 +596,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Try to create a WHM session for auto-login
       try {
-        const whmUrl = apiSettings.whmApiUrl.replace(/\/+$/, '').replace(':2087/json-api/', '');
-        const createSessionUrl = `${whmUrl}:2087/json-api/create_user_session`;
+        // Extract base URL properly (remove port and path)
+        const baseUrl = apiSettings.whmApiUrl.replace(/\/+$/, '').replace(/:2087.*$/, '');
+        const createSessionUrl = `${baseUrl}:2087/json-api/create_user_session`;
         const authHeader = `whm root:${apiSettings.whmApiToken}`;
 
         console.log(`[cPanel Login API] Making WHM create_user_session request to: ${createSessionUrl}`);
@@ -637,7 +638,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         } else {
           // Auto-login failed, fall back to manual login
           console.log(`[cPanel Login API] Auto-login failed, providing manual login info`);
-          const cpanelUrl = `${whmUrl}:2083`;
+          const cpanelUrl = `${baseUrl}:2083`;
           
           console.log(`[cPanel Login API] ===== END CPANEL LOGIN (MANUAL FALLBACK) =====`);
           return res.json({
@@ -656,7 +657,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.error(`[cPanel Login API] WHM API error:`, whmError);
         
         // Fall back to manual login
-        const cpanelUrl = `${apiSettings.whmApiUrl.replace(/\/+$/, '').replace(':2087/json-api/', '')}:2083`;
+        const baseUrl = apiSettings.whmApiUrl.replace(/\/+$/, '').replace(/:2087.*$/, '');
+        const cpanelUrl = `${baseUrl}:2083`;
         console.log(`[cPanel Login API] ===== END CPANEL LOGIN (ERROR FALLBACK) =====`);
         
         return res.json({
