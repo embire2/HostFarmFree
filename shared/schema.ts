@@ -383,24 +383,24 @@ export const premiumHostingOrders = pgTable("premium_hosting_orders", {
 // Pending orders table - consolidated for all order types
 export const pendingOrders = pgTable("pending_orders", {
   id: serial("id").primaryKey(),
-  orderType: varchar("order_type").notNull(), // 'vps' | 'premium_hosting'
-  orderId: integer("order_id").notNull(), // Reference to vpsOrders.id or premiumHostingOrders.id
-  customerEmail: varchar("customer_email").notNull(),
-  customerName: varchar("customer_name"),
+  orderType: varchar("orderType").notNull(), // 'vps' | 'premium_hosting'
+  orderId: integer("orderId").notNull(), // Reference to vpsOrders.id or premiumHostingOrders.id
+  customerEmail: varchar("customerEmail").notNull(),
+  customerName: varchar("customerName"),
   status: varchar("status").notNull().default("pending"), // 'pending' | 'approved' | 'rejected'
   
   // Order details snapshot (JSON for flexibility)
-  orderDetails: text("order_details").notNull(), // JSON string with order specifications
+  orderDetails: text("orderDetails").notNull(), // JSON string with order specifications
   
   // Pricing information
-  totalPrice: integer("total_price").notNull(), // in cents
+  totalPrice: integer("totalPrice").notNull(), // in cents
   currency: varchar("currency").notNull().default("USD"),
   
   // Admin processing
-  processedBy: integer("processed_by").references(() => users.id),
-  processedAt: timestamp("processed_at"),
-  rejectionReason: text("rejection_reason"),
-  adminNotes: text("admin_notes"),
+  processedBy: integer("processedBy").references(() => users.id),
+  processedAt: timestamp("processedAt"),
+  rejectionReason: text("rejectionReason"),
+  adminNotes: text("adminNotes"),
   
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
