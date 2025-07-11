@@ -24,6 +24,23 @@ export default function Conversion() {
       setRegistrationType(type);
       setRedirectUrl(destination);
 
+      // Force refresh user authentication state for dashboard access
+      if (destination === '/dashboard') {
+        console.log("[Conversion Page] Refreshing user authentication for dashboard access");
+        // Invalidate auth cache to force refresh
+        fetch('/api/user', { credentials: 'include' })
+          .then(response => {
+            if (response.ok) {
+              console.log("[Conversion Page] ✓ User authentication refreshed successfully");
+            } else {
+              console.log("[Conversion Page] ⚠️ User authentication refresh failed");
+            }
+          })
+          .catch(error => {
+            console.error("[Conversion Page] ❌ Error refreshing user authentication:", error);
+          });
+      }
+
       // Store conversion data for Facebook Pixel tracking
       const conversionData = {
         type: type,

@@ -1,6 +1,7 @@
 import { useAuth } from "@/hooks/use-auth";
 import { useLocation } from "wouter";
 import { useEffect } from "react";
+import { queryClient } from "@/lib/queryClient";
 import ClientDashboard from "./client-dashboard";
 import AdminDashboard from "./admin-dashboard";
 import Landing from "./landing";
@@ -9,17 +10,28 @@ export default function Dashboard() {
   const { user, isAuthenticated, isLoading } = useAuth();
   const [, setLocation] = useLocation();
 
-  // Handle authentication state changes
+  // Handle authentication state changes and force refresh for new users
   useEffect(() => {
-    // If we're done loading and still not authenticated, wait a bit for auth to process
+    // Check if user is coming from registration/conversion flow
+    const isFromConversion = window.location.pathname === '/dashboard' && 
+                           document.referrer.includes('/conversion');
+    
+    if (isFromConversion) {
+      console.log("[Dashboard] User coming from conversion, forcing auth refresh");
+      // Force refresh user data
+      queryClient.invalidateQueries({ queryKey: ['/api/user'] });
+    }
+
+    // If we're done loading and still not authenticated, wait longer for auth to process
+    // This is especially important for users coming from registration/conversion flow
     if (!isLoading && !isAuthenticated) {
       const timeoutId = setTimeout(() => {
-        // If still not authenticated after 2 seconds, redirect to home
+        // If still not authenticated after 5 seconds, redirect to home
         if (!isAuthenticated) {
           console.log("[Dashboard] User not authenticated after timeout, redirecting to home");
           setLocation("/");
         }
-      }, 2000);
+      }, 5000);
 
       return () => clearTimeout(timeoutId);
     }

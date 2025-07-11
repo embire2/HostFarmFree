@@ -595,6 +595,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
           console.error('[Domain Registration API] Failed to login user automatically:', err);
         } else {
           console.log('[Domain Registration API] ✓ User automatically logged in');
+          // Force session save to ensure persistence
+          req.session.save((saveErr) => {
+            if (saveErr) {
+              console.error('[Domain Registration API] Failed to save session:', saveErr);
+            } else {
+              console.log('[Domain Registration API] ✓ Session saved successfully');
+            }
+          });
         }
       });
 
