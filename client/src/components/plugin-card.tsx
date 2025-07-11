@@ -23,11 +23,17 @@ export default function PluginCard({ plugin }: PluginCardProps) {
       const response = await apiRequest("POST", `/api/plugins/${plugin.id}/download`);
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       toast({
         title: "Download Started",
-        description: `${plugin.name} download has been recorded.`,
+        description: `${plugin.name} download has started!`,
       });
+      
+      // Trigger the actual file download
+      if (data.downloadUrl) {
+        window.open(data.downloadUrl, '_blank');
+      }
+      
       queryClient.invalidateQueries({ queryKey: ["/api/plugins"] });
       queryClient.invalidateQueries({ queryKey: ["/api/plugin-downloads"] });
     },
