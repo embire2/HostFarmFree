@@ -261,7 +261,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get hosting packages
   app.get("/api/admin/packages", isAuthenticated, requireAdmin, async (req, res) => {
     try {
-      const packages = await storage.getAllHostingPackages();
+      const packages = await storage.getHostingPackages();
       res.json(packages);
     } catch (error) {
       console.error('Error fetching packages:', error);

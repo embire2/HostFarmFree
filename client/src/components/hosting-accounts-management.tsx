@@ -477,7 +477,10 @@ export default function HostingAccountsManagement() {
 
   const getTotalAccountsCount = () => {
     if (!clientAccounts || !Array.isArray(clientAccounts)) return 0;
-    return clientAccounts.reduce((total, client) => total + (client.hostingAccounts?.length || 0), 0);
+    return clientAccounts.reduce((total, client) => {
+      const accounts = client?.hostingAccounts;
+      return total + (Array.isArray(accounts) ? accounts.length : 0);
+    }, 0);
   };
 
   if (isLoading) {
@@ -733,14 +736,14 @@ export default function HostingAccountsManagement() {
                     </div>
                   </div>
                   <Badge variant="outline" className="text-sm">
-                    {client.hostingAccounts.length} Account{client.hostingAccounts.length !== 1 ? 's' : ''}
+                    {client.hostingAccounts?.length || 0} Account{(client.hostingAccounts?.length || 0) !== 1 ? 's' : ''}
                   </Badge>
                 </div>
               </CardHeader>
 
               <CardContent className="p-6">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                  {client.hostingAccounts.map((account) => (
+                  {(client.hostingAccounts || []).map((account) => (
                     <div key={account.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
                       {/* Account Header */}
                       <div className="flex items-start justify-between mb-3">

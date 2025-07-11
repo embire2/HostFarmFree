@@ -153,7 +153,6 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
   }
   
   console.log('✓ Authentication successful - user ID:', user.id, 'role:', user.role);
-  next();
 
   const now = Math.floor(Date.now() / 1000);
   if (now <= user.expires_at) {
@@ -162,8 +161,7 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
 
   const refreshToken = user.refresh_token;
   if (!refreshToken) {
-    res.status(401).json({ message: "Unauthorized" });
-    return;
+    return res.status(401).json({ message: "Unauthorized" });
   }
 
   try {
@@ -172,7 +170,6 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
     updateUserSession(user, tokenResponse);
     return next();
   } catch (error) {
-    res.status(401).json({ message: "Unauthorized" });
-    return;
+    return res.status(401).json({ message: "Unauthorized" });
   }
 };
