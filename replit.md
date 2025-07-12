@@ -372,6 +372,19 @@ Changelog:
 - July 11, 2025. Fixed WHM field mapping to handle uppercase field names (QUOTA, BWLIMIT, MAXPOP, etc.) from WHM API response
 - July 11, 2025. Added proper handling for "unlimited" values from WHM, converting them to -1 for database storage
 - July 11, 2025. Admin dashboard now displays 6 WHM packages with correct quota values: 10GB Free, 10GB Free 2, 512MB Free Hosting, 5GB-Paid, Unlimited, default
+- July 11, 2025. CRITICAL PACKAGE MANAGEMENT FIX: Added missing package management API endpoints (create, update, delete, duplicate)
+- July 11, 2025. Fixed package management by adding POST, PUT, DELETE endpoints that were completely missing from the API
+- July 11, 2025. Added deleteHostingPackage method to storage interface to support package deletion functionality
+- July 11, 2025. Admin can now successfully create, edit, delete, and duplicate hosting packages through the admin dashboard
+- July 11, 2025. CRITICAL FIX: Fixed WHM package assignment - system now uses admin-configured WHM package instead of hardcoded "512MB Free Hosting"
+- July 11, 2025. Updated domain registration to fetch hosting package details and use the associated whmPackageName
+- July 11, 2025. Fixed Fix WHM Account endpoint to also use the correct WHM package from the hosting package configuration
+- July 11, 2025. System now properly respects admin's package assignments when creating hosting accounts on WHM
+- July 12, 2025. CRITICAL WHM FIELD MAPPING FIX: Fixed email, database, subdomain, and FTP account statistics parsing from WHM API
+- July 12, 2025. Updated WHM API field mapping to use correct field names (EMAILACCTS, MYSQL, SUBDOMAINS, FTPACCTS) instead of incorrect ones
+- July 12, 2025. Fixed hosting statistics to show accurate counts for email accounts, databases, subdomains, and FTP accounts from live WHM data
+- July 12, 2025. Added comprehensive WHM field debugging to identify correct field names from actual API responses
+- July 12, 2025. Client dashboard now displays accurate resource usage and limits for all hosting account services
 ```
 
 # User Preferences
