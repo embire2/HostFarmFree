@@ -1751,14 +1751,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`[Hosting Stats API] Using WHM username: ${whmUsername}`);
 
       try {
-        // Call WHM API to get account information
+        // Call WHM API to get account information using listaccts for better data
         const baseUrl = apiSettings.whmApiUrl.replace(/\/+$/, '');
-        const accountSummaryUrl = `${baseUrl}/accountsummary?api.version=1&user=${whmUsername}`;
+        const listAcctsUrl = `${baseUrl}/listaccts?api.version=1&search=${whmUsername}&searchtype=user`;
         const authHeader = `whm root:${apiSettings.whmApiToken}`;
 
-        console.log(`[Hosting Stats API] Fetching from WHM: ${accountSummaryUrl}`);
+        console.log(`[Hosting Stats API] Fetching from WHM listaccts: ${listAcctsUrl}`);
 
-        const whmResponse = await fetch(accountSummaryUrl, {
+        const whmResponse = await fetch(listAcctsUrl, {
           method: 'GET',
           headers: {
             'Authorization': authHeader
@@ -1783,52 +1783,61 @@ export async function registerRoutes(app: Express): Promise<Server> {
           
           // Log available fields for debugging
           console.log(`[Hosting Stats API] Available WHM fields:`, {
+            allFieldNames: Object.keys(acctInfo),
             emailFields: { EMAILACCTS: acctInfo.EMAILACCTS, emailaccts: acctInfo.emailaccts, MAXPOP: acctInfo.MAXPOP, maxpop: acctInfo.maxpop },
             databaseFields: { MYSQL: acctInfo.MYSQL, mysql: acctInfo.mysql, MAXSQL: acctInfo.MAXSQL, maxsql: acctInfo.maxsql },
             subdomainFields: { SUBDOMAINS: acctInfo.SUBDOMAINS, subdomains: acctInfo.subdomains, MAXSUB: acctInfo.MAXSUB, maxsub: acctInfo.maxsub },
-            ftpFields: { FTPACCTS: acctInfo.FTPACCTS, ftpaccts: acctInfo.ftpaccts, MAXFTP: acctInfo.MAXFTP, maxftp: acctInfo.maxftp }
+            ftpFields: { FTPACCTS: acctInfo.FTPACCTS, ftpaccts: acctInfo.ftpaccts, MAXFTP: acctInfo.MAXFTP, maxftp: acctInfo.maxftp },
+            packageFields: { plan: acctInfo.plan, package: acctInfo.package, PLAN: acctInfo.PLAN }
           });
+
+          // Helper function to handle unlimited values
+          const parseLimit = (value, defaultValue = 0) => {
+            if (value === 'unlimited' || value === 'Unlimited') return 'unlimited';
+            const parsed = parseInt(value || defaultValue);
+            return isNaN(parsed) ? defaultValue : parsed;
+          };
 
           // Extract all available stats from WHM response
           const stats = {
             source: 'whm_api',
             // Disk usage (convert from MB strings to numbers)
-            diskUsage: parseInt(acctInfo.diskused?.replace('M', '') || '0'),
-            diskLimit: acctInfo.disklimit === 'unlimited' ? 999999 : parseInt(acctInfo.disklimit?.replace('M', '') || '5120'),
+            diskUsage: parseInt((acctInfo.diskused || acctInfo.DISKUSED || '0').toString().replace('M', '')),
+            diskLimit: parseLimit(acctInfo.disklimit || acctInfo.DISKLIMIT, 5120),
             
             // Bandwidth (already in MB)
-            bandwidthUsed: parseInt(acctInfo.diskused || '0'), // WHM often reports disk as bandwidth
-            bandwidthLimit: acctInfo.bwlimit === 'unlimited' ? 999999 : parseInt(acctInfo.bwlimit || '10240'),
+            bandwidthUsed: parseInt((acctInfo.totalbw || acctInfo.TOTALBW || '0').toString()),
+            bandwidthLimit: parseLimit(acctInfo.bwlimit || acctInfo.BWLIMIT, 10240),
             
             // Email accounts - using correct WHM API field names
-            emailAccounts: parseInt(acctInfo.EMAILACCTS || acctInfo.emailaccts || '0'),
-            emailLimit: (acctInfo.MAXPOP === 'unlimited' || acctInfo.maxpop === 'unlimited') ? 999 : parseInt(acctInfo.MAXPOP || acctInfo.maxpop || '10'),
+            emailAccounts: parseInt(acctInfo.EMAILACCTS || acctInfo.emailaccts || acctInfo.email || '0'),
+            emailLimit: parseLimit(acctInfo.MAXPOP || acctInfo.maxpop, 10),
             
             // Databases - using correct WHM API field names  
-            databases: parseInt(acctInfo.MYSQL || acctInfo.mysql || '0'),
-            databaseLimit: (acctInfo.MAXSQL === 'unlimited' || acctInfo.maxsql === 'unlimited') ? 999 : parseInt(acctInfo.MAXSQL || acctInfo.maxsql || '5'),
+            databases: parseInt(acctInfo.MYSQL || acctInfo.mysql || acctInfo.mysqldbs || '0'),
+            databaseLimit: parseLimit(acctInfo.MAXSQL || acctInfo.maxsql, 5),
             
             // Subdomains - using correct WHM API field names
-            subdomains: parseInt(acctInfo.SUBDOMAINS || acctInfo.subdomains || '0'), 
-            subdomainLimit: (acctInfo.MAXSUB === 'unlimited' || acctInfo.maxsub === 'unlimited') ? 999 : parseInt(acctInfo.MAXSUB || acctInfo.maxsub || '10'),
+            subdomains: parseInt(acctInfo.SUBDOMAINS || acctInfo.subdomains || acctInfo.subdomain || '0'), 
+            subdomainLimit: parseLimit(acctInfo.MAXSUB || acctInfo.maxsub, 10),
             
             // FTP accounts - using correct WHM API field names
-            ftpAccounts: parseInt(acctInfo.FTPACCTS || acctInfo.ftpaccts || '0'),
-            ftpAccountLimit: (acctInfo.MAXFTP === 'unlimited' || acctInfo.maxftp === 'unlimited') ? 999 : parseInt(acctInfo.MAXFTP || acctInfo.maxftp || '5'),
+            ftpAccounts: parseInt(acctInfo.FTPACCTS || acctInfo.ftpaccts || acctInfo.ftp || '0'),
+            ftpAccountLimit: parseLimit(acctInfo.MAXFTP || acctInfo.maxftp, 5),
             
             // Addon domains
-            addonDomains: parseInt(acctInfo.addondomains_used || '0'),
-            addonDomainLimit: acctInfo.maxaddon === 'unlimited' ? 999 : parseInt(acctInfo.maxaddon || '0'),
+            addonDomains: parseInt(acctInfo.addon_domains || acctInfo.ADDON_DOMAINS || '0'),
+            addonDomainLimit: parseLimit(acctInfo.maxaddon || acctInfo.MAXADDON, 0),
             
             // Parked domains
-            parkDomains: parseInt(acctInfo.parkeddomains_used || '0'),
-            parkDomainLimit: acctInfo.maxpark === 'unlimited' ? 999 : parseInt(acctInfo.maxpark || '0'),
+            parkDomains: parseInt(acctInfo.parked_domains || acctInfo.PARKED_DOMAINS || '0'),
+            parkDomainLimit: parseLimit(acctInfo.maxpark || acctInfo.MAXPARK, 0),
             
             // Additional info
-            ip: acctInfo.ip || 'Shared',
-            packageName: acctInfo.plan || 'Unknown',
-            suspended: acctInfo.suspended === 1 || acctInfo.suspendreason !== 'not suspended',
-            suspendReason: acctInfo.suspendreason,
+            ip: acctInfo.ip || acctInfo.IP || 'Shared',
+            packageName: acctInfo.plan || acctInfo.PLAN || acctInfo.package || 'Unknown',
+            suspended: acctInfo.suspended === 1 || acctInfo.SUSPENDED === 1 || (acctInfo.suspendreason && acctInfo.suspendreason !== 'not suspended'),
+            suspendReason: acctInfo.suspendreason || acctInfo.SUSPENDREASON || 'not suspended',
             lastUpdate: new Date().toISOString(),
             
             // Include raw data for debugging

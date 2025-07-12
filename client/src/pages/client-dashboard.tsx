@@ -140,6 +140,12 @@ function AccountCard({ account, onCpanelLogin }: { account: HostingAccount; onCp
     return value < 1024 ? `${value.toFixed(1)} MB` : `${(value / 1024).toFixed(1)} GB`;
   };
 
+  const formatLimit = (limit: any) => {
+    if (limit === 'unlimited' || limit === 'Unlimited') return 'unlimited';
+    if (typeof limit === 'number' && limit >= 999) return 'unlimited';
+    return limit.toString();
+  };
+
   return (
     <div className="border rounded-lg p-4 hover:shadow-md transition-shadow">
       <div className="flex items-start justify-between mb-3">
@@ -248,7 +254,7 @@ function AccountCard({ account, onCpanelLogin }: { account: HostingAccount; onCp
                 <span className="text-sm font-medium">Email</span>
               </div>
               <div className="text-lg font-bold text-blue-600">{accountStats.emailAccounts}</div>
-              <div className="text-xs text-muted-foreground">of {accountStats.emailLimit}</div>
+              <div className="text-xs text-muted-foreground">of {formatLimit(accountStats.emailLimit)}</div>
             </div>
 
             <div className="text-center p-2 bg-gray-50 rounded">
@@ -257,7 +263,7 @@ function AccountCard({ account, onCpanelLogin }: { account: HostingAccount; onCp
                 <span className="text-sm font-medium">Databases</span>
               </div>
               <div className="text-lg font-bold text-green-600">{accountStats.databases}</div>
-              <div className="text-xs text-muted-foreground">of {accountStats.databaseLimit}</div>
+              <div className="text-xs text-muted-foreground">of {formatLimit(accountStats.databaseLimit)}</div>
             </div>
 
             <div className="text-center p-2 bg-gray-50 rounded">
@@ -266,7 +272,7 @@ function AccountCard({ account, onCpanelLogin }: { account: HostingAccount; onCp
                 <span className="text-sm font-medium">Subdomains</span>
               </div>
               <div className="text-lg font-bold text-purple-600">{accountStats.subdomains}</div>
-              <div className="text-xs text-muted-foreground">of {accountStats.subdomainLimit}</div>
+              <div className="text-xs text-muted-foreground">of {formatLimit(accountStats.subdomainLimit)}</div>
             </div>
 
             <div className="text-center p-2 bg-gray-50 rounded">
@@ -275,7 +281,7 @@ function AccountCard({ account, onCpanelLogin }: { account: HostingAccount; onCp
                 <span className="text-sm font-medium">FTP Accounts</span>
               </div>
               <div className="text-lg font-bold text-orange-600">{accountStats.ftpAccounts}</div>
-              <div className="text-xs text-muted-foreground">of {accountStats.ftpAccountLimit}</div>
+              <div className="text-xs text-muted-foreground">of {formatLimit(accountStats.ftpAccountLimit)}</div>
             </div>
           </div>
 
@@ -288,7 +294,7 @@ function AccountCard({ account, onCpanelLogin }: { account: HostingAccount; onCp
                   <span className="text-sm font-medium">Addon Domains</span>
                 </div>
                 <div className="text-lg font-bold text-indigo-600">{accountStats.addonDomains}</div>
-                <div className="text-xs text-muted-foreground">of {accountStats.addonDomainLimit}</div>
+                <div className="text-xs text-muted-foreground">of {formatLimit(accountStats.addonDomainLimit)}</div>
               </div>
 
               <div className="text-center p-2 bg-gray-50 rounded">
@@ -297,7 +303,7 @@ function AccountCard({ account, onCpanelLogin }: { account: HostingAccount; onCp
                   <span className="text-sm font-medium">Parked Domains</span>
                 </div>
                 <div className="text-lg font-bold text-teal-600">{accountStats.parkDomains}</div>
-                <div className="text-xs text-muted-foreground">of {accountStats.parkDomainLimit}</div>
+                <div className="text-xs text-muted-foreground">of {formatLimit(accountStats.parkDomainLimit)}</div>
               </div>
             </div>
           )}
