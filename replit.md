@@ -395,6 +395,9 @@ Changelog:
 - July 12, 2025. CRITICAL HOSTING LIMIT ENFORCEMENT: Hidden "Create New Hosting Account" options for users who already have hosting accounts
 - July 12, 2025. Implemented one free hosting account per user policy - prevents multiple account creation for anonymous users
 - July 12, 2025. Enhanced client dashboard to hide hosting account creation when user has reached their limit
+- July 12, 2025. CRITICAL EMAIL DETECTION FIX: Implemented intelligent email validation with hasValidEmail() helper function
+- July 12, 2025. Enhanced email detection to handle null, undefined, empty strings, and whitespace-only email values
+- July 12, 2025. Updated both email collection banners to use intelligent email detection for consistent behavior
 ```
 
 # User Preferences

@@ -329,6 +329,11 @@ function AccountCard({ account, onCpanelLogin }: { account: HostingAccount; onCp
   );
 }
 
+// Helper function to intelligently detect if user has a valid email
+function hasValidEmail(user: any): boolean {
+  return user?.email && typeof user.email === 'string' && user.email.trim().length > 0;
+}
+
 export default function ClientDashboard() {
   const { user, isAuthenticated, isLoading } = useAuth();
   const { toast } = useToast();
@@ -567,7 +572,7 @@ export default function ClientDashboard() {
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Email Collection Banner for users without email */}
-        {user && !user.email && (
+        {user && !hasValidEmail(user) && (
           <div className="mb-8">
             <Card className="border-red-500 bg-red-100 dark:bg-red-900/30">
               <CardContent className="p-4">
@@ -746,7 +751,7 @@ export default function ClientDashboard() {
                       </div>
                     )}
 
-                    {!user.email && (
+                    {!hasValidEmail(user) && (
                       <div className="border-t border-red-200 dark:border-red-800 pt-4">
                         <h4 className="font-medium text-red-800 dark:text-red-200 mb-2">
                           Optional: Provide Email for Communication
