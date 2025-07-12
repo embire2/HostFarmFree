@@ -528,7 +528,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Create user account in local database
       const userData = {
         username,
-        email: `admin@${fullDomain}`,
+        email: null, // Anonymous users should not have auto-generated emails
         firstName: 'Anonymous',
         lastName: 'User',
         password: password,

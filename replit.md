@@ -398,6 +398,9 @@ Changelog:
 - July 12, 2025. CRITICAL EMAIL DETECTION FIX: Implemented intelligent email validation with hasValidEmail() helper function
 - July 12, 2025. Enhanced email detection to handle null, undefined, empty strings, and whitespace-only email values
 - July 12, 2025. Updated both email collection banners to use intelligent email detection for consistent behavior
+- July 12, 2025. CRITICAL BUG FIX: Removed automatic email generation in /api/register-domain endpoint that was creating emails like "admin@masterofnone.hostme.today" for anonymous users
+- July 12, 2025. Fixed email detection system by ensuring anonymous users have null emails instead of auto-generated domain emails
+- July 12, 2025. Cleared auto-generated emails for 14 existing anonymous users to enable proper email collection banner functionality
 ```
 
 # User Preferences
