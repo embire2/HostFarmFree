@@ -404,6 +404,8 @@ Changelog:
 - July 12, 2025. PLUGIN LIBRARY EMAIL VALIDATION: Implemented comprehensive email validation for Plugin Library access using hasValidEmail() helper function
 - July 12, 2025. Created missing /api/update-email endpoint for plugin library email collection functionality
 - July 12, 2025. Enhanced plugin library to require valid email addresses before accessing plugins, while preserving separate Account Creation Flow
+- July 12, 2025. UX IMPROVEMENT: Moved 'Need Help?' section underneath 'Your Hosting Accounts' and replaced with single 'Join Discord Server' button
+- July 12, 2025. Updated client dashboard help section to use Discord community link (https://discord.gg/ManeAyDrtg) for better user support
 ```
 
 # User Preferences

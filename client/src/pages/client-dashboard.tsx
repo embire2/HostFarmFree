@@ -881,6 +881,26 @@ export default function ClientDashboard() {
               </CardContent>
             </Card>
 
+            {/* Support */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Need Help?</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Our community is here to help you succeed with your projects.
+                </p>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="w-full"
+                  onClick={() => window.open('https://discord.gg/ManeAyDrtg', '_blank')}
+                >
+                  Join Discord Server
+                </Button>
+              </CardContent>
+            </Card>
+
             {/* Create New Domain - Only show if user has no hosting accounts */}
             {Array.isArray(hostingAccounts) && hostingAccounts.length === 0 && (
               <Card id="create-domain">
@@ -1019,28 +1039,7 @@ export default function ClientDashboard() {
               </CardContent>
             </Card>
 
-            {/* Support */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Need Help?</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Our community is here to help you succeed with your projects.
-                </p>
-                <div className="space-y-2">
-                  <Button variant="outline" size="sm" className="w-full">
-                    Community Forums
-                  </Button>
-                  <Button variant="outline" size="sm" className="w-full">
-                    Documentation
-                  </Button>
-                  <Button variant="outline" size="sm" className="w-full">
-                    Video Tutorials
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+
           </div>
         </div>
       </div>
