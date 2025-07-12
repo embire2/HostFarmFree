@@ -390,6 +390,11 @@ Changelog:
 - July 12, 2025. CRITICAL EMAIL UPDATE FIX: Added missing PATCH /api/user/:id endpoint for email address updates
 - July 12, 2025. Fixed 404 error when anonymous users try to update their email address in client dashboard
 - July 12, 2025. Enhanced user update endpoint with proper authentication and authorization checks
+- July 12, 2025. MAJOR UX IMPROVEMENT: Fixed email form to start with empty field instead of showing user's current email address
+- July 12, 2025. Enhanced email collection system - hides email forms when user already has email configured
+- July 12, 2025. CRITICAL HOSTING LIMIT ENFORCEMENT: Hidden "Create New Hosting Account" options for users who already have hosting accounts
+- July 12, 2025. Implemented one free hosting account per user policy - prevents multiple account creation for anonymous users
+- July 12, 2025. Enhanced client dashboard to hide hosting account creation when user has reached their limit
 ```
 
 # User Preferences

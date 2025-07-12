@@ -49,7 +49,7 @@ function EmailUpdateForm({ userId, currentEmail }: { userId: number; currentEmai
   const form = useForm<EmailUpdateFormData>({
     resolver: zodResolver(emailUpdateSchema),
     defaultValues: {
-      email: currentEmail || "",
+      email: "", // Always start with empty field
     },
   });
 
@@ -746,15 +746,17 @@ export default function ClientDashboard() {
                       </div>
                     )}
 
-                    <div className="border-t border-red-200 dark:border-red-800 pt-4">
-                      <h4 className="font-medium text-red-800 dark:text-red-200 mb-2">
-                        Optional: Provide Email for Communication
-                      </h4>
-                      <p className="text-sm text-red-700 dark:text-red-300 mb-3">
-                        We can use your email strictly for important hosting updates and security notifications.
-                      </p>
-                      <EmailUpdateForm userId={user.id} currentEmail={user.email} />
-                    </div>
+                    {!user.email && (
+                      <div className="border-t border-red-200 dark:border-red-800 pt-4">
+                        <h4 className="font-medium text-red-800 dark:text-red-200 mb-2">
+                          Optional: Provide Email for Communication
+                        </h4>
+                        <p className="text-sm text-red-700 dark:text-red-300 mb-3">
+                          We can use your email strictly for important hosting updates and security notifications.
+                        </p>
+                        <EmailUpdateForm userId={user.id} currentEmail={user.email} />
+                      </div>
+                    )}
                   </div>
                 </div>
               </CardContent>
@@ -823,16 +825,19 @@ export default function ClientDashboard() {
                   <Globe className="mr-2 h-5 w-5" />
                   Your Hosting Accounts
                 </CardTitle>
-                <Button
-                  onClick={() => {
-                    document.getElementById("create-domain")?.scrollIntoView({ behavior: "smooth" });
-                  }}
-                  size="sm"
-                  className="bg-primary text-white hover:bg-secondary"
-                >
-                  <Plus className="mr-2 h-4 w-4" />
-                  Create New
-                </Button>
+                {/* Hide Create New button if user already has hosting accounts */}
+                {Array.isArray(hostingAccounts) && hostingAccounts.length === 0 && (
+                  <Button
+                    onClick={() => {
+                      document.getElementById("create-domain")?.scrollIntoView({ behavior: "smooth" });
+                    }}
+                    size="sm"
+                    className="bg-primary text-white hover:bg-secondary"
+                  >
+                    <Plus className="mr-2 h-4 w-4" />
+                    Create New
+                  </Button>
+                )}
               </CardHeader>
               <CardContent>
                 {accountsLoading ? (
@@ -871,23 +876,25 @@ export default function ClientDashboard() {
               </CardContent>
             </Card>
 
-            {/* Create New Domain */}
-            <Card id="create-domain">
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Plus className="mr-2 h-5 w-5" />
-                  Create New Hosting Account
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <DomainSearch 
-                  onSuccess={() => {
-                    // Refresh hosting accounts
-                    window.location.reload();
-                  }}
-                />
-              </CardContent>
-            </Card>
+            {/* Create New Domain - Only show if user has no hosting accounts */}
+            {Array.isArray(hostingAccounts) && hostingAccounts.length === 0 && (
+              <Card id="create-domain">
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <Plus className="mr-2 h-5 w-5" />
+                    Create New Hosting Account
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <DomainSearch 
+                    onSuccess={() => {
+                      // Refresh hosting accounts
+                      window.location.reload();
+                    }}
+                  />
+                </CardContent>
+              </Card>
+            )}
           </div>
 
           {/* Sidebar */}
