@@ -385,6 +385,11 @@ Changelog:
 - July 12, 2025. Fixed hosting statistics to show accurate counts for email accounts, databases, subdomains, and FTP accounts from live WHM data
 - July 12, 2025. Added comprehensive WHM field debugging to identify correct field names from actual API responses
 - July 12, 2025. Client dashboard now displays accurate resource usage and limits for all hosting account services
+- July 12, 2025. CRITICAL API ENDPOINT FIX: Fixed WHM field mapping to use correct lowercase field names (maxpop, maxsql, maxsub, maxftp)
+- July 12, 2025. Updated frontend formatLimit function to properly display "unlimited" instead of "999" for unlimited hosting limits
+- July 12, 2025. CRITICAL EMAIL UPDATE FIX: Added missing PATCH /api/user/:id endpoint for email address updates
+- July 12, 2025. Fixed 404 error when anonymous users try to update their email address in client dashboard
+- July 12, 2025. Enhanced user update endpoint with proper authentication and authorization checks
 ```
 
 # User Preferences

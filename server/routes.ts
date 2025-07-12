@@ -41,6 +41,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update user information
+  app.patch("/api/user/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = parseInt(req.params.id);
+      const { email, firstName, lastName } = req.body;
+      
+      // Security check: users can only update their own account, admins can update any
+      if (req.user.role !== 'admin' && req.user.id !== userId) {
+        return res.status(403).json({ message: "Forbidden: Cannot update other user's information" });
+      }
+      
+      console.log(`[User Update API] Updating user ${userId} with data:`, { email, firstName, lastName });
+      
+      const updateData: any = {};
+      if (email !== undefined) updateData.email = email;
+      if (firstName !== undefined) updateData.firstName = firstName;
+      if (lastName !== undefined) updateData.lastName = lastName;
+      
+      const updatedUser = await storage.updateUser(userId, updateData);
+      if (!updatedUser) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      console.log(`[User Update API] ✓ Successfully updated user ${userId}`);
+      res.json(updatedUser);
+    } catch (error) {
+      console.error('Error updating user:', error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   // Admin user management
   app.get("/api/admin/users", isAuthenticated, requireAdmin, async (req, res) => {
     try {
@@ -1809,21 +1840,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
             bandwidthUsed: parseInt((acctInfo.totalbw || acctInfo.TOTALBW || '0').toString()),
             bandwidthLimit: parseLimit(acctInfo.bwlimit || acctInfo.BWLIMIT, 10240),
             
-            // Email accounts - using correct WHM API field names
-            emailAccounts: parseInt(acctInfo.EMAILACCTS || acctInfo.emailaccts || acctInfo.email || '0'),
-            emailLimit: parseLimit(acctInfo.MAXPOP || acctInfo.maxpop, 10),
+            // Email accounts - listaccts only provides limits, not usage counts
+            emailAccounts: 0, // listaccts doesn't provide usage counts
+            emailLimit: parseLimit(acctInfo.maxpop, 10),
             
-            // Databases - using correct WHM API field names  
-            databases: parseInt(acctInfo.MYSQL || acctInfo.mysql || acctInfo.mysqldbs || '0'),
-            databaseLimit: parseLimit(acctInfo.MAXSQL || acctInfo.maxsql, 5),
+            // Databases - listaccts only provides limits, not usage counts  
+            databases: 0, // listaccts doesn't provide usage counts
+            databaseLimit: parseLimit(acctInfo.maxsql, 5),
             
-            // Subdomains - using correct WHM API field names
-            subdomains: parseInt(acctInfo.SUBDOMAINS || acctInfo.subdomains || acctInfo.subdomain || '0'), 
-            subdomainLimit: parseLimit(acctInfo.MAXSUB || acctInfo.maxsub, 10),
+            // Subdomains - listaccts only provides limits, not usage counts
+            subdomains: 0, // listaccts doesn't provide usage counts
+            subdomainLimit: parseLimit(acctInfo.maxsub, 10),
             
-            // FTP accounts - using correct WHM API field names
-            ftpAccounts: parseInt(acctInfo.FTPACCTS || acctInfo.ftpaccts || acctInfo.ftp || '0'),
-            ftpAccountLimit: parseLimit(acctInfo.MAXFTP || acctInfo.maxftp, 5),
+            // FTP accounts - listaccts only provides limits, not usage counts
+            ftpAccounts: 0, // listaccts doesn't provide usage counts
+            ftpAccountLimit: parseLimit(acctInfo.maxftp, 5),
             
             // Addon domains
             addonDomains: parseInt(acctInfo.addon_domains || acctInfo.ADDON_DOMAINS || '0'),
