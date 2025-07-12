@@ -401,6 +401,9 @@ Changelog:
 - July 12, 2025. CRITICAL BUG FIX: Removed automatic email generation in /api/register-domain endpoint that was creating emails like "admin@masterofnone.hostme.today" for anonymous users
 - July 12, 2025. Fixed email detection system by ensuring anonymous users have null emails instead of auto-generated domain emails
 - July 12, 2025. Cleared auto-generated emails for 14 existing anonymous users to enable proper email collection banner functionality
+- July 12, 2025. PLUGIN LIBRARY EMAIL VALIDATION: Implemented comprehensive email validation for Plugin Library access using hasValidEmail() helper function
+- July 12, 2025. Created missing /api/update-email endpoint for plugin library email collection functionality
+- July 12, 2025. Enhanced plugin library to require valid email addresses before accessing plugins, while preserving separate Account Creation Flow
 ```
 
 # User Preferences

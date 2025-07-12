@@ -72,6 +72,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update email endpoint for plugin library
+  app.post("/api/update-email", isAuthenticated, async (req: any, res) => {
+    try {
+      const { email } = req.body;
+      const userId = req.user.id;
+      
+      console.log(`[Update Email API] Updating email for user ${userId} to:`, email);
+      
+      if (!email || typeof email !== 'string' || email.trim().length === 0) {
+        return res.status(400).json({ message: "Valid email address is required" });
+      }
+      
+      const updatedUser = await storage.updateUser(userId, { email: email.trim() });
+      if (!updatedUser) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      console.log(`[Update Email API] ✓ Successfully updated email for user ${userId}`);
+      res.json({ success: true, message: "Email updated successfully", user: updatedUser });
+    } catch (error) {
+      console.error('Error updating email:', error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   // Admin user management
   app.get("/api/admin/users", isAuthenticated, requireAdmin, async (req, res) => {
     try {

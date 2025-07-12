@@ -38,17 +38,22 @@ export default function PluginLibrary() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  // Helper function to intelligently detect if user has a valid email
+  const hasValidEmail = (user: any): boolean => {
+    return user?.email && typeof user.email === 'string' && user.email.trim().length > 0;
+  };
+
   const { data: plugins, isLoading: pluginsLoading } = useQuery({
     queryKey: ["/api/plugins", { category: selectedCategory !== "all" ? selectedCategory : undefined, search: searchTerm || undefined }],
-    enabled: !!(isAuthenticated && user?.email), // Only load plugins if user is authenticated with email
+    enabled: !!(isAuthenticated && hasValidEmail(user)), // Only load plugins if user is authenticated with valid email
   });
 
   // Check if user has access to plugin library
-  const hasAccess = isAuthenticated && user?.email;
+  const hasAccess = isAuthenticated && hasValidEmail(user);
   
-  // Show email banner for authenticated users without email
+  // Show email banner for authenticated users without valid email
   useEffect(() => {
-    if (isAuthenticated && user && !user.email) {
+    if (isAuthenticated && user && !hasValidEmail(user)) {
       setShowEmailBanner(true);
     } else {
       setShowEmailBanner(false);
@@ -267,7 +272,10 @@ export default function PluginLibrary() {
                   <h2 className="text-2xl font-bold text-gray-800 mb-4">Plugin Library Access Required</h2>
                   <div>
                     <p className="text-gray-600 mb-6">
-                      Add your email address to unlock the Plugin Library and Request function.
+                      {!hasValidEmail(user) 
+                        ? "Add your email address to unlock the Plugin Library and Request function."
+                        : "You need to sign in to access the Plugin Library."
+                      }
                     </p>
                     <form onSubmit={handleEmailSubmit} className="flex flex-col md:flex-row items-center justify-center gap-4">
                       <Input
@@ -499,7 +507,7 @@ export default function PluginLibrary() {
         )}
 
         {/* Plugin Request Section - Available for users with access */}
-        {plugins && plugins.length > 0 && (
+        {hasAccess && plugins && plugins.length > 0 && (
           <Card className="mt-16 gradient-primary text-white">
             <CardContent className="p-8">
               <div className="text-center mb-6">
